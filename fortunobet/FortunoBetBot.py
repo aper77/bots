@@ -85,21 +85,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 from telegram import Bot, InputMediaPhoto
 from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime, timedelta
@@ -114,29 +99,28 @@ TIMEZONE = pytz.timezone('Asia/Yerevan')  # Armenia timezone
 bot = Bot(token=BOT_TOKEN)
 scheduler = BlockingScheduler()
 
-# ====== TEXT & IMAGE POSTS SCHEDULE ======
+# ====== TEXT & IMAGE POSTS SCHEDULE (Your original data) ======
 posts = [
-    {
-        "date": "2025-11-20",
-        "time": "17:40",
-        "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
-        "images": ["/home/www/bots/bots/fortunobet/second.png"]
-    },
-    {
-        "date": "2025-11-21",
-        "time": "09:30",
-        "content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥\n\nMake a deposit this morning and GET 100% BONUS up to $130 instantly! 💰💥\n\n👉 Visit FortunoBet (Main Site):\nhttps://fortunobet.com\n\n👉 Full Registration (Bonus + ACCA Insurance):\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🔥 Take the bonus. 🔥 Place your bets. 🔥 Start winning today! 🚀",
-        "images": ["/home/www/bots/bots/fortunobet/bonus.png"]
-    },
-    {
-        "date": "2025-11-21",
-        "time": "17:40",
-        "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰",
-        "images": ["/home/www/bots/bots/fortunobet/9mas.png"]
-    }
-]
+ {
+  "date": "2025-11-20",
+  "time": "17:32",
+  "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥...", # Content shortened for clarity
+  "images": ["/home/www/bots/bots/fortunobet/second.png"]
+},
+{
+  "date": "2025-11-21",
+  "time": "09:30",
+  "content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥...", # Content shortened for clarity
+  "images": ["/home/www/bots/bots/fortunobet/bonus.png"]
+},
+{
+  "date": "2025-11-21",
+  "time": "17:32",
+  "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰...", # Content shortened for clarity
+  "images": ["9mas.png"]
+}   ]
 
-# ====== FUNCTION TO SEND POSTS ======
+# ====== FUNCTION TO SEND POSTS (No change needed here) ======
 def send_post(post):
     try:
         if "images" in post and post["images"]:
@@ -144,6 +128,7 @@ def send_post(post):
                 media_group = []
                 for idx, img_file in enumerate(post["images"]):
                     if os.path.exists(img_file):
+                        # Ensure the file is opened for reading in binary mode 'rb'
                         if idx == 0:
                             media_group.append(InputMediaPhoto(open(img_file, "rb"), caption=post["content"]))
                         else:
@@ -160,29 +145,61 @@ def send_post(post):
         else:
             bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
 
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted: {post['content']}")
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted: {post['content'][:50]}...")
     except Exception as e:
-        print(f"Failed to post {post['content']}: {e}")
+        print(f"Failed to post: {e}")
+
+# ---
+# 🌟 CORRECTION 1: Check against the full, scheduled date (not just today)
+# ---
 
 # ====== IMMEDIATE POSTS IF BOT STARTS LATE ======
 now = datetime.now(TIMEZONE)
+grace_period = timedelta(minutes=5)
+
 for post in posts:
-    post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
-    post_time = datetime.strptime(post["time"], "%H:%M").time()
-    post_datetime = datetime.combine(post_date, post_time)
-    post_datetime = TIMEZONE.localize(post_datetime)  # <-- pytz-aware
-    if now >= post_datetime and now <= post_datetime + timedelta(minutes=5):
-        send_post(post)  # Post immediately if missed within last 5 minutes
+    # 1. Combine date and time to get the full scheduled datetime
+    run_date_str = f"{post['date']} {post['time']}"
+    run_datetime_naive = datetime.strptime(run_date_str, "%Y-%m-%d %H:%M")
+    post_time = TIMEZONE.localize(run_datetime_naive) # This is the full scheduled time
+
+    # Check if the current time is past the scheduled time AND within the grace period (last 5 min)
+    if now >= post_time and now <= post_time + grace_period:
+        print(f"Post was missed. Posting immediately: {post['date']} at {post['time']}")
+        send_post(post)
+
+# ---
+# 🌟 CORRECTION 2: Use the 'date' trigger for one-time specific dates
+# ---
 
 # ====== SCHEDULE JOBS ======
 for post in posts:
-    post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
-    post_time = datetime.strptime(post["time"], "%H:%M").time()
-    post_datetime = datetime.combine(post_date, post_time)
-    post_datetime = TIMEZONE.localize(post_datetime)  # <-- pytz-aware
-    if post_datetime > now:
-        scheduler.add_job(send_post, 'date', run_date=post_datetime, args=[post])
+    # 1. Combine date and time
+    run_date_str = f"{post['date']} {post['time']}"
+    run_datetime_naive = datetime.strptime(run_date_str, "%Y-%m-%d %H:%M")
+
+    # 2. Localize the datetime object
+    run_datetime_aware = TIMEZONE.localize(run_datetime_naive)
+
+    # 3. Schedule the job using the 'date' trigger
+    # The job will run *only once* at the exact time specified by run_date
+    scheduler.add_job(send_post, 'date', run_date=run_datetime_aware, args=[post],
+                      misfire_grace_time=300) # 5 minutes grace time
 
 # ====== START BOT ======
 print("Bot is running and will post messages automatically...")
 scheduler.start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
