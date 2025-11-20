@@ -15,9 +15,9 @@ scheduler = BlockingScheduler()
 # ====== TEXT & IMAGE POSTS SCHEDULE ======
 posts = [
       # --- DAY 1: 29 NOV 2025 ---
-    {"date": "2025-11-29", "time": "11:00", "content": "✨ Burberry BU10001 Men’s Watch – The Classic Horseferry Gold\n💵 Now only $239.99 (was $670)\n⚡ Limited stock: only 64 pieces available!\n\nLuxurious gold finish with iconic Burberry elegance – perfect for any occasion.\n\n👉 Buy now: https://shoppeboom.coxm/product/brand/burberry", "images": ["b12.webp","b11.webp","b13.webp","b14.webp"]},
+    {"date": "2025-11-20", "time": "19:27", "content": "✨ Burberry BU10001 Men’s Watch – The Classic Horseferry Gold\n💵 Now only $239.99 (was $670)\n⚡ Limited stock: only 64 pieces available!\n\nLuxurious gold finish with iconic Burberry elegance – perfect for any occasion.\n\n👉 Buy now: https://shoppeboom.coxm/product/brand/burberry", "images": ["b12.webp","b11.webp","b13.webp","b14.webp"]},
     {"date": "2025-11-29", "time": "17:00", "content": "✨ Burberry BU10010 Men’s Watch – Check Stamped Round Dial 40mm\n💵 Only $289.99 (was $520!)\n⚡ Limited stock: only 44 pieces available!\n\nClassic Burberry check design with premium craftsmanship – a statement of style and luxury.\n\n👉 Buy now: https://shoppeboom.com/product/brand/burberry", "images": ["b21.webp","b22.webp","b23.webp"]},
-    {"date": "2025-11-30", "time": "00:00",  "content": "✨ Burberry BU9014 Women’s Watch – Tan Dial Leather Strap\n💵 Only $259.99 (was $700!)\n⚡ Limited stock: only 63 pieces available!\n\nLuxury leather strap and iconic Burberry design – perfect for daily elegance or special occasions.\n\n👉 Buy now: https://shoppeboom.com/product/brand/burberry", "images": ["b41.webp","b42.webp","b43.webp"]},
+    {"date": "2025-11-20", "time": "19:27",  "content": "✨ Burberry BU9014 Women’s Watch – Tan Dial Leather Strap\n💵 Only $259.99 (was $700!)\n⚡ Limited stock: only 63 pieces available!\n\nLuxury leather strap and iconic Burberry design – perfect for daily elegance or special occasions.\n\n👉 Buy now: https://shoppeboom.com/product/brand/burberry", "images": ["b41.webp","b42.webp","b43.webp"]},
 
     # --- DAY 2: 30 NOV 2025 ---
     {"date": "2025-11-30", "time": "11:00", "content": "👠 CHIKO Cherris Pointy Toe Wedge Pumps\n💵 Only $129\n⚡ Stylish, comfortable, and perfect for day or night!\n\nStep up your fashion game with these elegant wedges.\n\n👉 Buy now: https://shoppeboom.com/product/brand/chiko", "images": ["ch11.jpg","ch12.jpg","ch13.jpg"]},
@@ -83,18 +83,37 @@ def send_post(post):
         print(f"Failed to post {post['content']}: {e}")
 
 # ====== IMMEDIATE POSTS IF BOT STARTS LATE ======
-now = datetime.now(TIMEZONE)
 for post in posts:
+    post_date = datetime.strptime(post["date"], "%Y-%m-%d")
     hour, minute = map(int, post["time"].split(":"))
-    post_time = TIMEZONE.localize(datetime(now.year, now.month, now.day, hour, minute))
+    post_time = TIMEZONE.localize(datetime(
+        post_date.year, post_date.month, post_date.day, hour, minute
+    ))
     if now >= post_time and now <= post_time + timedelta(minutes=5):
-        send_post(post)  # post immediately if missed within last 5 minutes
+        send_post(post)
+
 
 # ====== SCHEDULE JOBS ======
 for post in posts:
+    # Convert string date to real datetime
+    post_date = datetime.strptime(post["date"], "%Y-%m-%d")
     hour, minute = map(int, post["time"].split(":"))
-    scheduler.add_job(send_post, 'cron', hour=hour, minute=minute, args=[post], timezone=TIMEZONE,
-                      misfire_grace_time=300)  # 5 minutes grace time
+
+    # Schedule EXACT date + time
+    scheduler.add_job(
+        send_post,
+        'cron',
+        year=post_date.year,
+        month=post_date.month,
+        day=post_date.day,
+        hour=hour,
+        minute=minute,
+        args=[post],
+        timezone=TIMEZONE,
+        misfire_grace_time=300
+    )
+
+
 
 # ====== START BOT ======
 print("Bot is running and will post messages automatically...")
