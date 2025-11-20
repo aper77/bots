@@ -16,7 +16,7 @@ scheduler = BlockingScheduler()
 posts = [
 {
   "date": "2025-11-20",
-  "time": "15:14",
+  "time": "15:20",
   "content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥\n\nYour chance to boost your bankroll is LIVE right now.\nMake a deposit this morning and GET 100% BONUS up to $130 instantly! 💰💥\n\nNo limits. No delays. Just DOUBLE the money and start playing.\nPerfect for Sportsbook, Casino, Live Games — everything you love.\n\n👉 Visit FortunoBet (Main Site):\nhttps://fortunobet.com\n\n👉 Full Registration (Bonus + ACCA Insurance):\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nThis is your mid-week power boost.\n🔥 Take the bonus.\n🔥 Place your bets.\n🔥 Start winning today! 🚀",
   "images": ["bonus.png"]
 },
