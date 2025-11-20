@@ -81,7 +81,6 @@ async def main():
 await check_missed_posts()
 scheduler.start()
 print("Bot is running and will post messages automatically...")
-# Keep the bot running
 while True:
 await asyncio.sleep(60)
 
