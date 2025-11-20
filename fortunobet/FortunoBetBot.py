@@ -100,7 +100,6 @@
 
 
 
-
 from telegram import Bot, InputMediaPhoto
 from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime, timedelta
@@ -119,7 +118,7 @@ scheduler = BlockingScheduler()
 posts = [
     {
         "date": "2025-11-20",
-        "time": "17:38",
+        "time": "17:40",
         "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
         "images": ["/home/www/bots/bots/fortunobet/second.png"]
     },
@@ -131,7 +130,7 @@ posts = [
     },
     {
         "date": "2025-11-21",
-        "time": "17:38",
+        "time": "17:40",
         "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰",
         "images": ["/home/www/bots/bots/fortunobet/9mas.png"]
     }
@@ -170,7 +169,8 @@ now = datetime.now(TIMEZONE)
 for post in posts:
     post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
     post_time = datetime.strptime(post["time"], "%H:%M").time()
-    post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
+    post_datetime = datetime.combine(post_date, post_time)
+    post_datetime = TIMEZONE.localize(post_datetime)  # <-- pytz-aware
     if now >= post_datetime and now <= post_datetime + timedelta(minutes=5):
         send_post(post)  # Post immediately if missed within last 5 minutes
 
@@ -178,7 +178,8 @@ for post in posts:
 for post in posts:
     post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
     post_time = datetime.strptime(post["time"], "%H:%M").time()
-    post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
+    post_datetime = datetime.combine(post_date, post_time)
+    post_datetime = TIMEZONE.localize(post_datetime)  # <-- pytz-aware
     if post_datetime > now:
         scheduler.add_job(send_post, 'date', run_date=post_datetime, args=[post])
 
