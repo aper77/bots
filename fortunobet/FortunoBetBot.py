@@ -108,7 +108,6 @@ import pytz
 import os
 
 # ====== CONFIG ======
-
 BOT_TOKEN = "7924334103:AAHkeWr7KvmWpu9gFk7Eknd9_6NJn3S1WjA"
 CHANNEL_ID = "@fortuno_bet"  # Your channel username
 TIMEZONE = pytz.timezone('Asia/Yerevan')  # Armenia timezone
@@ -117,76 +116,72 @@ bot = Bot(token=BOT_TOKEN)
 scheduler = BlockingScheduler()
 
 # ====== TEXT & IMAGE POSTS SCHEDULE ======
-
 posts = [
-{
-"date": "2025-11-20",
-"time": "17:36",
-"content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
-"images": ["/home/www/bots/bots/fortunobet/second.png"]
-},
-{
-"date": "2025-11-21",
-"time": "09:30",
-"content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥\n\nMake a deposit this morning and GET 100% BONUS up to $130 instantly! 💰💥\n\n👉 Visit FortunoBet (Main Site):\nhttps://fortunobet.com\n\n👉 Full Registration (Bonus + ACCA Insurance):\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🔥 Take the bonus. 🔥 Place your bets. 🔥 Start winning today! 🚀",
-"images": ["/home/www/bots/bots/fortunobet/bonus.png"]
-},
-{
-"date": "2025-11-21",
-"time": "17:36",
-"content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰",
-"images": ["/home/www/bots/bots/fortunobet/9mas.png"]
-}
+    {
+        "date": "2025-11-20",
+        "time": "17:38",
+        "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
+        "images": ["/home/www/bots/bots/fortunobet/second.png"]
+    },
+    {
+        "date": "2025-11-21",
+        "time": "09:30",
+        "content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥\n\nMake a deposit this morning and GET 100% BONUS up to $130 instantly! 💰💥\n\n👉 Visit FortunoBet (Main Site):\nhttps://fortunobet.com\n\n👉 Full Registration (Bonus + ACCA Insurance):\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🔥 Take the bonus. 🔥 Place your bets. 🔥 Start winning today! 🚀",
+        "images": ["/home/www/bots/bots/fortunobet/bonus.png"]
+    },
+    {
+        "date": "2025-11-21",
+        "time": "17:38",
+        "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰",
+        "images": ["/home/www/bots/bots/fortunobet/9mas.png"]
+    }
 ]
 
 # ====== FUNCTION TO SEND POSTS ======
-
 def send_post(post):
-try:
-if "images" in post and post["images"]:
-if len(post["images"]) > 1:
-media_group = []
-for idx, img_file in enumerate(post["images"]):
-if os.path.exists(img_file):
-if idx == 0:
-media_group.append(InputMediaPhoto(open(img_file, "rb"), caption=post["content"]))
-else:
-media_group.append(InputMediaPhoto(open(img_file, "rb")))
-if media_group:
-bot.send_media_group(chat_id=CHANNEL_ID, media=media_group)
-else:
-img_file = post["images"][0]
-if os.path.exists(img_file):
-with open(img_file, "rb") as photo:
-bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=post["content"])
-else:
-bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
-else:
-bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
-print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted: {post['content']}")
-except Exception as e:
-print(f"Failed to post {post['content']}: {e}")
+    try:
+        if "images" in post and post["images"]:
+            if len(post["images"]) > 1:
+                media_group = []
+                for idx, img_file in enumerate(post["images"]):
+                    if os.path.exists(img_file):
+                        if idx == 0:
+                            media_group.append(InputMediaPhoto(open(img_file, "rb"), caption=post["content"]))
+                        else:
+                            media_group.append(InputMediaPhoto(open(img_file, "rb")))
+                if media_group:
+                    bot.send_media_group(chat_id=CHANNEL_ID, media=media_group)
+            else:
+                img_file = post["images"][0]
+                if os.path.exists(img_file):
+                    with open(img_file, "rb") as photo:
+                        bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=post["content"])
+                else:
+                    bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
+        else:
+            bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
+
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted: {post['content']}")
+    except Exception as e:
+        print(f"Failed to post {post['content']}: {e}")
 
 # ====== IMMEDIATE POSTS IF BOT STARTS LATE ======
-
 now = datetime.now(TIMEZONE)
 for post in posts:
-post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
-post_time = datetime.strptime(post["time"], "%H:%M").time()
-post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
-if now >= post_datetime and now <= post_datetime + timedelta(minutes=5):
-send_post(post)  # Post immediately if missed within last 5 minutes
+    post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
+    post_time = datetime.strptime(post["time"], "%H:%M").time()
+    post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
+    if now >= post_datetime and now <= post_datetime + timedelta(minutes=5):
+        send_post(post)  # Post immediately if missed within last 5 minutes
 
 # ====== SCHEDULE JOBS ======
-
 for post in posts:
-post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
-post_time = datetime.strptime(post["time"], "%H:%M").time()
-post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
-if post_datetime > now:
-scheduler.add_job(send_post, 'date', run_date=post_datetime, args=[post])
+    post_date = datetime.strptime(post["date"], "%Y-%m-%d").date()
+    post_time = datetime.strptime(post["time"], "%H:%M").time()
+    post_datetime = TIMEZONE.localize(datetime.combine(post_date, post_time))
+    if post_datetime > now:
+        scheduler.add_job(send_post, 'date', run_date=post_datetime, args=[post])
 
 # ====== START BOT ======
-
 print("Bot is running and will post messages automatically...")
 scheduler.start()
