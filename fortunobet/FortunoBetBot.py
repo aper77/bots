@@ -103,7 +103,7 @@ scheduler = BlockingScheduler()
 posts = [
  {
   "date": "2025-11-20",
-  "time": "17:32",
+  "time": "17:43",
   "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥...", # Content shortened for clarity
   "images": ["/home/www/bots/bots/fortunobet/second.png"]
 },
@@ -115,7 +115,7 @@ posts = [
 },
 {
   "date": "2025-11-21",
-  "time": "17:32",
+  "time": "17:43",
   "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰...", # Content shortened for clarity
   "images": ["9mas.png"]
 }   ]
