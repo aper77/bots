@@ -16,15 +16,15 @@ scheduler = BlockingScheduler()
 posts = [
 {
   "date": "2025-11-20",
-  "time": "12:11",
+  "time": "16:18",
   "content": "🔥 READY TO WIN THIS WEDNESDAY? LET’S GO, KENYA! 🔥\n\nYour chance to boost your bankroll is LIVE right now.\nMake a deposit this morning and GET 100% BONUS up to $130 instantly! 💰💥\n\nNo limits. No delays. Just DOUBLE the money and start playing.\nPerfect for Sportsbook, Casino, Live Games — everything you love.\n\n👉 Visit FortunoBet (Main Site):\nhttps://fortunobet.com\n\n👉 Full Registration (Bonus + ACCA Insurance):\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nThis is your mid-week power boost.\n🔥 Take the bonus.\n🔥 Place your bets.\n🔥 Start winning today! 🚀",
-  "images": ["bonus.png"]
+  "images": ["/home/www/bots/bots/fortunobet/bonus.png"]
 },
 {
   "date": "2025-11-21",
   "time": "21:00",
   "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\nThese matches are LOADED with value. Don’t wait. Jump straight into Football Section and place your winning combo now!\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
-  "images": ["second.png"]
+  "images": ["/home/www/bots/bots/fortunobet/second.png"]
 }   ]
 
 # ====== FUNCTION TO SEND POSTS ======
