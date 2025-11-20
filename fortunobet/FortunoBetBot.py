@@ -16,7 +16,7 @@ scheduler = BlockingScheduler()
 posts = [
  {
   "date": "2025-11-20",
-  "time": "17:59",
+  "time": "21:00",
   "content": "🔥 WEDNESDAY NIGHT FOOTBALL ACTION — LET’S CASH IN! 🔥\n\nTwo massive games TONIGHT — perfect time to smash big bets and boost your winnings!\n\n⚽ Palmeiras vs Vitória\n⚽ Fluminense vs Flamengo (Huge Derby!)\n\nThese matches are LOADED with value. Don’t wait. Jump straight into Football Section and place your winning combo now!\n\n👉 Football Section:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n👉 FortunoBet:\nhttps://fortunobet.com\n\n💥 Don’t miss your chance — odds are FIRE tonight! Place your bets and LET’S WIN BIG! 💰🔥",
   "images": ["/home/www/bots/bots/fortunobet/second.png"]
 },
@@ -28,7 +28,7 @@ posts = [
 },
 {
   "date": "2025-11-21",
-  "time": "17:59",
+  "time": "21:03",
   "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 **How to Play:**\n1. Set your bet according to your bankroll — start small and increase wisely.\n2. Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n3. Activate BONUS rounds whenever possible — that’s where the BIG wins hide!\n\n💡 **Pro Tips:**\n- Always spin with patience — don’t chase losses.\n- Check the paytable to know the highest paying symbols.\n- Use free demo spins to practice before betting real money.\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰\n\n#SlotsTips #VoodooWins #BigWins #SpinAndWin",
   "images": ["9mas.png"]
 }   ]
@@ -74,18 +74,9 @@ for post in posts:
 
 # ====== SCHEDULE JOBS ======
 for post in posts:
-    run_datetime = TIMEZONE.localize(
-        datetime.strptime(post["date"] + " " + post["time"], "%Y-%m-%d %H:%M")
-    )
-
-    scheduler.add_job(
-        send_post,
-        'date',
-        run_date=run_datetime,
-        args=[post],
-        misfire_grace_time=300
-    )
-
+    hour, minute = map(int, post["time"].split(":"))
+    scheduler.add_job(send_post, 'cron', hour=hour, minute=minute, args=[post], timezone=TIMEZONE,
+                      misfire_grace_time=300)  # 5 minutes grace time
 
 # ====== START BOT ======
 print("Bot is running and will post messages automatically...")
