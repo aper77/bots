@@ -82,16 +82,6 @@ def send_post(post):
     except Exception as e:
         print(f"Failed to post {post['content']}: {e}")
 
-# ====== IMMEDIATE POSTS IF BOT STARTS LATE ======
-for post in posts:
-    post_date = datetime.strptime(post["date"], "%Y-%m-%d")
-    hour, minute = map(int, post["time"].split(":"))
-    post_time = TIMEZONE.localize(datetime(
-        post_date.year, post_date.month, post_date.day, hour, minute
-    ))
-    if now >= post_time and now <= post_time + timedelta(minutes=5):
-        send_post(post)
-
 
 # ====== SCHEDULE JOBS ======
 for post in posts:
