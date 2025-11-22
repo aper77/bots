@@ -22,7 +22,7 @@ posts = [
 },
 {
   "date": "2025-11-22",
-  "time": "12:02",
+  "time": "12:04",
   "content": "🔥🏆 FORTUNOBET SATURDAY MEGA ACCA! 🏆🔥\n\n4-Leg High-Value Slip:\n1️⃣ Liverpool vs Nottm Forest – Liverpool Win & Over 2.5\n2️⃣ Bayern vs Freiburg – Bayern Win\n3️⃣ Barcelona vs Bilbao – BTTS (YES)\n4️⃣ Burnley vs Chelsea – Chelsea Win\n\n💰 Total Odds: ~6.10\nBet ₦10,000 / KES 1,000 → Win ₦61,000 / KES 6,100!\n\n⏳ First kick-off: 5:30 PM AST!\n\n👇 Load the slip:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\nFortunoBet:\nhttps://fortunobet.com",
   "images": ["221.png"]
 },
