@@ -22,7 +22,7 @@ posts = [
 },
  {
   "date": "2025-11-22",
-  "time": "11:41",
+  "time": "11:42",
   "content": "🔥🏆 FORTUNOBET SATURDAY MEGA ACCUMULATOR! 🏆🔥\nThe biggest weekend of football is here! Load this 4-Match slip NOW for a HUGE potential payout! Don't miss the kick-offs!\n\n💰 THE HIGH-VALUE 4-LEG SLIP:\n1. 🏴󠁧󠁢󠁥󠁮󠁧󠁿 **Liverpool** vs Nottm Forest: **Liverpool Win & Over 2.5 Goals**\n   ➡️ *Tipster Note: Liverpool is clinical at home, expecting a comfortable 3-1 or 4-1 scoreline.*\n2. 🇩🇪 **Bayern Munich** vs Freiburg: **Bayern to Win (1)**\n   ➡️ *Tipster Note: Bayern is unstoppable and needs to protect their league lead. A strong home win is guaranteed.*\n3. 🇪🇸 **Barcelona** vs Athletic Bilbao: **Both Teams To Score (BTTS) - YES**\n   ➡️ *Tipster Note: Bilbao is in great scoring form, and Barça's defense has been shaky. Expect goals at both ends!* \n4. 🏴󠁧󠁢󠁥󠁮󠁧󠁿 Burnley vs **Chelsea**: **Chelsea to Win**\n   ➡️ *Tipster Note: Chelsea MUST win to climb the table. They have the quality to beat Burnley.*\n\nTOTAL ACCUMULATOR ODDS: **Approx. 6.10** 🚀\nBet ₦10,000 / KES 1,000 and WIN over **₦61,000 / KES 6,100!**\n\n⏳ **DON'T WAIT! First Match Kicks Off at 5:30 PM AST!** ⏳\nTap the link below to load this winning slip instantly and place your bet!\n\n⬇️ **LOCK IN YOUR WIN (Direct to Football Section):** ⬇️\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n➡️ **(Check out the main site here: FortunoBet)**\nhttps://fortunobet.com",
   "images": ["221.png"]
 },
