@@ -17,31 +17,31 @@ posts = [
 {
   "date": "2025-11-24",
   "time": "20:00",
-  "content": "✨ ROLL THE DICE, WIN BIG! ✨\n\nReady for some fast-paced action and instant wins? Dive into **Lucky Dice** by Pragmatic Play at FortunoBet! 🎲\n\nThis thrilling game is all about predicting the outcome and hitting those lucky numbers for massive payouts. Simple to play, exciting to win!\n\n💡 **Pro Tip:** Maximize your gameplay by checking out our current bonuses! A deposit bonus or free spins could give you the edge you need to land those epic wins on Lucky Dice. The more you play, the more chances you have!\n\n⬇️ Play Lucky Dice NOW! ⬇️\nhttps://fortunobet.com",
+  "content": "🎲 Feeling lucky today? Try your hand at Lucky Dice!\n\nPredict the dice, hit the right numbers, and win instantly with Pragmatic Play’s exciting game at FortunoBet. It’s simple, fast, and fun!\n\n💡 Why play now?\n\n- Boost your chances with current deposit bonuses or free spins\n- Instant wins every round\n- Easy to pick up and start playing immediately\n\nReady to roll and see if luck is on your side? ⬇️\nhttps://fortunobet.com\n\nWhat’s your favorite winning strategy—high numbers or low? Let us know!",
   "images": ["241.png"]
 },
 {
   "date": "2025-11-25",
   "time": "12:00",
-  "content": "💰 **MID-WEEK POWER PLAY: EPIC DEPOSIT SERIES!** 💰\n\nDon't wait for the weekend to win big! Boost your bankroll today with the incredible **Epic Deposit Series** and claim up to **$38,180** in bonus funds!\n\nThis massive offer covers your:\n* **2nd Deposit:** Up to $100 Match!\n* **3rd Deposit:** Up to $100 Match!\n* **4th Deposit:** Up to $100 Match!\n\n💡 **Pro Tip:** Keep the action going all week long. Every deposit gets you closer to that maximum payout!\n\n👉 **Claim Your Next Deposit Bonus Now:**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nDeposit now and chase those epic wins! 🚀",
+  "content": "💰 Boost Your Wins Mid-Week with the Epic Deposit Series! 💰\n\nTake advantage of our Epic Deposit Series and claim up to **$38,180** in bonus funds to grow your bankroll faster.\n\n📌 How it works:\n- 2nd Deposit: Up to $100 Match\n- 3rd Deposit: Up to $100 Match\n- 4th Deposit: Up to $100 Match\n\n💡 Pro Tip: Keep depositing throughout the week to get closer to the maximum bonus and enjoy more chances to win.\n\n👉 Claim Your Bonus Now: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nWhich deposit level will you hit next? Let us know and start winning!",
   "images": ["251.png"]
 },
   {
     "date": "2025-11-25",
     "time": "20:00",
-    "content": "⚽🏈🏀 **THE ULTIMATE SPORTS ARENA IS HERE!** 🏒🎾🥊\n\nNo matter your game, FortunoBet has the odds and action you're looking for.\n\nFrom **Soccer** and **Basketball** to **Esports** and niche markets, we offer thousands of live and pre-match betting opportunities every day.\n\n🔥 **Why Choose FortunoBet Sports?**\n* **Massive Selection:** Bet on all major leagues and international events.\n* **Best Odds:** Competitive prices across the board.\n* **Live Betting:** Non-stop in-play excitement.\n\n👉 **SEE ALL SPORTS & BET NOW!** 👈\nhttps://fortunobet.com/com/sports",
+    "content": "⚽🏈🏀 THE ULTIMATE SPORTS ARENA IS HERE! 🏒🎾🥊\n\nNo matter your game, FortunoBet has the odds and action you're looking for.\n\nFrom Soccer and Basketball to Esports and niche markets, we offer thousands of live and pre-match betting opportunities every day.\n\n🔥 Why Choose FortunoBet Sports?\n- Massive Selection: Bet on all major leagues and international events.\n- Best Odds: Competitive prices across the board.\n- Live Betting: Non-stop in-play excitement.\n\n👉 SEE ALL SPORTS & BET NOW! 👈\nhttps://fortunobet.com/com/sports",
     "images": ["252.png"]
   },
   {
     "date": "2025-11-26",
     "time": "12:00",
-    "content": "✨ **WEDNESDAY BOOST: 75% SECOND DEPOSIT BONUS!** ✨\n\nReady for a mid-week reload? Your 2nd Deposit gets a massive match!\n\n🥈 **75% Match Bonus**\n💰 **Claim Up to $100**\n\nDon't miss out on the Deposit Series rewards—power up your account today!\n\n👉 **RELOAD NOW!**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration",
+    "content": "✨ Mid-Week Boost: 75% Bonus on Your 2nd Deposit! ✨\n\nReload your account and enjoy a 75% match bonus, claiming up to $100 on your 2nd deposit. Keep your mid-week momentum going and maximize your playing power!\n\n💡 Why reload now?\n- Instantly boost your bankroll\n- More chances to win in the Deposit Series\n- Quick and easy to claim\n\n👉 Claim Your Bonus Here: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nWill you go for the full $100 bonus this week? Let us know!",
     "images": ["261.png"]
   },
     {
     "date": "2025-11-26",
     "time": "20:00",
-    "content": "🤯 **OVER 1000 GAMES & COUNTING!** 🤯\n\n**Warning: Your game library is about to explode!** 💥\n\nAt FortunoBet, we don't just have slots—we have an *entire universe* of casino action. With **1000+** games and **NEW** titles added *every single day* (from top providers like Pragmatic Play and Evolution), you'll always find your next favorite slot, crash game, or Live Roulette table.\n\n🎲 **What's waiting for you?**\n* **MEGAWAYS** Slots with 117,649 ways to win!\n* **Live Casino** for real-dealer thrills.\n* **Jackpots** that could change your life!\n\nStop scrolling and start spinning! Your perfect game is waiting to be discovered.\n\n👉 **FIND YOUR FAVORITE GAME NOW!**\nhttps://fortunobet.com",
+    "content": "🤯 OVER 1000 GAMES & COUNTING! 🤯\n\nYour game library is about to explode! 💥\n\nAt FortunoBet, we offer an entire universe of casino action. With over 1000 games and new titles added every day from top providers like Pragmatic Play and Evolution, you'll always find your next favorite slot, crash game, or Live Roulette table.\n\n🎲 What's waiting for you?\n- MEGAWAYS Slots with 117,649 ways to win\n- Live Casino for real-dealer thrills\n- Jackpots that could change your life\n\nStop scrolling and start spinning! Your perfect game is ready to be discovered.\n\n👉 FIND YOUR FAVORITE GAME NOW! https://fortunobet.com",
     "images": ["262.png"]
   },
   ]
