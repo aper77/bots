@@ -15,47 +15,35 @@ scheduler = BlockingScheduler()
 # ====== TEXT & IMAGE POSTS SCHEDULE ======
 posts = [
 {
-  "date": "2025-11-21",
+  "date": "2025-11-24",
   "time": "20:00",
-  "content": "🎰 UNLOCK THE MAGIC OF 9 MASKS OF VOODOO! 🎰\n\nReady to spin and WIN BIG? Here’s how to play smart and maximize your chances in this mystical slot adventure!\n\n🌀 **How to Play:**\n1. Set your bet according to your bankroll — start small and increase wisely.\n2. Watch for the special VOODOO MASK symbols — they trigger FREE SPINS!\n3. Activate BONUS rounds whenever possible — that’s where the BIG wins hide!\n\n💡 **Pro Tips:**\n- Always spin with patience — don’t chase losses.\n- Check the paytable to know the highest paying symbols.\n- Use free demo spins to practice before betting real money.\n\n👉 Play 9 Masks of Voodoo here:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=slot/9masksofvoodoo\n\n💥 Dive into the magic, spin wisely, and let the Voodoo masks bring you fortune! 🍀💰\n\n#SlotsTips #VoodooWins #BigWins #SpinAndWin",
-  "images": ["9mas.png"]
+  "content": "✨ ROLL THE DICE, WIN BIG! ✨\n\nReady for some fast-paced action and instant wins? Dive into **Lucky Dice** by Pragmatic Play at FortunoBet! 🎲\n\nThis thrilling game is all about predicting the outcome and hitting those lucky numbers for massive payouts. Simple to play, exciting to win!\n\n💡 **Pro Tip:** Maximize your gameplay by checking out our current bonuses! A deposit bonus or free spins could give you the edge you need to land those epic wins on Lucky Dice. The more you play, the more chances you have!\n\n⬇️ Play Lucky Dice NOW! ⬇️\nhttps://fortunobet.com",
+  "images": ["241.png"]
 },
 {
-  "date": "2025-11-22",
-  "time": "12:04",
-  "content": "🔥🏆 FORTUNOBET SATURDAY MEGA ACCA! 🏆🔥\n\n4-Leg High-Value Slip:\n1️⃣ Liverpool vs Nottm Forest – Liverpool Win & Over 2.5\n2️⃣ Bayern vs Freiburg – Bayern Win\n3️⃣ Barcelona vs Bilbao – BTTS (YES)\n4️⃣ Burnley vs Chelsea – Chelsea Win\n\n💰 Total Odds: ~6.10\nBet ₦10,000 / KES 1,000 → Win ₦61,000 / KES 6,100!\n\n⏳ First kick-off: 5:30 PM AST!\n\n👇 Load the slip:\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\nFortunoBet:\nhttps://fortunobet.com",
-  "images": ["221.png"]
+  "date": "2025-11-25",
+  "time": "12:00",
+  "content": "💰 **MID-WEEK POWER PLAY: EPIC DEPOSIT SERIES!** 💰\n\nDon't wait for the weekend to win big! Boost your bankroll today with the incredible **Epic Deposit Series** and claim up to **$38,180** in bonus funds!\n\nThis massive offer covers your:\n* **2nd Deposit:** Up to $100 Match!\n* **3rd Deposit:** Up to $100 Match!\n* **4th Deposit:** Up to $100 Match!\n\n💡 **Pro Tip:** Keep the action going all week long. Every deposit gets you closer to that maximum payout!\n\n👉 **Claim Your Next Deposit Bonus Now:**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\nDeposit now and chase those epic wins! 🚀",
+  "images": ["251.png"]
 },
   {
-    "date": "2025-11-22",
-    "time": "16:00",
-    "content": "🔥💰 DOUBLE YOUR MONEY & INSURE YOUR BET! 🛡️\nWatching the games? It's time to join FortunoBet and claim the best Welcome Offer in Kenya & Nigeria!\n\nNew players get an UNBEATABLE two-part deal:\n\n1️⃣ **100% FIRST DEPOSIT MATCH!**\n    * We double your money up to **$130!**\n    * Deposit ₦15,000, get ₦30,000 to bet!\n    * Deposit KES 3,000, get KES 6,000 to bet!\n\n2️⃣ **FREE ACCUMULATOR INSURANCE!**\n    * Place a 7-leg Acca: If only ONE selection loses, you get **100% OF YOUR STAKE REFUNDED!** (No more painful near-misses!)\n\nStop watching with zero stakes! Start betting with **double your money** and **no fear of losing** your weekend slip!\n\n⬇️ **SIGN UP NOW to Claim BOTH OFFERS!** ⬇️\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n➡️ Visit FortunoBet (Main Site):\nhttps://fortunobet.com",
-    "images": ["222.png"]
-  },
-  {
-    "date": "2025-11-22",
-    "time": "21:00",
-    "content": "🐷 **GOOD MORNING! Time to Check-In & Get Lucky!** 💰\nWe all need a bit of weekend luck, and today we’re trusting the richest piggies around: **Piggy Cash Hold and Win!**\n\nThis slot is built on trust, fun, and easy winning mechanics!\n\n✅ **TRUST FACTOR: The Piggy Promise!**\n* The game is fair, fun, and designed for excitement. No complicated rules, just pure spin-and-win action.\n\n🌟 **HOW TO WIN BIG:**\nThe magic is in the **Hold and Win** feature!\n1. Land 6 or more Money Symbols to lock them in place.\n2. You get **Re-spins** to fill the screen with CASH!\n3. Fill all 15 spots to win the **INCREDIBLE JACKPOT!**\n\n🗓️ **DAILY REMINDER: Don't Forget Your Check-IN!**\nMake it a habit! Log into FortunoBet every day to catch your latest bonuses, free spins, and rewards. Consistency is key to winning!\n\n👉 **Play Piggy Cash & Check-In Here:**\nhttps://fortunobet.com/com",
-    "images": ["223.png"]
-  },
-  {
-    "date": "2025-11-23",
-    "time": "13:24",
-  "content": "✨🦌 **TONIGHT'S GOLDEN ENERGY: RISE LIKE THE WILD HERD!** 🦌✨\n\nReady for a thrilling adventure of focus and momentum? Channel the strength of the mighty Goldhorn and push toward your goals!\n\n🌟 **HOW TO LEVEL UP TONIGHT:**\n1. Pick one goal and lock in.\n2. Build momentum with small steps.\n3. Stay consistent — progress grows fast once you start.\n\n💡 **Pro Tip:**\nMomentum is powerful. Once you catch it, let it carry you forward!\n\n⬇️ **Check it out here:**\nhttps://fortunobet.com/com",
-    "images": ["231.png"]
-  },
-  {
-    "date": "2025-11-23",
-    "time": "16:00",
-  "content": "🏆⚽ **SUNDAY FOOTBALL HIGHLIGHTS!** ⚽🏆\n\nFootball action across Europe today! Here are four exciting matches to follow:\n\n🌟 **MATCH SPOTLIGHT:**\n1. 🇫🇷 **Paris Saint-Germain** vs Le Havre\n   ➡️ *PSG are strong at home — watch for an energetic game.*\n2. 🇪🇸 **Real Betis** vs Girona\n   ➡️ *Betis look solid and consistent this season.*\n3. 🇮🇹 **Lazio** vs Lecce\n   ➡️ *Lazio have home advantage and key players to watch.*\n4. 🇪🇸 **Getafe** vs Atletico Madrid\n   ➡️ *Atletico bring strong defense and exciting plays.*\n\n⏳ **Kick-off times coming up — don’t miss the action!** ⏳\n\n⬇️ **Follow the matches here:**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\n\n➡️ **Visit FortunoBet for more info:**\nhttps://fortunobet.com",
-    "images": ["232.png"]
-  },
-  {
-    "date": "2025-11-23",
+    "date": "2025-11-25",
     "time": "20:00",
-  "content": "⚡️ **FINAL CALL! EXCLUSIVE WEEKEND OPPORTUNITY!** ⚡️\n\nCheck out some exciting updates and special content for the end of the weekend!\n\n**✅ QUICK START:**\nDiscover new features and tools with minimal effort — jump in and explore!\n\n**🎁 SPECIAL WEEKEND REWARDS:**\nUnlock exclusive content and surprises when you check the links below:\n\n1️⃣ **Exclusive Content Access**\n2️⃣ **Special Tips & Updates**\n3️⃣ **All Weekend Highlights in One Place**\n\n⭐ **YOUR WEEKEND CODE:**\n🔥 **ML_1577703** 🔥\n\n**HOW TO ACCESS:**\n1. Tap the link below.\n2. Enter the code **ML_1577703** to unlock the content.\n3. Enjoy the special updates and surprises!\n\n⏳ **DON'T MISS OUT! Check it now!** ⏳\n\n⬇️ **ACCESS HERE:**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n➡️ **Visit FortunoBet:**\nhttps://fortunobet.com",
-    "images": ["233.png"]
-  }
+    "content": "⚽🏈🏀 **THE ULTIMATE SPORTS ARENA IS HERE!** 🏒🎾🥊\n\nNo matter your game, FortunoBet has the odds and action you're looking for.\n\nFrom **Soccer** and **Basketball** to **Esports** and niche markets, we offer thousands of live and pre-match betting opportunities every day.\n\n🔥 **Why Choose FortunoBet Sports?**\n* **Massive Selection:** Bet on all major leagues and international events.\n* **Best Odds:** Competitive prices across the board.\n* **Live Betting:** Non-stop in-play excitement.\n\n👉 **SEE ALL SPORTS & BET NOW!** 👈\nhttps://fortunobet.com/com/sports",
+    "images": ["252.png"]
+  },
+  {
+    "date": "2025-11-26",
+    "time": "12:00",
+    "content": "✨ **WEDNESDAY BOOST: 75% SECOND DEPOSIT BONUS!** ✨\n\nReady for a mid-week reload? Your 2nd Deposit gets a massive match!\n\n🥈 **75% Match Bonus**\n💰 **Claim Up to $100**\n\nDon't miss out on the Deposit Series rewards—power up your account today!\n\n👉 **RELOAD NOW!**\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration",
+    "images": ["261.png"]
+  },
+    {
+    "date": "2025-11-26",
+    "time": "20:00",
+    "content": "🤯 **OVER 1000 GAMES & COUNTING!** 🤯\n\n**Warning: Your game library is about to explode!** 💥\n\nAt FortunoBet, we don't just have slots—we have an *entire universe* of casino action. With **1000+** games and **NEW** titles added *every single day* (from top providers like Pragmatic Play and Evolution), you'll always find your next favorite slot, crash game, or Live Roulette table.\n\n🎲 **What's waiting for you?**\n* **MEGAWAYS** Slots with 117,649 ways to win!\n* **Live Casino** for real-dealer thrills.\n* **Jackpots** that could change your life!\n\nStop scrolling and start spinning! Your perfect game is waiting to be discovered.\n\n👉 **FIND YOUR FAVORITE GAME NOW!**\nhttps://fortunobet.com",
+    "images": ["262.png"]
+  },
   ]
 
 # ====== FUNCTION TO SEND POSTS ======
