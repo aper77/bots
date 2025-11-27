@@ -42,7 +42,7 @@ posts = [
     "date": "2025-11-29",
     "time": "20:00",
     "content": "🎯 DOMINATE LOCO LUCK THUNDERSPIN! 🎯\n\n⚡ WINNING STRATEGY:\n• BET MAX LINES - Cover all wins\n• TRIGGER BONUS - 3+ scatters = free spins\n• EXPANDING WILDS - Cover entire reels\n• LIGHTNING MULTIPLIERS - Up to 10x!\n\n💡 PRO MOVE: Medium bets + bonus hunting = MAX WINS!\n\n⚡ READY TO WIN BIG?\n⬇️ PLAY SMART NOW! ⬇️\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 https://fortunobet.com\n\nRide the thunder to victory! ⚡",
-    "images": ["292.jpg"]
+    "images": ["292.webp"]
   },
   ]
 
