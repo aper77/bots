@@ -40,7 +40,7 @@ posts = [
   },
     {
     "date": "2025-12-02",
-    "time": "20:00",
+    "time": "16:26",
     "content": "🤯 STOP SCROLLING! $38,180 CASINO CASH IS WAITING! 💎\n\nYour rewards don't stop after the first deposit! Fortunobet has an Epic Deposit Series that offers incredible bonuses on your 2nd, 3rd, and 4th deposits, totaling up to $38,180 in bonus funds!\n\n💰 WHY KEEP DEPOSITING?\n* 🚀 $38,180 Max: The largest bonus pool available for loyal players.\n* 🥈 2nd Deposit: Claim a high-value match bonus.\n* 🥉 3rd & 4th: Keep boosting your balance with every funding round.\n\nLevel up your play and claim your share of this massive bonus pool today!\n\n⬇️ CLAIM YOUR NEXT BONUS NOW!\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 Official Website: https://fortunobet.com",
     "images": ["021.png"]
   },
