@@ -15,41 +15,51 @@ scheduler = BlockingScheduler()
 # ====== TEXT & IMAGE POSTS SCHEDULE ======
 posts = [
 {
-  "date": "2025-11-30",
+  "date": "2025-12-03",
   "time": "12:00",
-  "content": "🛑 STOP SCROLLING! 🛑 You're about to miss the easiest way to double your money this Sunday.\n\nNew players at Fortunobet get a massive 100% Match Bonus on their first deposit, instantly boosting your bankroll up to $100!\n\nWhy Join Today?\n\n✅ 100% Match: Get up to $100 FREE when you deposit.\n✅ Double Play: Deposit $50, play with $100!\n✅ Simple & Fast: Claim the bonus right after registration.\n\nReady to play smart? Click to register now!\n\n⬇️ PLAY SMART NOW! ⬇️\n\nRegister Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\nVisit Fortunobet:🌐 https://fortunobet.com",
-  "images": ["301.jpeg"]
+  "content": "🚀 🤩 Your cash just got a whole lot bigger at FortunoBet.\n\nWe're kicking off your winning week by **DOUBLING** your very first deposit! Get a **100% Match Bonus** up to **$130** just for signing up and making a deposit.\n\n* 💰 **100% Match:** Double your funds instantly.\n* 💵 **Up to $130 FREE** to play with.\n* 🎰 Use it on slots, live casino, or sports!\n\nIt's the ultimate welcome package to start your journey!\n\nReady to claim your $130 bonus and start playing? 👇\n\n**Claim Your 100% Bonus Now!**\n\nRegister Here: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\nVisit Fortunobet: 🌐 https://fortunobet.com",
+  "images": ["031.jpg"]
 },
 {
-  "date": "2025-11-30",
+  "date": "2025-12-03",
   "time": "20:00",
-  "content": "🤯 STOP SCROLLING! HUGE 9.37 ODD ACCA IS LIVE! 🤯\n\nDon't bet alone this Sunday. We've hand-picked the best games from the Premier League and La Liga to deliver a single accumulator that multiplies your stake by over 9 times!\n\n🏆 4-STEP WINNING STRATEGY:\n* ✅ Tottenham (1) vs. Fulham\n* ✅ Atletico Madrid (1) vs. Real Oviedo\n* ✅ Liverpool (2) vs. West Ham\n* ✅ Aston Villa vs. Wolves: OVER 2.5 Goals\n\nThe Combined Odd is an insane 9.37!\n\nClick the link now to place this bet and cash in on the biggest matches of the weekend!\n\n⬇️ PLACE THE ACCA NOW! ⬇️\n\nPlace Bet Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\nVisit Fortunobet:🌐 https://fortunobet.com",
-  "images": ["302.jpg"]
+  "content": "💰 STOP! Guaranteed Wednesday Profit Alert! \n\nWe've locked in the two safest bets for tomorrow's Cup matches to **DOUBLE** your money with a high-probability Accumulator! Get incredible value with a total combined odds of **2.30X**!\n\n* ⚽ **Freiburg & Napoli** are strong home favorites.\n* ✅ **2.30X Odds:** Turn ₦5,000 into **₦11,500+** instantly.\n* ⏰ **Kick-off:** Don't miss the 6:00 PM Nigerian time games!\n\nOur experts did the work—all you have to do is bet.\n\nReady to place this winning slip? Click below to load the matches! 👇\n\n**PLACE THE 2.30X ACCA NOW!**\n\nPlace Bet Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=line/football\nVisit Fortunobet:🌐 https://fortunobet.com",
+  "images": [
+    "032.jpg"
+  ]
 },
-  {
-    "date": "2025-12-01",
-    "time": "12:00",
-    "content": "👑 CONQUER MONDAY! 100% DEPOSIT BONUS! 👑\n\nStart your week with a serious bankroll boost! Deposit any amount today and Fortunobet will DOUBLE IT with a 100% Match Bonus!\n\nHow to Claim Your Monday Boost:\n* 🚀 100% Match: Get up to the maximum bonus allowed by the casino!\n* ✅ Easy Deposit: The bonus is applied automatically upon deposit.\n* 📅 Today Only: This royal treatment is exclusive to Mondays!\n\nDon't face the week empty-handed. Claim your free cash now!\n\n⬇️ CLICK & DOUBLE YOUR MONDAY CASH!\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 Official Website: https://fortunobet.com\n\n#MondayBonus #100PercentMatch #Fortunobet\n\nWhat game are you celebrating the start of the week with?",
-    "images": ["011.jpg"]
-  },
-  {
-    "date": "2025-12-01",
-    "time": "20:00",
-    "content": "💸 STOP SLOTTING! START SMASHING FOR X7777! 💸\n\nDiscover TAPINATA—the addictive clicker game from Turbo Games where every tap can lead to a massive win! This game features a Heat-Up Bar that increases your chance to hit the ultimate x7777 multiplier!\n\n🎯 BIG WIN STRATEGY:\n\n💰 Goal: Smash the pinata and collect instant cash wins (multipliers up to x10).\n🤯 Bonus Buy: Use the Bonus Buy feature to jump straight to Free Spins with multipliers boosted up to x70!\n⭐ Max Multiplier: Keep tapping to fill the Heat-Up Bar and chase the jackpot of up to x7777!\n\nWe have MORE great 'Crash' style games like Tapinata! Click now and see what you can smash!\n\n⬇️ SMASH YOUR WAY TO CASH NOW! ⬇️\n\nPlay Tapinata Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n🌐 Official Website: https://fortunobet.com",
-    "images": ["012.webp"]
-  },
-    {
-    "date": "2025-12-02",
-    "time": "16:26",
-    "content": "🤯 STOP SCROLLING! $38,180 CASINO CASH IS WAITING! 💎\n\nYour rewards don't stop after the first deposit! Fortunobet has an Epic Deposit Series that offers incredible bonuses on your 2nd, 3rd, and 4th deposits, totaling up to $38,180 in bonus funds!\n\n💰 WHY KEEP DEPOSITING?\n* 🚀 $38,180 Max: The largest bonus pool available for loyal players.\n* 🥈 2nd Deposit: Claim a high-value match bonus.\n* 🥉 3rd & 4th: Keep boosting your balance with every funding round.\n\nLevel up your play and claim your share of this massive bonus pool today!\n\n⬇️ CLAIM YOUR NEXT BONUS NOW!\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 Official Website: https://fortunobet.com",
-    "images": ["021.png"]
-  },
-   {
-    "date": "2025-12-02",
-    "time": "20:00",
-    "content": "👑 BECOME THE SPIN QUEEN! 🤑 Uncover the secrets to big wins in Mancala Gaming's exciting slot!\n\nSpin Queen isn't just beautiful—it's packed with features designed to pay out! Learn how to best play to unlock massive rewards and rule the reels!\n\n🎯 YOUR WINNING STRATEGY:\n* ✨ Wild Queens: The Spin Queen herself is WILD! Land her for huge substitution wins across paylines.\n* 💎 Scatter Rewards: Look for the Gem Scatter! 3 or more trigger the coveted FREE SPINS round.\n* 📈 Multipliers: During Free Spins, watch those multipliers soar! This is where your biggest payouts happen.\n* 🔄 Re-Spins: Special symbols can trigger re-spins for even more chances at big combinations!\n\nReady to take your throne and spin for glory?\n\n⬇️ PLAY SPIN QUEEN & WIN! ⬇️\n\nPlay Spin Queen Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n🌐 Official Website: https://fortunobet.com",
-    "images": ["022.jpg"]
-  },
+{
+  "date": "2025-12-04",
+  "time": "12:00",
+  "content": "🤩 DID YOU CLAIM YOUR FIRST BONUS? Don't Stop Now!\n\nWe're rewarding our loyal players with the next step in the Epic Deposit Series: A massive **75% Match Bonus** on your second deposit! This is your chance to keep the winning streak alive!\n\n* 🥈 **75% Bonus Match** - HUGE value you won't find anywhere else.\n* 💵 **Up to $100 FREE** added instantly to your balance.\n* 🚀 **Fuel Your Play** and explore all our top casino games.\n\nKeep that momentum going and take your Thursday play to the next level!\n\n**Claim Your 75% Bonus & Level Up!** 👇\n\n https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration \n\n🌐 Official Website: https://fortunobet.com\n\n#FortunoBet #SecondDeposit #DepositBonus #CasinoBonus\n\nHow high will you climb with this extra boost? 🚀",
+  "images": [
+    "041.jpg"
+  ]
+},
+{
+  "date": "2025-12-04",
+  "time": "20:00",
+  "content": "🚨 ALERT: You're Leaving Money on the Table! 🚨\n\nStop hunting for single offers! FortunoBet has loaded our **entire bonus section** with **massive rewards**—from Welcome Matches to Weekly Cashbacks.\n\nClick below to unlock a universe of opportunities and let Fortuno bring you fortune!\n\n### 💰 Your Benefits Today:\n\n* **ALL Offers in ONE Place:** Find the perfect bonus for *your* game (Casino, Sports, VIP).\n* 🔥 **ML_1577703:** Use this exclusive code for potential extra rewards!\n* 💎 **Play with Confidence:** Trust FortunoBet for transparent bonuses and secure play.\n\nDon't settle for less. We have a bonus waiting for every kind of player!\n\n**See All Bonuses & Claim Your Fortune!** 👇\n\nhttps://fortunobet.com/com/bonuses\n\n🌐 Official Website: https://fortunobet.com\n\nWhat's the best bonus you've ever claimed? Share below! 🏆",
+  "images": [
+    "042.png"
+  ]
+},
+{
+  "date": "2025-12-05",
+  "time": "12:00",
+  "content": "🎉 IT'S FRIDAY! Get 100 FREE SPINS to start the weekend! 🎉\n\nKick off your weekend like a VIP! FortunoBet is giving you a powerful deposit match **AND** a massive stack of Free Spins to hit the slots!\n\nDeposit today and automatically unlock the best Friday treat:\n\n* 🥂 **50% Match Bonus** up to **$100**!\n* 🎰 **100 Free Spins** on a top slot! (That's 100 extra chances to win big!)\n* 🚀 **Weekend Boost:** Double the fun, double the chances to win big!\n\nYour luxury weekend starts now. Claim your free spins before they're gone!\n\n**Claim Your 50% Match + 100 FS!** 👇\n\nhttps://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 Official Website: https://fortunobet.com\n\nWhich slot are you spinning your 100 Free Spins on? Let us know! 🥳",
+  "images": [
+    "051.png"
+  ]
+},
+{
+  "date": "2025-12-02",
+  "time": "20:00",
+  "content": "🤯 STOP LOSING! WIN MORE on Velvet Games Today! 💡\n\nKnowledge is power! Master the strategies pros use to maximize profits and minimize losses on **Velvet Games by Evoplay**—it's time to play smarter.\n\nHere are 3 expert tips to help you secure a win:\n\n* ✅ **Money Management:** **Never chase losses!** Set a strict limit and stick to it; consistency beats impulsive betting every time.\n* 📈 **Smart Scaling:** Start small to find the game's rhythm. Only increase your stake when you are confidently **ahead**.\n* 🎯 **Target Multipliers:** Dedicate a specific, safe bankroll to chase those huge X-wins or bonus features—that's where the **BIG money** is!\n\nStart using these techniques now to build your winning bankroll!\n\n**Play Velvet Games & Start Winning!** 👇\n\nPlay Velvet Games Here:https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n🌐 Official Website: https://fortunobet.com\n\nReady to try these tips? Let us know when you hit that first big win! 🏆",
+  "images": [
+    "052.webp"
+  ]
+},
   ]
 
 # ====== FUNCTION TO SEND POSTS ======
