@@ -54,14 +54,14 @@ posts = [
 },
 {
   "date": "2025-12-08",
-  "time": "12:00",
+  "time": "18:13",
   "content": "👑 MONDAY MADNESS IS HERE! Double Your Cash Today! 🚀\n\nBeat the Monday blues and kickstart your week with a guaranteed win! Make any deposit today and FortunoBet will reward you with a full 100% Match Bonus instantly.\n\n* ✅ 100% Match: Whatever you deposit, we double it for free.\n* 💰 Maximum Playtime: Get the biggest possible bankroll boost for your Casino and Sports bets.\n* Weekly Power: This offer renews every Monday to maximize your winning potential!\n\nDon't wait—this massive bonus is only valid today!\n\n👉 Click Here to Claim Your 100% Monday Match Now!\nRegister Here: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n\n🌐 Visit Fortunobet: https://fortunobet.com\n\nWhat are you betting on this week with your double money? Tell us! 👇",
   "images": [
     "081.png"
   ]
 },
 {
-  "date": "2025-12-08",
+  "date": "2025-12-09",
   "time": "20:00",
   "content": "🤯 STOP LOSING! WIN MORE on Velvet Games Today! 💡\n\nKnowledge is power! Master the strategies pros use to maximize profits and minimize losses on Velvet Games by Evoplay—it's time to play smarter.\n\nEnter our promo code: ML_1577703 for potential extra rewards!\n\nHere are 3 expert tips to help you secure a win:\n\n* ✅ Money Management: Never chase losses! Set a strict limit and stick to it; consistency beats impulsive betting every time.\n* 📈 Smart Scaling: Start small to find the game's rhythm. Only increase your stake when you are confidently ahead.\n* 🎯 Target Multipliers: Dedicate a specific, safe bankroll to chase those huge X-wins or bonus features—that's where the BIG money is!\n\nStart using these techniques now to build your winning bankroll!\n\n👉 Play Velvet Games & Start Winning! 👇\n\nPlay Velvet Games Here: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration\n🌐 Official Website: https://fortunobet.com\n\nReady to try these tips? Let us know when you hit that first big win! 🏆",
   "images": [
