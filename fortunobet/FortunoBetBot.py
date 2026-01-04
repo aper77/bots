@@ -26,8 +26,8 @@ posts = [
 {"date":"2026-01-03","time":"15:00","content":"🔥 Double Your Start: 1XBET gives $157 free cash.\n$100\%$ deposit match. Fast payout guaranteed.\n👇 Claim your bonus in the next 10 minutes: https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=bonus/rules/1st","images":["031.png"]},
 {"date":"2026-01-03","time":"23:00","content":"🔥 $300$ for $100$: MelBet triples your first deposit now.\n$200\%$ welcome match. Free cash credited instantly.\n👇 Claim your MelBet bonus in the next 7 minutes: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["032.png"]},
 
-{"date":"2026-01-04","time":"15:00","content":"💰 $100,000$ giveaway is URGENTLY live on 1XBET.\nBet and get free tickets for the biggest New Year prize draw.\n👇 Enter the 1XBET draw in the next 15 minutes: https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=promotions/santas-gift","images":["041.png"]},
-{"date":"2026-01-04","time":"23:00","content":"🔥 Get $5$ free cash: Deposit $3$ on 1XBET or MelBet.\nURGENT: Limited to the first 50 users who deposit now.\n👇 Claim your MelBet/1XBET gift $\mathbf{before}$ midnight: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["042.png"]},
+{"date":"2026-01-04","time":"15:00","content":"💰 $100,000 giveaway is URGENTLY live on 1XBET.\nBet and get free tickets for the biggest New Year prize draw.\n👇 Enter the 1XBET draw in the next 15 minutes: https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=promotions/santas-gift","images":["041.png"]},
+{"date":"2026-01-04","time":"23:00","content":"🔥 Get $5 free cash: Deposit $3 on 1XBET or MelBet.\nURGENT: Limited to the first 50 users who deposit now.\n👇 Claim your MelBet/1XBET gift $150 midnight: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["042.png"]},
  ]
 
 # ====== FUNCTION TO SEND POSTS ======
