@@ -24,7 +24,6 @@ scheduler = BlockingScheduler()
 
 posts =[
 # Monday
-{"date":"2026-01-19","time":"15:00","content":"💰 FortunoBet 2nd deposit boost\n🔥 I’m using this to increase stake size on today’s bets\n🎁 75% extra bonus on your second deposit\n💰 Deposit $100 → play with $175 real balance\n⏰ Limited-time offer, may close anytime\n⚠️ Real money betting | 18+\n👉 Activate your 2nd deposit bonus: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["191.jpg"]},
 {"date":"2026-01-19","time":"21:00","content":"⚽ Elche vs Sevilla – Spain La Liga\n🔥 I’m backing Sevilla for a solid win tonight, but expecting Elche to push for a goal\n🎁 1XBET 100% deposit bonus up to €300 (x3 wagering)\n💰 Deposit & play real money from $10+\n⏰ Match kicks off today — act before kickoff!\n⚠️ Real money betting | 18+\n👉 Register & bet now: https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=registration","images":["192.jpg"]},
 
 {"date":"2026-01-20","time":"15:00","content":"🎁 FortunoBet x 1xBet Santa’s Gift\n🔥 I’m joining this while placing my regular bets anyway\n🎁 Real bets earn tickets for MacBooks, iPhone prizes & $100,000 pool\n💰 Deposit & place real money bets to collect tickets\n⏰ Promotion ending soon, entries close shortly\n⚠️ Real money betting | 18+\n👉 Join the Santa’s Gift draw here: https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=promotions/santas-gift","images":["201.png"]},
@@ -63,8 +62,6 @@ posts =[
 
 # {"date":"2026-01-18","time":"14:00","content":"🥂 SUNDAY VIP TREAT: 50% BONUS + 100 FREE SPINS! 🥂\nFortunoBet + MelBet VIP reload – deposit today\n✅ 50% EXTRA CASH on Sunday deposit\n✅ 100 FREE SPINS on top-paying slots\n✅ Faster weekend withdrawals for VIPs\n⏰ Valid 24 hours only\n👉 Claim your Sunday VIP Treat: https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["181.png"]},
 # {"date":"2026-01-18","time":"19:00","content":"⚽ Aston Villa vs Everton – Triple Bonus\n🔥 Strong home form — this is a good spot for Villa\n💰 ₦800,000 (Nigeria) | KSh 26,000 (Kenya)\n⏰ Bonus active before kickoff\n👉 Activate & bet now:\nhttps://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=line/football","images":["182foot.png"]},
-
-
 
 
 
