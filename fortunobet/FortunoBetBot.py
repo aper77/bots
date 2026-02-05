@@ -71,80 +71,16 @@ posts =[
 
 {"date":"2026-02-05","time":"23:55","content":"💎 <b>1WIN x FORTUNOBET</b> 💎\n\n🚀 <b>500% BONUS ON YOUR DEPOSITS!</b>\nTurn ₦1,000 into ₦6,000 or 1,000 KES into 6,000 KES instantly!\n\n✅ Aviator, Football & Casino\n✅ 30% Weekly Cashback\n✅ Instant M-Pesa & OPay\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap code to copy)*\n\n👇 <b>REGISTER & CLAIM BONUS</b>\n👉 https://1wpgwj.live/casino/list?open=register&p=cguo","images":["063.jpeg"]},
 {"date":"2026-02-06","time":"14:00","content":"💎 <b>HOW TO JOIN 1WIN (STEP-BY-STEP)</b> 💎\n\n1️⃣ <b>CLICK OFFICIAL LINK</b>\n👉 https://1wpgwj.live/casino/list?open=register&p=cguo\n\n2️⃣ Select <b>\"Quick Registration\"</b>\n\n3️⃣ Enter your <b>Phone Number</b> & <b>Email</b>\n\n4️⃣ Click the blue <b>\"+\"</b> button next to <b>\"Add Promo Code\"</b>\n\n5️⃣ Type the Code: <code>fortunobet</code> \n*(Must use this code for the 500% Bonus!)*\n\n6️⃣ Click <b>\"Register\"</b> and you are ready!\n\n💰 <b>Min Deposit:</b> ₦500 / 100 KES\n💸 <b>Withdrawal:</b> Instant OPay / M-Pesa\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code> \n*(Tap the code to copy it)*\n\n👇 <b>REGISTER HERE</b>\n👉 https://1wpgwj.live/casino/list?open=register&p=cguo","images":["062.png"]},
+{"date":"2026-02-06","time":"21:00","content":"💰 <b>1WIN: FAST CASH & NO FEES</b> 🇳🇬🇰🇪\n\nThe easiest way to deposit and withdraw in Africa!\n\n🇳🇬 <b>NIGERIA:</b> Instant <b>OPay, PalmPay & Bank</b>.\n🇰🇪 <b>KENYA:</b> Instant <b>M-Pesa & Airtel</b>.\n\n🚀 <b>BENEFITS:</b>\n✅ <b>Min Deposit:</b> ₦500 / 150 KES\n✅ <b>Withdrawal:</b> Instant (0-45 mins)\n✅ <b>500% Bonus:</b> On your first 4 deposits!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap to copy code)*\n\n👇 <b>REGISTER & CASH OUT FAST</b>\n👉 https://1wpgwj.live/casino/list?open=register&p=cguo","images":["064.png"]},
 
-{"date":"2026-02-06","time":"16:00","content":"🥂 FRIDAY VIP: WINTER OLYMPICS OPENING 🇮🇹\n\n🎁 The Gift: 50% Cash Bonus + 100 FREE SPINS.\n🚀 Strategy: I use the cash for Olympic Gold bets and the 100 Spins to hunt the Friday Jackpot.\n\n💰 Payouts: Fast & Instant to M-Pesa / OPay.\n\n🔥 VIP TREAT: 100 Spins active for next 500 players!\n\n👇 CLAIM YOUR OLYMPIC GIFT BEFORE MIDNIGHT\n👉 https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["061.png"]},
-{"date":"2026-02-06","time":"22:00","content":"🔥 BETIS vs ATLETICO MADRID: QUARTER-FINAL 🇪🇸\n\n🚀 Huge Match! \n🛡️ Strategy: I play with Weekly Cashback. Win or lose, I get a money-back refund every week. No fear, just growth.\n\n💰 Withdrawals: Instant payouts in 60 seconds to M-Pesa / OPay.\n\n🎁 BONUS: 100% up to 150,000 NGN / 20,000 KES\n\n👇 ACTIVATE YOUR CASHBACK & BONUS\n👉 https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=registration","images":["062.png"]},
+{"date":"2026-02-07","time":"12:00","content":"🚀 <b>MAN UTD vs TOTTENHAM: OLD TRAFFORD</b> 🔴⚪️\n\n🔥 <b>Game of the Week!</b> \n🚀 <b>Strategy:</b> Skip the straight win. Both Teams to Score (BTTS) is the smart play for disciplined growth.\n\n💰 <b>Withdrawals:</b> Instant payouts to <b>M-Pesa / OPay</b>.\n\n🎁 <b>BONUS:</b> 500% Welcome Gift for all new players!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap to copy code)*\n\n👇 <b>SECURE YOUR BONUS BEFORE KICKOFF</b>\n👉 https://1wpgwj.live/betting?open=register&p=y627","images":["071.png"]},
+{"date":"2026-02-07","time":"17:30","content":"🎡 <b>1WIN LUCKY WHEEL: €5,000 JACKPOT!</b> 🎁\n\n🚀 <b>Saturday Craziness:</b> I’m spinning for the €5,000 cash prize today. \n🛡️ <b>Strategy:</b> I play the Barcelona vs Mallorca match to earn my free entries. Stay smart, win steady.\n\n💰 <b>Withdrawals:</b> Fast as a Ferrari to <b>M-Pesa / OPay</b>.\n\n🎁 <b>MEGA BONUS:</b> Spin the Wheel + 500% Deposit Bonus!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap to copy code)*\n\n👇 <b>TAP TO SPIN & CLAIM YOUR JACKPOT</b>\n👉 https://1wpgwj.live/v3/4540/color-prediction?p=xo3e","images":["061.png"]},
 
-{"date":"2026-02-07","time":"12:00","content":"🚀 MAN UTD vs TOTTENHAM: OLD TRAFFORD 🔴⚪️\n\n🔥 Game of the Week! \n🚀 Strategy: Skip the straight win. Both Teams to Score (BTTS) is the smart play for disciplined growth.\n\n💰 Withdrawals: Instant payouts to M-Pesa / OPay.\n\n🎁 BONUS: 100% up to 150,000 NGN / 20,000 KES\n\n👇 SECURE YOUR BONUS BEFORE EARLY KICKOFF\n👉 https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["071.png"]},
-{"date":"2026-02-07","time":"17:30","content":"🎡 1WIN LUCKY WHEEL: €5,000 JACKPOT! 🎁\n\n🚀 Saturday Craziness: I’m spinning for the €5,000 cash prize today. \n🛡️ Strategy: I play the Barcelona vs Mallorca match to earn my free entries. Stay smart, win steady.\n\n💰 Withdrawals: Fast as a Ferrari to M-Pesa / OPay.\n\n🎁 MEGA BONUS: Spin the Wheel + €3,000 Casino Package!\n\n👇 TAP TO SPIN & CLAIM YOUR JACKPOT\n👉 https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=registration","images":["072.png"]},
+{"date":"2026-02-08","time":"14:00","content":"🔥 <b>LIVERPOOL vs MAN CITY: THE TITLE WAR!</b> 🏆\n\n🚀 <b>Anfield Clash: Salah vs Haaland!</b> \n🛡️ <b>Strategy:</b> I use Correct Score Insurance for this battle. If the score is wrong, I get a FREE BET refund. No risk, just smart play.\n\n💰 <b>Withdrawals:</b> Instant payouts to <b>OPay / M-Pesa</b>.\n\n🎁 <b>MEGA BONUS:</b> 500% Welcome Bonus for all new players!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap to copy code)*\n\n👇 <b>SECURE YOUR RISK-FREE BET NOW</b>\n👉 https://1wpgwj.live/betting?open=register&p=y627","images":["081.png"]},
+{"date":"2026-02-08","time":"19:00","content":"🏈 <b>SUPER BOWL 60: THE ULTIMATE WAR!</b> 🇺🇸\n\n🔥 <b>Patriots vs Seahawks: The legendary rematch!</b> \n🛡️ <b>Strategy:</b> I’m playing with 3% Weekly Cashback tonight. Win or lose, you get a money-back refund automatically. Smart growth only.\n\n💰 <b>Withdrawals:</b> Fast & Priority processing for the Big Game via <b>M-Pesa / OPay</b>.\n\n🎁 <b>MEGA BONUS:</b> 500% Welcome Gift + 3% Weekly Cashback!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap to copy code)*\n\n👇 <b>SECURE YOUR CASHBACK BEFORE KICKOFF</b>\n👉 https://1wpgwj.live/v3/aggressive-casino?p=xomk","images":["082.png"]},
 
-{"date":"2026-02-08","time":"14:00","content":"🔥 LIVERPOOL vs MAN CITY: THE TITLE WAR! 🏆\n\n🚀 Anfield Clash: Salah vs Haaland! \n🛡️ Strategy: I use Correct Score Insurance for this battle. If the score is wrong, I get a FREE BET refund. No risk, just smart play.\n\n💰 Withdrawals: Instant payouts to OPay / M-Pesa.\n\n🎁 MEGA BONUS: 100% up to 150,000 NGN / 20,000 KES\n\n👇 SECURE YOUR RISK-FREE BET NOW\n👉 https://refpa58144.com/L?tag=d_4681275m_1599c_&site=4681275&ad=1599&r=registration","images":["081.png"]},
-{"date":"2026-02-08","time":"19:00","content":"🏈 SUPER BOWL 60: THE ULTIMATE WAR! 🇺🇸\n\n🔥 Patriots vs Seahawks: The legendary rematch! \n🛡️ Strategy: I’m playing with 3% Weekly Cashback tonight. Win or lose, you get a money-back refund automatically. Smart growth only.\n\n💰 Withdrawals: Fast & Priority processing for the Big Game.\n\n🎁 MEGA BONUS: 100% Match + 3% Weekly Cashback\n\n👇 SECURE YOUR CASHBACK BEFORE KICKOFF\n👉 https://refpa3665.com/L?tag=d_4681277m_2170c_&site=4681277&ad=2170&r=registration","images":["082.png"]},
-
-{"date":"2026-02-09","time":"09:00","content":"👑 ROYAL MONDAY: $8 BONUS + DERBY DAY! 🎁\n\n🔥 Porto vs Sporting CP: The Battle for 1st Place!\n🚀 Strategy: This is a high-stakes Derby. I use the $8 Free Gift to play it safe and grow my bankroll with zero risk.\n\n💰 Payouts: Guaranteed safe & official withdrawals via M-Pesa / OPay.\n\n🎁 ROYAL GIFT: $8 FREE ($3 1WIN + $5 Partner Bonus)\n\n👇 CLAIM YOUR DERBY GIFT NOW\n👉 https://www.fortunobet.com/com","images":["5bonus.jpeg"]},]
-
-
-
-
-
-# # ====== FUNCTION TO SEND POSTS ======
-# def send_post(post):
-#     try:
-#         if "images" in post and post["images"]:
-#             # If multiple images, send as album
-#             if len(post["images"]) > 1:
-#                 media_group = []
-#                 for idx, img_file in enumerate(post["images"]):
-#                     if os.path.exists(img_file):
-#                         if idx == 0:
-#                             media_group.append(InputMediaPhoto(open(img_file, "rb"), caption=post["content"]))
-#                         else:
-#                             media_group.append(InputMediaPhoto(open(img_file, "rb")))
-#                 if media_group:
-#                     bot.send_media_group(chat_id=CHANNEL_ID, media=media_group)
-#             else:
-#                 # Single image
-#                 img_file = post["images"][0]
-#                 if os.path.exists(img_file):
-#                     with open(img_file, "rb") as photo:
-#                         bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=post["content"])
-#                 else:
-#                     bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
-#         else:
-#             # Text only
-#             bot.send_message(chat_id=CHANNEL_ID, text=post["content"])
-
-#         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted: {post['content']}")
-#     except Exception as e:
-#         print(f"Failed to post {post['content']}: {e}")
-
-# # ====== SCHEDULE JOBS ======
-# for post in posts:
-#     # Convert string date to real datetime
-#     post_date = datetime.strptime(post["date"], "%Y-%m-%d")
-#     hour, minute = map(int, post["time"].split(":"))
-
-#     # Schedule EXACT date + time
-#     scheduler.add_job(
-#         send_post,
-#         'cron',
-#         year=post_date.year,
-#         month=post_date.month,
-#         day=post_date.day,
-#         hour=hour,
-#         minute=minute,
-#         args=[post],
-#         timezone=TIMEZONE,
-#         misfire_grace_time=300
-#     )
-
-
-# # ====== START BOT ======
-# print("Bot is running and will post messages automatically...")
-# scheduler.start()
-
-
-
+{"date":"2026-02-09","time":"09:00","content":"👑 <b>ROYAL MONDAY: $8 BONUS + DERBY DAY!</b> 🎁\n\n🔥 <b>Porto vs Sporting CP: The Battle for 1st Place!</b>\n\n🚀 <b>Strategy:</b> This is a high-stakes Derby. I use the $8 Free Gift to play it safe and grow my bankroll with zero risk.\n\n💰 <b>Payouts:</b> Guaranteed safe & official withdrawals via <b>M-Pesa / OPay</b>.\n\n🎁 <b>ROYAL GIFT:</b> 500% Welcome Bonus + Weekly Cashback!\n\n🔑 <b>PROMO CODE:</b> <code>fortunobet</code>\n*(Tap the code to copy it)*\n\n👇 <b>CLAIM YOUR DERBY GIFT NOW</b>\n👉 https://1wpgwj.live/betting?open=register&p=y627","images":["5bonus.jpeg"]},
+]
 
 # ====== FUNCTION TO SEND POSTS ======
 def send_post(post):
