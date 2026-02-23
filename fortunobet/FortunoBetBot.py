@@ -63,10 +63,11 @@ posts = [
 {"date":"2026-02-22","time":"22:00","content":"💰 <b>Start with ₦1,000 — double instantly</b>\n\n100% bonus added automatically + 70 spins 🎁\nSmall start. Big upside.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Begin now:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["222.png"]},
 
 {"date":"2026-02-23","time":"14:00","content":"🇳🇬🇰🇪 <b>Low entry. High potential</b>\n\n₦1,000 → ₦2,000\n₦5,000 → ₦10,000 💰\nBonus hits instantly. Withdraw anytime — no wahala.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Register today:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["231.png"]},
-{"date":"2026-02-23","time":"23:00","content":"⏰ <b>Welcome bonus won’t stay forever</b>\n\n100% + 70 spins first deposit → up to 500% across 4 deposits 🔥\nThose inside are already playing bigger.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join before it ends:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["232.png"]},
 
 {"date":"2026-02-24","time":"14:00","content":"🏆 <b>Why players choose 1WIN daily</b>\n\n✅ 500% welcome boost\n✅ 30% cashback daily\n✅ 50 free bets daily\n✅ Same-day withdrawal 💰\n\nIf your platform gives less — switch now.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Move now:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["241.png"]},
 {"date":"2026-02-24","time":"23:00","content":"🌙 <b>Live matches, live odds, live money</b>\n\nFirst deposit = 500% instantly ⚡\n₦2,000 → ₦12,000 tonight. Don’t wait.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Jump in:</b> https://1wkrii.life/v3/landing-page/football?p=5pe0","images":["172.png"]},
+
+{"date":"2026-02-25","time":"15:00","content":"⏰ <b>Welcome bonus won’t stay forever</b>\n\n100% + 70 spins first deposit → up to 500% across 4 deposits 🔥\nThose inside are already playing bigger.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join before it ends:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["232.png"]},
 ]
 # ====== FUNCTION TO SEND POSTS ======
 def send_post(post):
