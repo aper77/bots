@@ -41,7 +41,7 @@ scheduler = BlockingScheduler()
 # 22:00 — Final Bonus (HYPE)
 
 posts = [
-{"date":"2026-02-24","time":"23:00","content":"🌙 <b>Live matches, live odds, live money</b>\n\nFirst deposit = 500% instantly ⚡\n₦2,000 → ₦12,000 tonight. Don’t wait.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Jump in:</b> https://1wkrii.life/v3/landing-page/football?p=5pe0","images":["172.png"]},
+{"date":"2026-02-24","time":"22:02","content":"🌙 <b>Live matches, live odds, live money</b>\n\nFirst deposit = 500% instantly ⚡\n₦2,000 → ₦12,000 tonight. Don’t wait.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Jump in:</b> https://1wkrii.life/v3/landing-page/football?p=5pe0","images":["172.png"]},
 
 {"date":"2026-02-25","time":"15:00","content":"⏰ <b>Welcome bonus won’t stay forever</b>\n\n100% + 70 spins first deposit → up to 500% across 4 deposits 🔥\nThose inside are already playing bigger.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join before it ends:</b> https://1wffxn.life/v3/aggressive-casino?p=xomk","images":["232.png"]},
 {"date":"2026-02-25","time":"21:00","content":"🏆 <b>₦173,000,000 Slotopia prize pool — live now</b>\n\nEvery spin counts toward the jackpot. 💰\nNo special entry needed — just play and win.\n\n€105,000 total prize pool closing soon.\n\nDeposit ₦2,000 → play with ₦12,000\nMore spins = better chances.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Enter now:</b> https://1wfafs.life/casino/list?open=register&p=z4m5","images":["251.png"]},
