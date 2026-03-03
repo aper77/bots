@@ -42,7 +42,7 @@ scheduler = BlockingScheduler()
 
 posts = [
 
-{"date":"2026-03-03","time":"22:00","content":"🎁 <b>First deposit = 500% bonus instantly</b>\n\n₦2,000 → ₦12,000 ⚡\n₦10,000 → ₦60,000 ⚡\n₦50,000 → ₦300,000 ⚡\n\nBonus hits your account immediately.\nWithdraw same day — proven multiple times. 💚\n\nNew players only.\nStart big from day one. 🔥\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Claim bonus:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["031.png"]},
+{"date":"2026-03-03","time":"23:00","content":"🎁 <b>First deposit = 500% bonus instantly</b>\n\n₦2,000 → ₦12,000 ⚡\n₦10,000 → ₦60,000 ⚡\n₦50,000 → ₦300,000 ⚡\n\nBonus hits your account immediately.\nWithdraw same day — proven multiple times. 💚\n\nNew players only.\nStart big from day one. 🔥\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Claim bonus:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["031.png"]},
 {"date":"2026-03-03","time":"14:00","content":"💚 <b>$250 → $365. Detroit Pistons ✅</b>\n\nUSA NBA. Odds 1.46 — safe bet, solid volume. 🏀\n\n$115 profit from one bet.\nThis is how consistent players win. 💸\n\nSmall bets = small wins.\nBig bets = big wins.\nWhich one you choosing? 🔥\n\nDeposit ₦80,000 → play with ₦480,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join winners:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["win2.png"]},
 
 {"date":"2026-03-04","time":"14:00","content":"💰 <b>Start ₦1,000. Withdraw ₦10,000 next week.</b>\n\nMinimum deposit. Maximum opportunity. 💚\n\n₦1,000 → ₦2,000 + 70 spins instantly\n\nSmall start. Big results.\nStart today. See results by weekend.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Begin now:</b> https://1wfafs.life/casino/list?open=register&p=z4m5","images":["041.png"]},
