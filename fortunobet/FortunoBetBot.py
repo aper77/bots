@@ -67,6 +67,7 @@ posts = [
 {"date":"2026-03-10","time":"14:00","content":"🇳🇬 <b>Why Nigerians choose 1WIN:</b>\n\n✅ Opay/Palmpay instant deposit\n✅ Same-day withdrawal (proven)\n✅ 30% cashback protection\n✅ 500% welcome bonus\n\nYour platform gives less? Switch today. 💸\n\nDeposit ₦2,000 → play with ₦12,000\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join now:</b> https://fortunobet.com/1win","images":["101.png"]},
 {"date":"2026-03-10","time":"21:00","content":"💚 <b>$100 → $123. Felix Auger-Aliassime ✅</b>\n\nATP Indian Wells. USA. Hard Court. 🎾\nOdds 1.23 — ultra safe, steady cash.\n\n$23 profit. Clean and simple.\nTwo tennis wins in 1 hour. 💸\n\n12:36 AM: $52.50 profit ✅\n12:36 AM: $23 profit ✅\nTotal: $75.50 in 1 hour. 🔥\n\nDeposit ₦35,000 → play with ₦210,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join now:</b>\nhttps://fortunobet.com/1win","images":["win7.png"]},
 
+
 {"date":"2026-03-11","time":"14:00","content":"📊 <b>Last 48 hours on this channel:</b>\n\n✅ 14 deposits\n✅ ₦340,000 total volume\n✅ 5 withdrawals same day\n✅ Biggest win: ₦92,000\n\nThey joined Wednesday. Withdrew Friday.\nYou're still watching. 💸\n\nYou joining? 🔥\n\nDeposit ₦5,000 → play with ₦30,000\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join now:</b> https://fortunobet.com/1win","images":["091.png"]},
 
 ]
