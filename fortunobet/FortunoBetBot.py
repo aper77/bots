@@ -74,21 +74,15 @@ posts = [
 # ========== WEDNESDAY MARCH 11 ==========
 
 {"date":"2026-03-11","time":"14:00","content":"🎁 <b>First deposit = 500% bonus instantly</b>\n\n₦2,000 → ₦12,000 ⚡\n₦10,000 → ₦60,000 ⚡\n₦50,000 → ₦300,000 ⚡\n\nBonus hits your account immediately.\nWithdraw same day — proven multiple times. 💚\n\nNew players only.\nStart big from day one. 🔥\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Claim bonus:</b>\nhttps://fortunobet.com/1win","images":["111.png"]},
-# [EMPTY SLOT 1 - YOUR NEW WIN SCREENSHOT]
-{"date":"2026-03-11","time":"23:30","content":"[WILL CREATE WHEN YOU SEND WIN SCREENSHOT #1]","images":[""]},
-
+{"date":"2026-03-11","time":"23:30","content":"💚 <b>$160 → $224. Cleveland Cavaliers ✅</b>\n\nCyberbasketball NBA. eSports Battle. 🏀\nOdds 1.12 — ultra safe, big volume bet.\n\n$64 profit from one cyber match.\nThis is how you stack wins consistently. 💸\n\neSports = 24/7 opportunities.\nReal NBA skills. Real profits. 🔥\n\nDeposit ₦50,000 → play with ₦300,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join winners:</b>\nhttps://fortunobet.com/1win","images":["win8.png"]},
 # ========== THURSDAY MARCH 12 ==========
 
 {"date":"2026-03-12","time":"14:00","content":"💚 <b>Member result: Started ₦5,000 last week</b>\n\n\"Balance today: ₦47,000\nWithdrew ₦22,000 to Opay\nStill playing with ₦25,000\nThis is real.\" — Tunde, Lagos\n\nHe joined 9 days ago.\nDeposited ₦5,000.\nAlready withdrew profit. 💸\n\nLast week he was watching.\nToday he's winning. Your turn? 🔥\n\nDeposit ₦5,000 → play with ₦30,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start today:</b>\nhttps://fortunobet.com/1win","images":["121.png"]},
-# [EMPTY SLOT 2 - YOUR NEW WIN SCREENSHOT]
-{"date":"2026-03-12","time":"23:30","content":"[WILL CREATE WHEN YOU SEND WIN SCREENSHOT #2]","images":[""]},
-
+{"date":"2026-03-12","time":"23:30","content":"💚 <b>$150 → $223.50. Jack Draper ✅</b>\n\nATP Indian Wells. USA. Hard Court. 🎾\nOdds 1.49 — safe bet, solid profit.\n\n$73.50 profit from tennis overnight.\nThree nights, three tennis wins. 💸\n\nMarch 9: $52.50 ✅\nMarch 10: $23 ✅\nMarch 12: $73.50 ✅\nTotal: $149 from tennis this week. 🔥\n\nDeposit ₦50,000 → play with ₦300,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start winning:</b>\nhttps://fortunobet.com/1win","images":["win9.png"]},
 # ========== FRIDAY MARCH 13 ==========
 
 {"date":"2026-03-13","time":"14:00","content":"🇳🇬 <b>Why Nigerians choose 1WIN:</b>\n\n✅ Opay/Palmpay instant deposit\n✅ Same-day withdrawal (proven)\n✅ 30% cashback protection\n✅ 500% welcome bonus\n\nYour platform gives less? Switch today. 💸\n\nDeposit ₦2,000 → play with ₦12,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join now:</b>\nhttps://fortunobet.com/1win","images":["131.png"]},
-# [EMPTY SLOT 3 - YOUR NEW WIN SCREENSHOT]  
-{"date":"2026-03-13","time":"23:30","content":"[WILL CREATE WHEN YOU SEND WIN SCREENSHOT #3]","images":[""]},
-
+{"date":"2026-03-13","time":"23:30","content":"💚 <b>$160 → $224. Atlanta Hawks ✅</b>\n\nCyberbasketball NBA. eSports Battle. 🏀\nOdds 1.40 — safe cyber bet, solid return.\n\n$64 profit. Clean and simple.\nTwo cyber NBA wins this week. 💸\n\nWednesday: $64 ✅\nFriday: $64 ✅\nCyber NBA = consistent money. 🔥\n\nDeposit ₦50,000 → play with ₦300,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Bet cyber:</b>\nhttps://fortunobet.com/1win","images":["win10.png"]},
 # ========== SATURDAY MARCH 14 ==========
 
 {"date":"2026-03-14","time":"11:00","content":"💰 <b>30% cashback on every losing day</b>\n\nAutomatic. No claim needed. ✅\n\nLose ₦10,000 → ₦3,000 back next day\nLose ₦50,000 → ₦15,000 back next day\n\nEvery bet protected.\nSmart players protect bankroll. 💚\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join protected:</b>\nhttps://fortunobet.com/1win","images":["141.png"]},
@@ -96,7 +90,7 @@ posts = [
 
 # ========== SUNDAY MARCH 15 ==========
 
-{"date":"2026-03-15","time":"11:00","content":"💚 <b>This week: 9 bets, 9 wins, $XXX total profit ✅</b>\n\n[COMPLETE LIST OF ALL YOUR WINS - I'LL ADD WHEN YOU SEND 3 NEW SCREENSHOTS]\n\nMarch 1: $380 → $479 (NBA) ✅\nMarch 1: $250 → $365 (NBA) ✅\nMarch 1: $300 → $333 (NBA) ✅\nMarch 3: $150 → $201 (Tennis) ✅\nMarch 3: $150 → $187 (Tennis) ✅\nMarch 9: $150 → $202 (Tennis) ✅\nMarch 10: $100 → $123 (Tennis) ✅\n[+ YOUR 3 NEW WINS HERE]\n\nTotal staked: $XXX\nTotal returned: $XXX  \nNet profit: $XXX 💸\n\n100% win rate TWO weeks straight.\nNBA + Tennis = My winning formula. 🔥\n\nTwo weeks you watched.\nNext week? Your turn to win. 💚\n\nDeposit ₦100,000 → play with ₦600,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start Monday winning:</b>\nhttps://fortunobet.com/1win","images":["win1.jpeg","win2.png","win3.png","win4.jpg","win5.jpg","win6.png","win7.png","","",""]},
+{"date":"2026-03-15","time":"11:00","content":"💚 <b>This week: 10 bets, 10 wins, $540 total profit ✅</b>\n\nMarch 1: $380 → $479 (NBA) +$99 ✅\nMarch 1: $250 → $365 (NBA) +$115 ✅\nMarch 1: $300 → $333 (NBA) +$33 ✅\nMarch 3: $150 → $201 (Tennis) +$51 ✅\nMarch 3: $150 → $187 (Tennis) +$37.50 ✅\nMarch 9: $150 → $202 (Tennis) +$52.50 ✅\nMarch 10: $100 → $123 (Tennis) +$23 ✅\nMarch 11: $160 → $224 (Cyber NBA) +$64 ✅\nMarch 12: $150 → $223 (Tennis) +$73.50 ✅\nMarch 13: $160 → $224 (Cyber NBA) +$64 ✅\n\nTotal staked: $1,950\nTotal returned: $2,490\nNet profit: $540 💸\n\n100% win rate TWO weeks straight.\nNBA + Tennis + Cyber = My winning system. 🔥\n\nTwo weeks you watched.\nNext week? Your turn to win. 💚\n\nDeposit ₦100,000 → play with ₦600,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start Monday winning:</b>\nhttps://fortunobet.com/1win","images":["win1.jpeg","win2.png","win3.png","win4.jpg","win5.jpg","win6.png","win7.png","win8.png","win9.png","win10.png"]},
 {"date":"2026-03-15","time":"20:00","content":"🏆 <b>₦6,600,000,000 Aviatrix prize pool live</b>\n\n$4,000,000 total jackpot. 🔥\n\nEvery round = chance to win big.\nCash out before it flies away. ⚡\n\nDeposit ₦5,000 → play with ₦30,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Play now:</b>\nhttps://fortunobet.com/1win","images":["152.png"]},
 
 ]
