@@ -102,7 +102,7 @@ posts = [
 
 # ========== FRIDAY MARCH 20 ==========
 
-{"date":"2026-03-20","time":"14:00","content":"💔 <b>Lost $150 Monday — sharing honestly</b>\n\nCyberFIFA. Tottenham vs Arsenal. ⚽\nBet: Tottenham Win\nOdds: 1.92\nStake: $150\n\nArsenal won 1-0. Lost. ❌\n\n$150 gone. 😤\n\nReal betting.\nNot every bet wins.\n\nThis week:\n5 wins = +$242 ✅\n1 loss = -$150 ❌\nNet: +$92 💚\n\nMore wins than losses = profit. 🔥\n\nDeposit ₦50,000 → play with ₦300,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["lost1.png"]},
+{"date":"2026-03-20","time":"14:00","content":"💔 <b>Lost $150 Monday — sharing honestly</b>\n\nCyberFIFA. Tottenham vs Arsenal. ⚽\nBet: Tottenham Win, Odds: 1.92\n\nArsenal won 1-0. Lost. ❌\n$150 gone. 😤\n\nReal betting.\nNot every bet wins.\n\nThis week: 4 wins = $147.60 ✅\nStill in plus. 💚\n\nMore wins than losses = profit. 🔥\n\nDeposit ₦50,000 → play with ₦300,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["lost1.png"]},
 {"date":"2026-03-20","time":"23:30","content":"💚 <b>18 registered this week</b>\n\n5 deposited = Playing ✅\n13 watching = Zero ❌\n\nThe 5:\n✅ Got 500% bonus\n✅ Placed bets\n✅ 3 already won\n✅ 2 withdrew profits\n\nThe 13:\n❌ Still thinking\n❌ Bonus expiring\n❌ Still zero\n\nYou in the 5 or the 13? 💸\n\nDeposit ₦5,000 → play with ₦30,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join the 5:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["202.png"]},
 
 # ========== SATURDAY MARCH 21 ==========
