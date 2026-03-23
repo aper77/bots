@@ -44,7 +44,7 @@ posts = [
 
 # ========== MONDAY MARCH 23 ==========
 
-{"date":"2026-03-23","time":"14:00","content":"💚 <b>$150 → $181.50. Elena Rybakina ✅</b>\n\nWTA Miami. USA. Hard Court. 🎾\nOdds 1.21 — ultra safe tennis bet.\n\n$31.50 profit from one match.\nNew week started GREEN. 💸\n\nMarch 22 win.\nMarch 23 posting.\nPattern continues. 🔥\n\nDeposit ₦10,000 → play with ₦60,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["win1.png"]},
+{"date":"2026-03-23","time":"14:00","content":"💚 <b>$150 → $181.50. Elena Rybakina ✅</b>\n\nWTA Miami. USA. Hard Court. 🎾\nOdds 1.21 — ultra safe tennis.\n\n$31.50 profit from one match.\nNew week.\nFirst bet.\nGREEN. 💸\n\nLast week: 6 wins, 1 loss, withdrew ₦158k.\nThis week: Already started winning.\n\nYou watched all last week.\nStill watching this week? 🔥\n\nDeposit ₦10,000 → play with ₦60,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Start NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["win1.png"]},
 {"date":"2026-03-23","time":"23:30","content":"🎰 <b>₦5,200,000 won on Gates of Olympus yesterday</b>\n\nNigerian player.\n₦50,000 bet.\n₦5,200,000 won. 💰\n\nOne spin.\nLife changed.\n\nSlots pay MORE than sports.\nCasino = bigger wins. 🔥\n\nSame platform you're watching.\n\nDeposit ₦20,000 → play with ₦120,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Play slots:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["232.png"]},
 
 # ========== TUESDAY MARCH 24 ==========
@@ -54,7 +54,7 @@ posts = [
 
 # ========== WEDNESDAY MARCH 25 ==========
 
-{"date":"2026-03-25","time":"14:00","content":"💚 <b>[WIN AMOUNT] ✅</b>\n\n[SPORT/GAME] 🎯\nOdds [X.XX] — [description]\n\n[PROFIT] from one bet.\n[Short impact line]. 💸\n\nTwo days.\nTwo wins.\nPattern building. 🔥\n\nDeposit ₦20,000 → play with ₦120,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["win-wed.png"]},
+{"date":"2026-03-25","time":"14:00","content":"💚 <b>$100 → $137. Tommy Paul ✅</b>\n\nATP Miami. USA. Hard Court. 🎾\nOdds 1.37 — safe tennis bet.\n\n$37 profit. One match.\nSmall bet. Clean win. 💸\n\nMonday: $31.50 ✅\nWednesday: $37 ✅\nTwo days. Two wins.\n\nThey deposited Monday.\nAlready in profit.\n\nYou're still watching? 🔥\n\nDeposit ₦20,000 → play with ₦120,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Join NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["win2.png"]},
 {"date":"2026-03-25","time":"23:30","content":"⚠️ <b>Bonus expires 48 hours after registration</b>\n\nRegistered Monday? Expires Wednesday 11:59 PM.\nRegistered Tuesday? Expires Thursday 11:59 PM.\n\n500% isn't lifetime.\nYou have 48 hours. ⏰\n\nAfter 48 hours:\n❌ No 500% bonus\n❌ Regular deposit only\n❌ You missed it\n\nRegistered already?\nDeposit before deadline. 🔥\n\nDeposit ₦5,000 → play with ₦30,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Deposit NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["252.png"]},
 
 # ========== THURSDAY MARCH 26 ==========
