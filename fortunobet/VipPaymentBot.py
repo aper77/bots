@@ -16,16 +16,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "💎 <b>FORTUNOBET VIP ACCESS</b>\n\n"
         "🎯 <b>What You Get:</b>\n"
-        "• 3-5 premium tickets daily\n"
-        "• 85%+ accuracy rate\n"
-        "• Early access (posted 6pm daily)\n"
-        "• Higher odds (3.5-12.0)\n"
-        "• Small stakes, big wins\n\n"
-        "🔥 <b>Today's VIP Results:</b>\n"
-        "Ticket 1: ✅ Won (odds 8.2)\n"
-        "Ticket 2: ✅ Won (odds 5.6)\n"
-        "Ticket 3: ✅ Won (odds 4.1)\n\n"
-        "💰 Last 7 days: 18 wins, 4 losses (82%)\n\n"
+        "• Premium betting tips daily\n"
+        "• Higher odds selections\n"
+        "• Early access to best games\n"
+        "• Telegram support\n\n"
+        "📊 <b>How It Works:</b>\n"
+        "• Free channel: Basic tips\n"
+        "• VIP channel: Premium selections\n"
+        "• Posted when quality games available\n"
+        "• 1-5 tips per day depending on matches\n\n"
         "⚡ <b>Choose your access:</b>",
         reply_markup=reply_markup,
         parse_mode="HTML"
@@ -37,13 +36,13 @@ async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if query.data == 'pay_weekly':
         title = "VIP Weekly Access"
-        desc = "7 days of premium betting tips (85%+ accuracy)"
+        desc = "7 days of premium betting tips"
         price = 150
         payload = "weekly"
         duration = "7 days"
     else:
         title = "VIP Monthly Access"
-        desc = "30 days of premium betting tips (85%+ accuracy)"
+        desc = "30 days of premium betting tips"
         price = 500
         payload = "monthly"
         duration = "30 days"
@@ -51,9 +50,9 @@ async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(
         f"💎 <b>{title}</b>\n\n"
         f"✅ {duration} of VIP access\n"
-        f"✅ 1-5 premium tickets daily\n"
-        f"✅ 85%+ win rate\n"
-        f"✅ Early access 6pm daily\n"
+        f"✅ Premium betting tips\n"
+        f"✅ Higher odds selections\n"
+        f"✅ Early access to best games\n"
         f"✅ Telegram support\n\n"
         f"💰 <b>Price: {price} Stars (${price/50:.0f})</b>\n\n"
         f"👇 Tap button below to pay:",
@@ -89,8 +88,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
         f"🎯 Your {duration} VIP access is ready!\n\n"
         f"👇 <b>JOIN NOW:</b>\n"
         f"{invite_link.invite_link}\n\n"
-        f"⚡ Tonight's tips posted at 6pm\n"
-        f"💚 Welcome to the winners' circle!",
+        f"💚 Welcome to VIP channel!",
         parse_mode="HTML"
     )
     
@@ -101,7 +99,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
             text=f"💎 <b>NEW VIP MEMBER!</b>\n\n"
                  f"Welcome @{update.message.from_user.username or 'Member'}!\n"
                  f"Access: {duration}\n\n"
-                 f"Tonight's premium tickets posted at 6pm. 🔥",
+                 f"Enjoy premium tips! 🔥",
             parse_mode="HTML"
         )
     except:
