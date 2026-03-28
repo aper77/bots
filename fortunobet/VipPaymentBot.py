@@ -51,7 +51,7 @@ async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(
         f"💎 <b>{title}</b>\n\n"
         f"✅ {duration} of VIP access\n"
-        f"✅ 3-5 premium tickets daily\n"
+        f"✅ 1-5 premium tickets daily\n"
         f"✅ 85%+ win rate\n"
         f"✅ Early access 6pm daily\n"
         f"✅ Telegram support\n\n"
