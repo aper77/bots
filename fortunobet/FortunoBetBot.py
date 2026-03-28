@@ -64,52 +64,49 @@ posts = [
 {"date":"2026-03-29","time":"22:00","content":"⏰ <b>Monday midnight: Deposit or lose 500%</b>\n\n48-hour bonus closing. ⚠️\nAfter deadline: ❌ No 500% bonus. 🔥\n\n<b>Deposit before midnight or lose bonus forever.</b>\n\nDeposit ₦10,000 → play with ₦60,000\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Deposit NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["292.png"]}
 ]
 
-# ====== FUNCTION TO SEND POSTS ======
-def send_post(post):
+async def send_post_async(post):
     try:
-        # We use HTML mode to support <b>bold</b> and <code>tap-to-copy</code>
         P_MODE = "HTML"
-
-        if "images" in post and post["images"]:
-            # If multiple images, send as album
-            if len(post["images"]) > 1:
-                media_group = []
-                for idx, img_file in enumerate(post["images"]):
-                    if os.path.exists(img_file):
-                        if idx == 0:
-                            # Apply HTML formatting to the caption
-                            media_group.append(InputMediaPhoto(open(img_file, "rb"), caption=post["content"], parse_mode=P_MODE))
-                        else:
-                            media_group.append(InputMediaPhoto(open(img_file, "rb")))
-                if media_group:
-                    bot.send_media_group(chat_id=CHANNEL_ID, media=media_group)
-            else:
-                # Single image
-                img_file = post["images"][0]
-                if os.path.exists(img_file):
-                    with open(img_file, "rb") as photo:
-                        # Apply HTML formatting to the photo caption
-                        bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=post["content"], parse_mode=P_MODE)
+        # IMPORTANT: In new Python Telegram, we MUST use 'async with' or a local bot instance
+        async with Bot(token=BOT_TOKEN) as temp_bot:
+            if "images" in post and post["images"]:
+                if len(post["images"]) > 1:
+                    media_group = []
+                    for idx, img_file in enumerate(post["images"]):
+                        if os.path.exists(img_file):
+                            file_handle = open(img_file, "rb")
+                            if idx == 0:
+                                media_group.append(InputMediaPhoto(file_handle, caption=post["content"], parse_mode=P_MODE))
+                            else:
+                                media_group.append(InputMediaPhoto(file_handle))
+                    if media_group:
+                        # ADDED 'await' HERE
+                        await temp_bot.send_media_group(chat_id=CHANNEL_ID, media=media_group)
                 else:
-                    # Fallback to text if image missing
-                    bot.send_message(chat_id=CHANNEL_ID, text=post["content"], parse_mode=P_MODE)
-        else:
-            # Text only
-            bot.send_message(chat_id=CHANNEL_ID, text=post["content"], parse_mode=P_MODE)
-
+                    img_file = post["images"][0]
+                    if os.path.exists(img_file):
+                        with open(img_file, "rb") as photo:
+                            # ADDED 'await' HERE
+                            await temp_bot.send_photo(chat_id=CHANNEL_ID, photo=photo, caption=post["content"], parse_mode=P_MODE)
+            else:
+                # ADDED 'await' HERE
+                await temp_bot.send_message(chat_id=CHANNEL_ID, text=post["content"], parse_mode=P_MODE)
+        
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Posted Successfully")
     except Exception as e:
         print(f"Failed to post: {e}")
 
+# This wrapper bridges the Scheduler to the Async function
+def job_wrapper(post):
+    asyncio.run(send_post_async(post))
+
 # ====== SCHEDULE JOBS ======
 for post in posts:
-    # Convert string date to real datetime
     post_date = datetime.strptime(post["date"], "%Y-%m-%d")
     hour, minute = map(int, post["time"].split(":"))
 
-    # Schedule EXACT date + time
     scheduler.add_job(
-        send_post,
+        job_wrapper, # Use the wrapper here
         'cron',
         year=post_date.year,
         month=post_date.month,
@@ -121,7 +118,5 @@ for post in posts:
         misfire_grace_time=300
     )
 
-
-# ====== START BOT ======
-print("Bot is running and will post messages automatically...")
+print("Bot is starting with Async Fix...")
 scheduler.start()
