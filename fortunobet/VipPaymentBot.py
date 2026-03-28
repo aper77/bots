@@ -13,7 +13,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
-        "🏆 <b>Welcome to Fortuno VIP!</b>\n\nSelect your access plan below to get tonight's high-odds tips instantly:",
+        "🏆 <b>Welcome to FortunoBet VIP!</b>\n\nSelect your access plan below to get tonight's high-odds tips instantly:",
         reply_markup=reply_markup,
         parse_mode="HTML"
     )
