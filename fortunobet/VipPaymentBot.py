@@ -120,3 +120,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+    # https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
