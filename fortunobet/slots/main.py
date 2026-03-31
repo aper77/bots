@@ -10,70 +10,53 @@ from aiogram.types import (
 )
 
 # ─────────────────────────────────────────────
-# CONFIGURATION  ← only edit this section
+TOKEN    = "8767986301:AAHpaeLqV0RG-2I5rYn3T18o9LFSOJoGqfI"
+ADMIN_ID = 7627990095
 # ─────────────────────────────────────────────
-TOKEN    = "YOUR_BOT_TOKEN_HERE"
-ADMIN_ID = 123456789          # ← your real Telegram ID (use @userinfobot to find it)
 
-# Telegram slot-machine dice: value 1–64
-# These are the REAL dice values that show the matching animation:
-#   1  = BAR BAR BAR  (cherries / bar win)
-#   22 = LEMON LEMON LEMON
-#   43 = SEVEN SEVEN SEVEN  ← jackpot
-#   64 = GRAPE GRAPE GRAPE
-# Other values = mixed reels (no win)
-JACKPOT_VALUE = 43          # true 777 jackpot animation
-BAR_VALUE     = 1           # bar/cherry win animation
-FRUIT_VALUES  = {22, 64}    # matching fruit (lemon / grape)
+JACKPOT_VALUE  = 43
+BAR_VALUE      = 1
+FRUIT_VALUES   = {22, 64}
 
-# Payout in spins
 JACKPOT_PAYOUT = 150
 BAR_PAYOUT     = 40
 FRUIT_PAYOUT   = 5
+WITHDRAW_MIN   = 500
 
-# Minimum spins required to request a withdrawal
-WITHDRAW_MIN = 500
-
-# Persistence file – survives bot restarts
 DATA_FILE = "user_data.json"
-# ─────────────────────────────────────────────
 
 bot = Bot(token=TOKEN)
 dp  = Dispatcher()
 
-# ── Persistence helpers ──────────────────────
+# ── Persistence ──────────────────────────────
 
 def _load() -> dict:
-    """Load user data from disk, return empty dict on first run."""
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except Exception:
             pass
     return {}
 
 def _save(data: dict) -> None:
-    """Persist user data to disk atomically (write-then-rename)."""
     tmp = DATA_FILE + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, DATA_FILE)
 
-# Load once at startup; all handlers mutate this dict and call _save()
 user_data: dict = _load()
 
-
 def get_user(user_id: int) -> dict:
-    """Return the user's record, creating a default one if absent."""
-    uid = str(user_id)           # JSON keys are always strings
+    uid = str(user_id)
     if uid not in user_data:
         user_data[uid] = {
             "spins": 0,
-            "pending_withdrawal": False,   # True while awaiting admin payout
+            "ever_started": False,
+            "pending_withdrawal": False,
+            "pending_spins": 0,
         }
     return user_data[uid]
-
 
 # ── Keyboards ────────────────────────────────
 
@@ -83,17 +66,13 @@ def main_kb(user_id: int) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🎰 SPIN (1 Credit)", callback_data="spin")],
         [InlineKeyboardButton(text="💎 BUY 100 SPINS — 10 Stars", callback_data="buy")],
         [InlineKeyboardButton(text="💸 WITHDRAW WINNINGS", callback_data="withdraw_req")],
-        [InlineKeyboardButton(
-            text="📢 INVITE FOR 5 SPINS",
-            url=f"https://t.me/share/url?url={ref_link}"
-        )],
+        [InlineKeyboardButton(text="📢 INVITE FOR 5 SPINS", url=f"https://t.me/share/url?url={ref_link}")],
     ])
 
 spin_again_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="🎰 SPIN AGAIN", callback_data="spin")],
     [InlineKeyboardButton(text="💎 BUY SPINS",  callback_data="buy")],
 ])
-
 
 # ── /start ───────────────────────────────────
 
@@ -102,18 +81,16 @@ async def cmd_start(message: Message, command: CommandObject):
     user_id = message.from_user.id
     user    = get_user(user_id)
 
-    # Give 10 free spins only if this is a brand-new user
-    is_new = user["spins"] == 0 and not user.get("ever_started")
+    is_new = not user.get("ever_started", False)
     if is_new:
-        user["spins"] = 10
+        user["spins"]       = 10
         user["ever_started"] = True
 
-    # Referral bonus
     if command.args and is_new:
         try:
             ref_id = int(command.args)
-            ref    = get_user(ref_id)
             if ref_id != user_id:
+                ref = get_user(ref_id)
                 ref["spins"] += 5
                 _save(user_data)
                 await bot.send_message(ref_id, "🎊 *Bonus!* Your referral joined — +5 FREE SPINS!", parse_mode="Markdown")
@@ -129,7 +106,6 @@ async def cmd_start(message: Message, command: CommandObject):
         parse_mode="Markdown",
     )
 
-
 # ── /balance ─────────────────────────────────
 
 @dp.message(Command("balance"))
@@ -140,7 +116,6 @@ async def cmd_balance(message: Message):
         parse_mode="Markdown",
         reply_markup=main_kb(message.from_user.id),
     )
-
 
 # ── Spin ─────────────────────────────────────
 
@@ -153,15 +128,13 @@ async def play_slots(callback: types.CallbackQuery):
         await callback.answer("❌ Out of spins! Buy more or invite friends.", show_alert=True)
         return
 
-    # Deduct spin first — prevents double-spin exploits
     user["spins"] -= 1
     _save(user_data)
 
     msg   = await callback.message.answer_dice(emoji="🎰")
     value = msg.dice.value
-    await asyncio.sleep(2.5)   # wait for dice animation to finish
+    await asyncio.sleep(2.5)
 
-    # ── Win logic (based on verified Telegram dice values) ──
     if value == JACKPOT_VALUE:
         win_amount = JACKPOT_PAYOUT
         win_text   = f"🔥 *JACKPOT!* +{JACKPOT_PAYOUT} SPINS!"
@@ -183,10 +156,9 @@ async def play_slots(callback: types.CallbackQuery):
         reply_markup=spin_again_kb,
         parse_mode="Markdown",
     )
-    await callback.answer()   # dismiss the loading indicator
+    await callback.answer()
 
-
-# ── Withdraw request ─────────────────────────
+# ── Withdraw ─────────────────────────────────
 
 @dp.callback_query(F.data == "withdraw_req")
 async def withdraw_info(callback: types.CallbackQuery):
@@ -194,8 +166,7 @@ async def withdraw_info(callback: types.CallbackQuery):
 
     if user["spins"] < WITHDRAW_MIN:
         await callback.answer(
-            f"❌ Minimum withdrawal is {WITHDRAW_MIN} Spins. "
-            f"You have {user['spins']}.",
+            f"❌ Minimum withdrawal is {WITHDRAW_MIN} Spins. You have {user['spins']}.",
             show_alert=True,
         )
         return
@@ -210,14 +181,11 @@ async def withdraw_info(callback: types.CallbackQuery):
     await callback.message.answer(
         "💸 *WITHDRAWAL REQUEST*\n\n"
         "Please send your *TON Wallet Address* below.\n"
-        "_(It starts with UQ, EQ, or 0Q)_\n\n"
+        "_(Starts with UQ, EQ, or 0Q)_\n\n"
         "Admin will process your payment within 24 hours.",
         parse_mode="Markdown",
     )
     await callback.answer()
-
-
-# ── Wallet address handler ────────────────────
 
 @dp.message(F.text.regexp(r"^(UQ|EQ|0Q)[\w-]{46,}$"))
 async def handle_wallet(message: Message):
@@ -225,15 +193,14 @@ async def handle_wallet(message: Message):
     user    = get_user(user_id)
 
     if user["spins"] < WITHDRAW_MIN:
-        return   # silently ignore — shouldn't happen normally
+        return
 
     if user.get("pending_withdrawal"):
         await message.answer("⏳ You already have a pending withdrawal. Please wait.")
         return
 
-    # Lock the balance so they can't spend these spins while waiting
     user["pending_withdrawal"] = True
-    user["pending_spins"]      = user["spins"]   # snapshot the amount owed
+    user["pending_spins"]      = user["spins"]
     _save(user_data)
 
     await bot.send_message(
@@ -251,56 +218,53 @@ async def handle_wallet(message: Message):
         parse_mode="Markdown",
     )
 
-
-# ── Admin: /pay [user_id] — confirm withdrawal ──
+# ── Admin: /pay ───────────────────────────────
 
 @dp.message(Command("pay"))
 async def admin_pay(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
-
     try:
-        target_id = str(message.text.split()[1])
+        target_id = str(int(message.text.split()[1]))
         user      = user_data.get(target_id)
         if not user:
             await message.answer("❌ User not found.")
             return
-
-        amount = user.get("pending_spins", 0)
-        user["spins"]              -= amount
-        user["pending_withdrawal"]  = False
-        user["pending_spins"]       = 0
+        amount                     = user.get("pending_spins", 0)
+        user["spins"]             -= amount
+        user["pending_withdrawal"] = False
+        user["pending_spins"]      = 0
         _save(user_data)
-
-        await message.answer(f"✅ Marked as paid. Deducted {amount} spins from user {target_id}.")
+        await message.answer(f"✅ Paid! Deducted {amount} spins from user {target_id}.")
         await bot.send_message(
             int(target_id),
-            "💸 *Your withdrawal has been processed!* "
-            "Check your TON wallet. Thank you for playing FortunoBet! 🎰",
+            "💸 *Your withdrawal has been processed!*\nCheck your TON wallet. Thank you for playing! 🎰",
             parse_mode="Markdown",
         )
     except (IndexError, ValueError):
         await message.answer("Usage: `/pay [user_id]`", parse_mode="Markdown")
 
-
-# ── Admin: /gift [user_id] [amount] ──────────
+# ── Admin: /gift ──────────────────────────────
 
 @dp.message(Command("gift"))
 async def admin_gift(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
-
     try:
         parts     = message.text.split()
-        target_id = str(int(parts[1]))   # normalise to string key
+        target_id = str(int(parts[1]))
         amount    = int(parts[2])
         user      = get_user(int(target_id))
         user["spins"] += amount
         _save(user_data)
-        await message.answer(f"✅ Added {amount} spins to user {target_id}. New balance: {user['spins']}.")
+        await message.answer(f"✅ Added {amount} spins to {target_id}. New balance: {user['spins']}.")
+        await bot.send_message(
+            int(target_id),
+            f"🎁 *You received {amount} free spins!* Enjoy! 🎰",
+            parse_mode="Markdown",
+        )
     except (IndexError, ValueError):
         await message.answer("Usage: `/gift [user_id] [amount]`", parse_mode="Markdown")
-
 
 # ── Stars payment ─────────────────────────────
 
@@ -311,7 +275,7 @@ async def process_buy(callback: types.CallbackQuery):
         title="100 Spins",
         description="100 credits for FortunoBet slots",
         payload="buy_100",
-        provider_token="",      # empty = Telegram Stars
+        provider_token="",
         currency="XTR",
         prices=[LabeledPrice(label="100 Spins", amount=10)],
     )
@@ -323,23 +287,18 @@ async def pre_check(q: PreCheckoutQuery):
 
 @dp.message(F.successful_payment)
 async def success_pay(m: Message):
-    user        = get_user(m.from_user.id)
+    user = get_user(m.from_user.id)
     user["spins"] += 100
     _save(user_data)
     await m.answer(
-        "✅ *Success!* 100 Spins added to your account.\n"
-        f"💰 New Balance: {user['spins']} Spins",
+        f"✅ *Success!* 100 Spins added!\n💰 New Balance: {user['spins']} Spins",
         parse_mode="Markdown",
     )
 
-
-# ── Entry point ───────────────────────────────
+# ── Main ──────────────────────────────────────
 
 async def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     logging.info("FortunoBet is online.")
     await dp.start_polling(bot)
 
