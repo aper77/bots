@@ -1050,7 +1050,7 @@ MY_WALLET_ADDRESS = "UQAWimN1rdaCPu9IXVPh67vzlxuDI88Mrj3cTLMX8KGjM1Rd"
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 
 SEND_TO = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-AMOUNT_TON = 0.01  # Change this if you want to send more
+AMOUNT_TON = 0.01  # Change if you want to send more
 
 async def main():
     # Build wallet from mnemonic (v4r1 wallet)
