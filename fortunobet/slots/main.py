@@ -1033,10 +1033,9 @@
 #     asyncio.run(test())
 
 """
-Find correct wallet version by trying all versions
+Find correct wallet version
 Run: python3 test_ton.py
 """
-import asyncio
 
 MNEMONIC = [
     "disagree", "crystal",  "priority", "marble",  "limb",    "sentence",
@@ -1046,44 +1045,25 @@ MNEMONIC = [
 ]
 REAL_ADDRESS = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
 
-def test():
-    print("\n" + "="*50)
-    print("Trying all wallet versions...")
-    print(f"Target: {REAL_ADDRESS}")
-    print("="*50)
+from tonsdk.contract.wallet import Wallets, WalletVersionEnum
 
-    from tonsdk.contract.wallet import Wallets, WalletVersionEnum
+# Print all available versions first
+print("\nAvailable versions in your tonsdk:")
+print([v.name for v in WalletVersionEnum])
 
-    versions = [
-        WalletVersionEnum.v4r2,
-        WalletVersionEnum.v4r1,
-        WalletVersionEnum.v3r2,
-        WalletVersionEnum.v3r1,
-        WalletVersionEnum.v2r2,
-        WalletVersionEnum.v2r1,
-        WalletVersionEnum.v1r3,
-        WalletVersionEnum.v1r2,
-        WalletVersionEnum.v1r1,
-    ]
+print(f"\nTarget address: {REAL_ADDRESS}")
+print("="*60)
 
-    for ver in versions:
-        try:
-            _, _, _, wallet = Wallets.from_mnemonics(MNEMONIC, ver, workchain=0)
-            addr = wallet.address.to_string(True, True, False)
-            match = "🎉 MATCH!" if addr == REAL_ADDRESS else ""
-            print(f"  {str(ver):<20} → {addr}  {match}")
-        except Exception as e:
-            print(f"  {str(ver):<20} → Error: {e}")
-
-    # Also try bounceable format
-    print("\nTrying bounceable format (EQ...):")
-    for ver in [WalletVersionEnum.v4r2, WalletVersionEnum.v4r1]:
-        try:
-            _, _, _, wallet = Wallets.from_mnemonics(MNEMONIC, ver, workchain=0)
-            addr = wallet.address.to_string(True, True, True)
-            match = "🎉 MATCH!" if addr == REAL_ADDRESS else ""
-            print(f"  {str(ver):<20} bounceable → {addr}  {match}")
-        except Exception as e:
-            print(f"  Error: {e}")
-
-test()
+for ver in WalletVersionEnum:
+    try:
+        _, _, _, wallet = Wallets.from_mnemonics(MNEMONIC, ver, workchain=0)
+        # try non-bounceable
+        addr1 = wallet.address.to_string(True, True, False)
+        # try bounceable
+        addr2 = wallet.address.to_string(True, True, True)
+        match1 = " 🎉 MATCH!" if addr1 == REAL_ADDRESS else ""
+        match2 = " 🎉 MATCH!" if addr2 == REAL_ADDRESS else ""
+        print(f"{ver.name:<10} UQ: {addr1}{match1}")
+        print(f"{ver.name:<10} EQ: {addr2}{match2}")
+    except Exception as e:
+        print(f"{ver.name:<10} Error: {e}")
