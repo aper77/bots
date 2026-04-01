@@ -1033,12 +1033,10 @@
 #     asyncio.run(test())
 
 """
-TON Payment Test — New Tonkeeper wallet
+Find correct wallet version by trying all versions
 Run: python3 test_ton.py
 """
 import asyncio
-import aiohttp
-import base64
 
 MNEMONIC = [
     "disagree", "crystal",  "priority", "marble",  "limb",    "sentence",
@@ -1046,100 +1044,46 @@ MNEMONIC = [
     "sleep",    "novel",    "cigar",    "brisk",    "valid",   "garment",
     "dial",     "day",      "front",    "eyebrow",  "orange",  "letter",
 ]
-TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-SEND_TO           = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-REAL_ADDRESS      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
-AMOUNT_TON        = 0.01
+REAL_ADDRESS = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
 
-async def test():
+def test():
     print("\n" + "="*50)
-    print("TON Payment Test — New Tonkeeper wallet")
+    print("Trying all wallet versions...")
+    print(f"Target: {REAL_ADDRESS}")
     print("="*50)
 
-    print("\n[1/5] Building wallet from mnemonic...")
-    try:
-        from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-        _, _, _, wallet = Wallets.from_mnemonics(
-            MNEMONIC, WalletVersionEnum.v4r2, workchain=0
-        )
-        addr = wallet.address.to_string(True, True, False)
-        print(f"    ✅ Generated address : {addr}")
-        print(f"    📱 Your real address : {REAL_ADDRESS}")
-        if addr == REAL_ADDRESS:
-            print(f"    🎉 ADDRESSES MATCH! Perfect!")
-        else:
-            print(f"    ❌ Addresses do NOT match — wrong words or wrong wallet version")
-            return
-    except Exception as e:
-        print(f"    ❌ Failed: {e}")
-        return
+    from tonsdk.contract.wallet import Wallets, WalletVersionEnum
 
-    headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
+    versions = [
+        WalletVersionEnum.v4r2,
+        WalletVersionEnum.v4r1,
+        WalletVersionEnum.v3r2,
+        WalletVersionEnum.v3r1,
+        WalletVersionEnum.v2r2,
+        WalletVersionEnum.v2r1,
+        WalletVersionEnum.v1r3,
+        WalletVersionEnum.v1r2,
+        WalletVersionEnum.v1r1,
+    ]
 
-    async with aiohttp.ClientSession() as s:
-
-        print("\n[2/5] Checking balance...")
+    for ver in versions:
         try:
-            async with s.get(
-                "https://toncenter.com/api/v2/getAddressBalance",
-                params={"address": addr}, headers=headers
-            ) as r:
-                res     = await r.json()
-                balance = int(res["result"]) / 1e9
-                print(f"    ✅ Balance: {balance:.4f} TON")
-                if balance < AMOUNT_TON:
-                    print(f"    ❌ Not enough TON!")
-                    return
+            _, _, _, wallet = Wallets.from_mnemonics(MNEMONIC, ver, workchain=0)
+            addr = wallet.address.to_string(True, True, False)
+            match = "🎉 MATCH!" if addr == REAL_ADDRESS else ""
+            print(f"  {str(ver):<20} → {addr}  {match}")
         except Exception as e:
-            print(f"    ❌ {e}")
-            return
+            print(f"  {str(ver):<20} → Error: {e}")
 
-        print("\n[3/5] Getting seqno...")
+    # Also try bounceable format
+    print("\nTrying bounceable format (EQ...):")
+    for ver in [WalletVersionEnum.v4r2, WalletVersionEnum.v4r1]:
         try:
-            async with s.post(
-                "https://toncenter.com/api/v2/runGetMethod",
-                json={"address": addr, "method": "seqno", "stack": []},
-                headers=headers
-            ) as r:
-                res   = await r.json()
-                stack = res["result"]["stack"]
-                val   = stack[0]
-                seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value","0x0"), 16)
-                print(f"    ✅ Seqno: {seqno}")
+            _, _, _, wallet = Wallets.from_mnemonics(MNEMONIC, ver, workchain=0)
+            addr = wallet.address.to_string(True, True, True)
+            match = "🎉 MATCH!" if addr == REAL_ADDRESS else ""
+            print(f"  {str(ver):<20} bounceable → {addr}  {match}")
         except Exception as e:
-            print(f"    ❌ {e}")
-            return
+            print(f"  Error: {e}")
 
-        print("\n[4/5] Building transaction...")
-        try:
-            from tonsdk.utils import to_nano
-            query = wallet.create_transfer_message(
-                to_addr=SEND_TO,
-                amount=to_nano(AMOUNT_TON, "ton"),
-                seqno=seqno,
-                payload="FortunoBet Test",
-            )
-            boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            print(f"    ✅ Transaction built!")
-        except Exception as e:
-            print(f"    ❌ {e}")
-            return
-
-        print(f"\n[5/5] Sending {AMOUNT_TON} TON to {SEND_TO}...")
-        try:
-            async with s.post(
-                "https://toncenter.com/api/v2/sendBoc",
-                json={"boc": boc}, headers=headers
-            ) as r:
-                res = await r.json()
-                if res.get("ok"):
-                    print(f"\n{'='*50}")
-                    print(f"✅ SUCCESS! {AMOUNT_TON} TON SENT!")
-                    print(f"✅ AUTO PAYMENT WORKS!")
-                    print(f"{'='*50}\n")
-                else:
-                    print(f"    ❌ {res.get('error', res)}")
-        except Exception as e:
-            print(f"    ❌ {e}")
-
-asyncio.run(test())
+test()
