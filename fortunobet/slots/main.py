@@ -927,14 +927,6 @@
 
 
 
-"""
-TON Payment Test Script
-Run this FIRST to test if your wallet and API key work correctly.
-
-Usage:
-    python3 test_ton.py
-"""
-
 import asyncio
 import aiohttp
 import json
@@ -968,17 +960,23 @@ async def test():
     # ── Step 1: Build wallet ────
     print("\n[1/5] Setting up wallet...")
     try:
-        # We use v4r2 and the specific Subwallet ID used by Tonkeeper
+        # Try v4r2 first (Tonkeeper default)
         _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC, 
-            version=WalletVersionEnum.v4r1, 
-            workchain=0, 
-            subwallet_id=698983191
+            version=WalletVersionEnum.v4r2,  # change to v4r1 if needed
+            workchain=0
         )
         
-        # We FORCE the wallet to use your UQDP address for all API calls
-        wallet_address = MY_TONKEEPER_ADDRESS
-        print(f"    ✅ Using Manual Address: {wallet_address}")
+        # Derive the actual wallet address from mnemonic
+        wallet_address = wallet.address.to_string(True, True, True)
+        print(f"    🔍 Derived Address: {wallet_address}")
+        print(f"    ✅ Expected Address: {MY_TONKEEPER_ADDRESS}")
+
+        if wallet_address != MY_TONKEEPER_ADDRESS:
+            print("    ⚠️ Warning: Derived address does not match Tonkeeper address!")
+            print("       Check wallet version or mnemonic.")
+            return
+
     except Exception as e:
         print(f"    ❌ Setup error: {e}")
         return
@@ -1020,7 +1018,7 @@ async def test():
         # ── Step 4: Build transaction ─────────
         print(f"\n[4/5] Building transaction...")
         try:
-            # This creates the signature using your words + correct subwallet ID
+            # This creates the signature using your words + correct wallet
             query = wallet.create_transfer_message(
                 to_addr=TEST_SEND_TO,
                 amount=to_nano(TEST_AMOUNT_TON, "ton"),
@@ -1044,8 +1042,7 @@ async def test():
                 error_msg = raw.get('error', 'Unknown Error')
                 print(f"\n❌ SEND FAILED: {error_msg}")
                 if "unpack" in error_msg.lower():
-                    print("\n💡 Tip: If it still says 'Unpack', go to Line 29")
-                    print("Change WalletVersionEnum.v4r2 to WalletVersionEnum.v4r1")
+                    print("\n💡 Tip: Check wallet version (v4r2 vs v4r1) and mnemonic.")
 
 if __name__ == "__main__":
     asyncio.run(test())
