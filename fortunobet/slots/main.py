@@ -923,12 +923,9 @@
 
 
 import asyncio
-import warnings
-from pytoniq import WalletV5R1, LiteClient
+from pytoniq import WalletV3R2, LiteClient
 
-# Suppress the "unknown init block" warning
-warnings.filterwarnings("ignore", "unknown init block found")
-
+# ── CONFIGURATION ─────────────────────────
 MNEMONIC = [
     "lawsuit", "paddle", "skull", "autumn", "embrace", "urge",
     "wrist", "spell", "easily", "vast", "poet", "clarify",
@@ -939,45 +936,38 @@ MNEMONIC = [
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 TRANSFER_AMOUNT = 0.01  # TON
+# ─────────────────────────────────────────
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Final Payment")
+    print("FortunoBet — TON Fast Transfer")
     print("="*50)
 
     client = LiteClient.from_mainnet_config()
+    await client.connect()
 
-    try:
-        await client.connect()
+    # Load wallet using V3R2 (fast, fully compatible)
+    wallet = await WalletV3R2.from_mnemonic(client, MNEMONIC)
+    current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
 
-        wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+    print(f"\nWallet Address: {current_addr}")
+    print(f"Target Address: {DESTINATION}")
 
-        print(f"\n[1/3] Wallet Setup")
-        print(f"    ✅ Script Address: {current_addr}")
-        print(f"    ✅ Target Address: {MY_ADDRESS}")
+    balance = await wallet.get_balance()
+    print(f"Balance: {balance / 1e9:.4f} TON")
 
-        if current_addr != MY_ADDRESS:
-            print("\n    ❌ ERROR: Address mismatch!")
-            return
-
-        print("\n[2/3] Checking Balance...")
-        balance = await wallet.get_balance()
-        print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
-
-        if balance < TRANSFER_AMOUNT * 1e9 + 0.01 * 1e9:
-            print(f"    ❌ Not enough TON to send {TRANSFER_AMOUNT} TON + gas.")
-            return
-
-        print(f"\n[3/3] Sending {TRANSFER_AMOUNT} TON...")
-        tx = await wallet.transfer(destination=DESTINATION, amount=TRANSFER_AMOUNT, body="Test Payment")
-        print(f"\n✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT.")
-        print(f"Transaction Hash: {tx.hash}\n")
-
-    except Exception as e:
-        print(f"\n❌ Error: {e}")
-    finally:
+    if balance < TRANSFER_AMOUNT * 1e9 + 0.01 * 1e9:
+        print("❌ Not enough TON to send + gas")
         await client.close()
+        return
+
+    print(f"\nSending {TRANSFER_AMOUNT} TON...")
+    tx = await wallet.transfer(destination=DESTINATION, amount=TRANSFER_AMOUNT, body="Test Payment")
+
+    print(f"✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT")
+    print(f"Transaction Hash: {tx.hash}")
+
+    await client.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
