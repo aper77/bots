@@ -924,20 +924,27 @@
 
 import sys
 import os
+import asyncio
 
-# ── PATH INJECTOR ───────────────────────────
-# This tells Python to look in the folder where pip installed your tools
-user_site = os.path.expanduser("~/.local/lib/python3.10/site-packages")
-sys.path.append(user_site)
-sys.path.append("/tmp/.local/lib/python3.10/site-packages") # Check the tmp path too
+# ── FORCED PATH INJECTOR ────────────────────
+# We know exactly where pip just put your files. This is that path:
+tmp_path = "/tmp/.local/lib/python3.10/site-packages"
+if tmp_path not in sys.path:
+    sys.path.insert(0, tmp_path) 
 # ─────────────────────────────────────────────
 
-import asyncio
 try:
+    # We import directly from the core engines to be safe
     from pytoniq import WalletV5R1, ToncenterClient
-except ImportError:
-    print("❌ Library still not found. Try running: python3 -m pip install pytoniq")
-    sys.exit()
+    print("✅ Libraries loaded successfully!")
+except ImportError as e:
+    print(f"❌ Still can't find libraries: {e}")
+    print("Trying alternative import...")
+    try:
+        from pytoniq_core import WalletV5R1
+        from pytoniq import ToncenterClient
+    except:
+        sys.exit("Critical Error: Please check your installation path.")
 
 # ── CONFIGURATION ───────────────────────────
 MNEMONIC = [
@@ -946,6 +953,7 @@ MNEMONIC = [
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
+
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
 API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
@@ -953,16 +961,17 @@ DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Final Test (Path Fixed)")
+    print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
     client = ToncenterClient(api_key=API_KEY)
     
     try:
-        # Create Wallet
+        # Step 1: Wallet Setup
+        # pytoniq uses from_mnemonic as an async-ready method
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
         
-        # Format the address correctly for W5
+        # Get address string
         current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
         
         print(f"\n[1/3] Wallet Setup")
@@ -971,25 +980,27 @@ async def main():
 
         if current_addr != MY_ADDRESS:
             print("\n    ❌ ERROR: Address mismatch!")
+            print("    → Your mnemonic generates a different address.")
             return
 
-        # Check Balance
+        # Step 2: Balance Check
         print("\n[2/3] Checking Balance...")
         balance = await wallet.get_balance()
         print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
 
         if balance < 0.02 * 1e9:
-            print("    ❌ Not enough TON.")
+            print("    ❌ Not enough TON (Need ~0.02 for gas + test).")
             return
 
-        # Send Transaction
+        # Step 3: Transfer
         print("\n[3/3] Sending 0.01 TON...")
+        # Pytoniq transfer is straightforward
         await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
         
         print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
 
     except Exception as e:
-        print(f"\n    ❌ Error: {e}")
+        print(f"\n    ❌ Error during execution: {e}")
     finally:
         await client.close()
 
