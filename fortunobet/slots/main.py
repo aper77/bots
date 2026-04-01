@@ -922,32 +922,174 @@
 
 
 
-import asyncio
-from tonutils.wallet import WalletV5
 
-# Your 24-word mnemonic
+
+
+
+
+"""
+TON Payment Test Script
+Run this FIRST to test if your wallet and API key work correctly.
+
+Usage:
+    python3 test_ton.py
+"""
+
+import asyncio
+import aiohttp
+import json
+
+# ── PASTE YOUR DETAILS HERE ──────────────────
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
+TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
+TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # test wallet
+TEST_AMOUNT_TON   = 0.01   # send only 0.01 TON as test
+# ─────────────────────────────────────────────
 
-DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+async def test():
+    print("\n" + "="*50)
+    print("FortunoBet — TON Payment Test")
+    print("="*50)
 
-async def main():
-    wallet = await WalletV5.from_mnemonic(MNEMONIC)
-    print(f"Wallet Address: {wallet.address.to_string()}")
+    headers = {
+        "Content-Type": "application/json",
+        "X-API-Key": TONCENTER_API_KEY
+    }
 
-    balance = await wallet.get_balance()
-    print(f"Balance: {balance / 1e9:.4f} TON")
+    # ── Step 1: Build wallet from mnemonic ────
+    print("\n[1/5] Building wallet from mnemonic...")
+    try:
+        from tonsdk.contract.wallet import Wallets, WalletVersionEnum
+        from tonsdk.utils import to_nano
+        import base64
 
-    if balance < 0.02 * 1e9:
-        print("❌ Not enough TON to send.")
+        _mnemonics, _pub_k, _priv_k, wallet = Wallets.from_mnemonics(
+            MNEMONIC, WalletVersionEnum.v4r2, workchain=0
+        )
+        wallet_address = wallet.address.to_string(True, True, True)
+        print(f"    ✅ Wallet address: {wallet_address}")
+    except ImportError:
+        print("    ❌ tonsdk not installed! Run: pip install tonsdk")
+        return
+    except Exception as e:
+        print(f"    ❌ Mnemonic error: {e}")
+        print("    → Check your 24 words are correct")
         return
 
-    # Send 0.01 TON
-    await wallet.transfer(destination=DESTINATION, amount=0.01 * 1e9)
-    print("✅ Transfer sent!")
+    async with aiohttp.ClientSession() as session:
 
-asyncio.run(main())
+        # ── Step 2: Check wallet balance ──────
+        print("\n[2/5] Checking wallet balance...")
+        try:
+            async with session.get(
+                "https://toncenter.com/api/v2/getAddressBalance",
+                params={"address": wallet_address},
+                headers=headers
+            ) as r:
+                raw = await r.json()
+                print(f"    API response: {json.dumps(raw, indent=2)}")
+
+                if raw.get("ok"):
+                    balance_nano = int(raw["result"])
+                    balance_ton  = balance_nano / 1_000_000_000
+                    print(f"    ✅ Balance: {balance_ton:.4f} TON")
+                    if balance_ton < TEST_AMOUNT_TON:
+                        print(f"    ❌ Not enough TON! Need at least {TEST_AMOUNT_TON} TON in wallet")
+                        print(f"    → Send some TON to: {wallet_address}")
+                        return
+                else:
+                    print(f"    ❌ API error: {raw}")
+                    return
+        except Exception as e:
+            print(f"    ❌ Balance check failed: {e}")
+            return
+
+        # ── Step 3: Get seqno ─────────────────
+        print("\n[3/5] Getting wallet seqno...")
+        try:
+            async with session.post(
+                "https://toncenter.com/api/v2/runGetMethod",
+                json={
+                    "address": wallet_address,
+                    "method":  "seqno",
+                    "stack":   []
+                },
+                headers=headers
+            ) as r:
+                raw = await r.json()
+                print(f"    API response: {json.dumps(raw, indent=2)}")
+
+                if raw.get("ok"):
+                    stack = raw["result"]["stack"]
+                    # Handle both response formats
+                    if stack and len(stack) > 0:
+                        val = stack[0]
+                        if isinstance(val, list) and len(val) > 1:
+                            seqno = int(val[1], 16)
+                        elif isinstance(val, dict):
+                            seqno = int(val.get("value", "0x0"), 16)
+                        else:
+                            seqno = 0
+                    else:
+                        seqno = 0
+                    print(f"    ✅ Seqno: {seqno}")
+                else:
+                    print(f"    ❌ API error: {raw}")
+                    return
+        except Exception as e:
+            print(f"    ❌ Seqno failed: {e}")
+            return
+
+        # ── Step 4: Build transaction ─────────
+        print(f"\n[4/5] Building transaction ({TEST_AMOUNT_TON} TON → {TEST_SEND_TO})...")
+        try:
+            query = wallet.create_transfer_message(
+                to_addr=TEST_SEND_TO,
+                amount=to_nano(TEST_AMOUNT_TON, "ton"),
+                seqno=seqno,
+                payload="FortunoBet Test",
+            )
+            boc = base64.b64encode(
+                query["message"].to_boc(False)
+            ).decode()
+            print(f"    ✅ Transaction built. BOC length: {len(boc)}")
+        except Exception as e:
+            print(f"    ❌ Build transaction failed: {e}")
+            return
+
+        # ── Step 5: Send transaction ──────────
+        print(f"\n[5/5] Sending transaction...")
+        try:
+            async with session.post(
+                "https://toncenter.com/api/v2/sendBoc",
+                json={"boc": boc},
+                headers=headers
+            ) as r:
+                raw = await r.json()
+                print(f"    API response: {json.dumps(raw, indent=2)}")
+
+                if raw.get("ok"):
+                    print(f"\n{'='*50}")
+                    print(f"✅ SUCCESS! {TEST_AMOUNT_TON} TON sent to {TEST_SEND_TO}")
+                    print(f"{'='*50}\n")
+                else:
+                    print(f"\n❌ SEND FAILED: {raw.get('error', raw)}")
+                    print("    → Check wallet has enough TON")
+                    print("    → Check API key is correct")
+        except Exception as e:
+            print(f"    ❌ Send failed: {e}")
+
+asyncio.run(test())
+
+
+
+
+
+
+
+
