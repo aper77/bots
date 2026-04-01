@@ -925,8 +925,10 @@
 import asyncio
 import aiohttp
 import json
+import base64
 
 # ── CONFIGURATION ───────────────────────────
+# 1. Paste your 24 words here
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -934,7 +936,7 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-# PASTE YOUR Tonkeeper address here (The one starting with UQD2...)
+# 2. Paste your Tonkeeper address here (The one starting with UQDP...)
 MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1" 
 
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
@@ -957,14 +959,16 @@ async def test():
     try:
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
         from tonsdk.utils import to_nano
-        import base64
 
-        # This stays the same to allow the script to sign the transaction
+        # We MUST use subwallet_id=698983191 for Tonkeeper v4R2 compatibility
+        # This fixes the "Failed to unpack account state" error
         _m, _p, _k, wallet = Wallets.from_mnemonics(
-            MNEMONIC, WalletVersionEnum.v4r2, workchain=0
+            MNEMONIC, 
+            version=WalletVersionEnum.v4r2, 
+            workchain=0,
+            subwallet_id=698983191
         )
 
-        # MANUAL OVERRIDE: We use your Tonkeeper address string directly
         wallet_address = MY_TONKEEPER_ADDRESS
         print(f"    ✅ Using Manual Address: {wallet_address}")
             
@@ -986,9 +990,8 @@ async def test():
                 if raw.get("ok"):
                     balance_ton = int(raw["result"]) / 1_000_000_000
                     print(f"    ✅ Balance: {balance_ton:.4f} TON")
-                    
                     if balance_ton < TEST_AMOUNT_TON:
-                        print(f"    ❌ Still 0 TON? Check if you pasted the right address.")
+                        print(f"    ❌ Not enough TON to send test.")
                         return
                 else:
                     print(f"    ❌ API error: {raw}")
@@ -1009,16 +1012,16 @@ async def test():
                 seqno = 0
                 if raw.get("ok") and raw["result"]["stack"]:
                     val = raw["result"]["stack"][0]
+                    # Extract numeric seqno from the hex/dec stack
                     seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
                 print(f"    ✅ Seqno: {seqno}")
         except Exception:
             seqno = 0
-            print("    ⚠️ Seqno failed (Wallet might be new). Using 0.")
+            print("    ⚠️ Seqno failed. Using 0.")
 
         # ── Step 4: Build transaction ─────────
         print(f"\n[4/5] Building transaction...")
         try:
-            # We use the 'wallet' object to sign, but the 'seqno' from your real address
             query = wallet.create_transfer_message(
                 to_addr=TEST_SEND_TO,
                 amount=to_nano(TEST_AMOUNT_TON, "ton"),
@@ -1026,13 +1029,13 @@ async def test():
                 payload="FortunoBet Test",
             )
             boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            print(f"    ✅ Transaction built.")
+            print(f"    ✅ Transaction built successfully.")
         except Exception as e:
             print(f"    ❌ Build failed: {e}")
             return
 
         # ── Step 5: Send transaction ──────────
-        print(f"\n[5/5] Sending transaction...")
+        print(f"\n[5/5] Sending to Mainnet...")
         try:
             async with session.post(
                 "https://toncenter.com/api/v2/sendBoc",
@@ -1041,9 +1044,9 @@ async def test():
             ) as r:
                 raw = await r.json()
                 if raw.get("ok"):
-                    print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
+                    print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT!\n{'='*50}\n")
                 else:
-                    print(f"\n❌ SEND FAILED: {raw}")
+                    print(f"\n❌ SEND FAILED: {raw.get('error', raw)}")
         except Exception as e:
             print(f"    ❌ Send failed: {e}")
 
