@@ -950,13 +950,13 @@ async def test():
     print("FortunoBet — TON Direct Address Fix")
     print("="*50)
 
-    # Try v4r2 (Tonkeeper default) and subwallet_id=0
+    # ── Step 1: Build wallet ──
     try:
         _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC,
-            version=WalletVersionEnum.v4r2,
+            version=WalletVersionEnum.v4r2,  # Matches W5 / Tonkeeper
             workchain=0,
-            subwallet_id=0
+            subwallet_id=0  # Main wallet
         )
         wallet_address = wallet.address.to_string(True, True, True)
         print(f"    🔍 Derived Address: {wallet_address}")
@@ -972,7 +972,7 @@ async def test():
     headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
 
     async with aiohttp.ClientSession() as session:
-        # Check balance
+        # ── Step 2: Check balance ──
         print("\n[2/5] Checking balance...")
         async with session.get("https://toncenter.com/api/v2/getAddressBalance",
                                params={"address": wallet_address}, headers=headers) as r:
@@ -987,7 +987,7 @@ async def test():
                 print(f"    ❌ API Error: {raw}")
                 return
 
-        # Get seqno
+        # ── Step 3: Get seqno ──
         print("\n[3/5] Getting seqno...")
         async with session.post("https://toncenter.com/api/v2/runGetMethod",
                                 json={"address": wallet_address, "method": "seqno", "stack": []},
@@ -999,7 +999,7 @@ async def test():
                 seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
             print(f"    ✅ Seqno: {seqno}")
 
-        # Build transaction
+        # ── Step 4: Build transaction ──
         print("\n[4/5] Building transaction...")
         try:
             query = wallet.create_transfer_message(
@@ -1014,7 +1014,7 @@ async def test():
             print(f"    ❌ Build failed: {e}")
             return
 
-        # Send transaction
+        # ── Step 5: Send transaction ──
         print("\n[5/5] Sending to Mainnet...")
         async with session.post("https://toncenter.com/api/v2/sendBoc",
                                 json={"boc": boc}, headers=headers) as r:
