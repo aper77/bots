@@ -927,17 +927,22 @@ import aiohttp
 import json
 import base64
 
-# ── CONFIGURATION ───────────────────────────
-# 1. Paste your 24 words here
+# ── 1. MNEMONIC (Your 24 words) ────────────────
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
-# 2. Paste your Tonkeeper address here
+
+# ── 2. YOUR TONKEEPER ADDRESS ──────────────────
 MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1" 
 
+# ── 3. WALLET VERSION ──────────────────────────
+# UPDATED: Switched to v4r1 to fix the 'Failed to unpack' error
+WALLET_VERSION = "v4r1" 
+
+# ── 4. API & TARGETS ───────────────────────────
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 TEST_AMOUNT_TON   = 0.01 
@@ -945,52 +950,41 @@ TEST_AMOUNT_TON   = 0.01
 
 async def test():
     print("\n" + "="*50)
-    print("FortunoBet — TON Final Auto-Finder")
+    print(f"FortunoBet — TON Test (Version: {WALLET_VERSION})")
     print("="*50)
 
-    from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-    from tonsdk.utils import to_nano
+    headers = {"X-API-Key": TONCENTER_API_KEY}
 
-    # ── Step 1: Find the Match ────
-    print("\n[1/5] Finding the correct version for your address...")
-    
-    # These are the 3 ways Tonkeeper sets up its 'UQD2/UQDP' wallets
-    configs = [
-        {"name": "v4R2 Standard", "ver": WalletVersionEnum.v4r2, "sub": 698983191},
-        {"name": "v4R1 Standard", "ver": WalletVersionEnum.v4r1, "sub": 698983191},
-        {"name": "v4R2 Alternative", "ver": WalletVersionEnum.v4r2, "sub": 0},
-    ]
+    print("\n[1/5] Building wallet...")
+    try:
+        from tonsdk.contract.wallet import Wallets, WalletVersionEnum
+        from tonsdk.utils import to_nano
 
-    wallet = None
-    for cfg in configs:
-        _m, _p, _k, test_wallet = Wallets.from_mnemonics(
-            MNEMONIC, version=cfg["ver"], workchain=0, subwallet_id=cfg["sub"]
+        # Selecting v4r1 for this attempt
+        ver_enum = WalletVersionEnum.v4r1
+        sub_id = 698983191 
+
+        _m, _p, _k, wallet = Wallets.from_mnemonics(
+            MNEMONIC, version=ver_enum, workchain=0, subwallet_id=sub_id
         )
-        # Generate the address string to compare
-        generated = test_wallet.address.to_string(True, True, False)
-        
-        if generated == MY_TONKEEPER_ADDRESS:
-            wallet = test_wallet
-            print(f"    ✅ MATCH FOUND: {cfg['name']}")
-            break
-    
-    if not wallet:
-        print("    ❌ ERROR: None of the versions match your address.")
-        print("    → Please double-check that your 24 words are for this exact wallet.")
+        print(f"    ✅ Using Address: {MY_TONKEEPER_ADDRESS}")
+    except Exception as e:
+        print(f"    ❌ Setup error: {e}")
         return
 
-    headers = {"X-API-Key": TONCENTER_API_KEY}
     async with aiohttp.ClientSession() as session:
-
-        # ── Step 2: Balance ────
+        # Step 2: Balance
         print("\n[2/5] Checking balance...")
         async with session.get("https://toncenter.com/api/v2/getAddressBalance", 
                                params={"address": MY_TONKEEPER_ADDRESS}, headers=headers) as r:
             raw = await r.json()
+            if not raw.get("ok"): 
+                print(f"    ❌ API Error: {raw}")
+                return
             balance = int(raw["result"]) / 1e9
             print(f"    ✅ Balance: {balance:.4f} TON")
 
-        # ── Step 3: Seqno ────
+        # Step 3: Seqno
         print("\n[3/5] Getting seqno...")
         async with session.post("https://toncenter.com/api/v2/runGetMethod", 
                                  json={"address": MY_TONKEEPER_ADDRESS, "method": "seqno", "stack": []}, 
@@ -1002,16 +996,22 @@ async def test():
                 seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
             print(f"    ✅ Seqno: {seqno}")
 
-        # ── Step 4: Build ────
+        # Step 4: Build
         print("\n[4/5] Building transaction...")
-        query = wallet.create_transfer_message(
-            to_addr=TEST_SEND_TO, amount=to_nano(TEST_AMOUNT_TON, "ton"),
-            seqno=seqno, payload="FortunoBet Test"
-        )
-        boc = base64.b64encode(query["message"].to_boc(False)).decode()
-        print("    ✅ BOC built.")
+        try:
+            query = wallet.create_transfer_message(
+                to_addr=TEST_SEND_TO, 
+                amount=to_nano(TEST_AMOUNT_TON, "ton"),
+                seqno=seqno, 
+                payload="FortunoBet Test"
+            )
+            boc = base64.b64encode(query["message"].to_boc(False)).decode()
+            print("    ✅ BOC created.")
+        except Exception as e:
+            print(f"    ❌ Build failed: {e}")
+            return
 
-        # ── Step 5: Send ────
+        # Step 5: Send
         print("\n[5/5] Sending...")
         async with session.post("https://toncenter.com/api/v2/sendBoc", 
                                  json={"boc": boc}, headers=headers) as r:
@@ -1019,7 +1019,10 @@ async def test():
             if res.get("ok"):
                 print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT!\n{'='*50}\n")
             else:
-                print(f"\n❌ FAILED: {res.get('error')}")
+                error_msg = str(res.get('error', 'Unknown Error'))
+                print(f"\n❌ FAILED: {error_msg}")
+                if "unpack" in error_msg.lower():
+                    print("    → Account state mismatch. Ensure your 24 words are for this UQDP address.")
 
 if __name__ == "__main__":
     asyncio.run(test())
