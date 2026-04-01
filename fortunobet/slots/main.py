@@ -940,7 +940,7 @@ MNEMONIC = [
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
-
+MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 TEST_AMOUNT_TON   = 0.01 
@@ -954,13 +954,17 @@ async def test():
     try:
         _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC,
-            version=WalletVersionEnum.v4r2,  # Matches Tonkeeper W5
+            version=WalletVersionEnum.v4r2,  # Matches W5 / Tonkeeper
             workchain=0,
             subwallet_id=0  # Main wallet
         )
         wallet_address = wallet.address.to_string(True, True, True)
-        print(f"    🔍 Using wallet address: {wallet_address}")
-        # No need to compare with UQDP… address
+        print(f"    🔍 Derived Address: {wallet_address}")
+        print(f"    ✅ Expected Address: {MY_TONKEEPER_ADDRESS}")
+
+        if wallet_address != MY_TONKEEPER_ADDRESS:
+            print("    ❌ Derived address does not match! Check mnemonic or wallet version.")
+            return
     except Exception as e:
         print(f"    ❌ Wallet setup error: {e}")
         return
