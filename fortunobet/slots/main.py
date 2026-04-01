@@ -922,51 +922,55 @@
 
 
 
+import sys
+import os
+
+# ── PATH INJECTOR ───────────────────────────
+# This tells Python to look in the folder where pip installed your tools
+user_site = os.path.expanduser("~/.local/lib/python3.10/site-packages")
+sys.path.append(user_site)
+sys.path.append("/tmp/.local/lib/python3.10/site-packages") # Check the tmp path too
+# ─────────────────────────────────────────────
+
 import asyncio
-from pytoniq import WalletV5R1, ToncenterClient
-import base64
+try:
+    from pytoniq import WalletV5R1, ToncenterClient
+except ImportError:
+    print("❌ Library still not found. Try running: python3 -m pip install pytoniq")
+    sys.exit()
 
 # ── CONFIGURATION ───────────────────────────
-# 1. Paste your 24 words here
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
-
-# 2. Your Tonkeeper Address (UQDP...)
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
-
-# 3. API Key
 API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-
-# 4. Target
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 # ─────────────────────────────────────────────
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Final Test (Pytoniq)")
+    print("FortunoBet — TON W5 Final Test (Path Fixed)")
     print("="*50)
 
-    # Initialize Client
     client = ToncenterClient(api_key=API_KEY)
     
     try:
         # Create Wallet
-        # In pytoniq, we use from_mnemonic
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
         
-        print(f"\n[1/3] Wallet Setup")
-        # Use wallet.address.to_str() to compare
+        # Format the address correctly for W5
         current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+        
+        print(f"\n[1/3] Wallet Setup")
         print(f"    ✅ Script Address: {current_addr}")
         print(f"    ✅ Target Address: {MY_ADDRESS}")
 
         if current_addr != MY_ADDRESS:
             print("\n    ❌ ERROR: Address mismatch!")
-            print("    → The words provided do not match the UQDP address.")
             return
 
         # Check Balance
@@ -975,7 +979,7 @@ async def main():
         print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
 
         if balance < 0.02 * 1e9:
-            print("    ❌ Not enough TON (Need ~0.02 for gas + test).")
+            print("    ❌ Not enough TON.")
             return
 
         # Send Transaction
