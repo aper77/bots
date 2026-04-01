@@ -923,9 +923,11 @@
 
 
 import asyncio
-from pytoniq import WalletV3R2, LiteClient
+from tonutils.client import ToncenterClient
+from tonutils.wallet import WalletV5R1
 
-# ── CONFIGURATION ─────────────────────────
+# ── CONFIGURATION ───────────────────────────
+# Your 24‑word mnemonic
 MNEMONIC = [
     "lawsuit", "paddle", "skull", "autumn", "embrace", "urge",
     "wrist", "spell", "easily", "vast", "poet", "clarify",
@@ -933,41 +935,57 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
+# TON wallet address (optional check)
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-TRANSFER_AMOUNT = 0.01  # TON
-# ─────────────────────────────────────────
+TRANSFER_AMOUNT = 0.01  # in TON
+API_KEY = "YOUR_TONCENTER_API_KEY"  # replace with your real key
+# ─────────────────────────────────────────────
 
 async def main():
-    print("\n" + "="*50)
-    print("FortunoBet — TON Fast Transfer")
-    print("="*50)
+    print("\n" + "=" * 50)
+    print("TON Transfer via ToncenterClient")
+    print("=" * 50)
 
-    client = LiteClient.from_mainnet_config()
-    await client.connect()
+    # Initialize Toncenter HTTP client
+    client = ToncenterClient(api_key=API_KEY, is_testnet=False)
 
-    # Load wallet using V3R2 (fast, fully compatible)
-    wallet = await WalletV3R2.from_mnemonic(client, MNEMONIC)
-    current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+    try:
+        await client.connect()
 
-    print(f"\nWallet Address: {current_addr}")
-    print(f"Target Address: {DESTINATION}")
+        # Load wallet (V5 works well with Toncenter)
+        wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
+        current_addr = wallet.address.to_str(
+            is_user_friendly=True, is_bounceable=False, is_url_safe=True
+        )
 
-    balance = await wallet.get_balance()
-    print(f"Balance: {balance / 1e9:.4f} TON")
+        print(f"\nWallet: {current_addr}")
+        print(f"Target: {DESTINATION}")
 
-    if balance < TRANSFER_AMOUNT * 1e9 + 0.01 * 1e9:
-        print("❌ Not enough TON to send + gas")
+        # Step 1: Balance check
+        balance = await wallet.get_balance()
+        print(f"Balance: {balance / 1e9:.4f} TON")
+
+        if balance < (TRANSFER_AMOUNT * 1e9 + 0.02 * 1e9):
+            print("❌ Not enough balance (need ~0.02 TON gas).")
+            return
+
+        # Step 2: Send TON
+        print(f"\nSending {TRANSFER_AMOUNT} TON...")
+        tx_hash = await wallet.transfer(
+            destination=DESTINATION,
+            amount=TRANSFER_AMOUNT,
+            body="Toncenter transfer"
+        )
+
+        print(f"\n✅ SUCCESS! Sent {TRANSFER_AMOUNT} TON")
+        print(f"Transaction hash: {tx_hash}\n")
+
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    finally:
         await client.close()
-        return
-
-    print(f"\nSending {TRANSFER_AMOUNT} TON...")
-    tx = await wallet.transfer(destination=DESTINATION, amount=TRANSFER_AMOUNT, body="Test Payment")
-
-    print(f"✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT")
-    print(f"Transaction Hash: {tx.hash}")
-
-    await client.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
