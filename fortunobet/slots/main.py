@@ -926,27 +926,27 @@ import sys
 import os
 import asyncio
 
-# ── 1. FORCE THE PATH ───────────────────────
+# ── FORCED PATH INJECTOR ────────────────────
 tmp_path = "/tmp/.local/lib/python3.10/site-packages"
 if tmp_path not in sys.path:
-    sys.path.insert(0, tmp_path)
+    sys.path.insert(0, tmp_path) 
+# ─────────────────────────────────────────────
 
-# ── 2. EXACT DEEP IMPORTS ───────────────────
 try:
-    # This is the exact path for pytoniq 0.1.43
-    from pytoniq.contract.wallets.v5.r1 import WalletV5R1
+    # UPDATED IMPORTS for pytoniq 0.1.43+
+    from pytoniq import WalletV5R1
     from pytoniq.provider.toncenter import ToncenterClient
-    print("✅ Libraries located (Deep Import)")
+    print("✅ Libraries loaded successfully!")
 except ImportError:
     try:
-        # Fallback for the other common structure
-        from pytoniq import WalletV5R1, ToncenterClient
-        print("✅ Libraries located (Standard Import)")
-    except ImportError as e:
-        print(f"❌ Still failing. System sees: {e}")
-        sys.exit("Please run: python3 -m pip install --user --upgrade pytoniq")
+        # Fallback for different pytoniq structures
+        from pytoniq_core import WalletV5R1
+        from pytoniq import LiteClient as ToncenterClient
+        print("✅ Using LiteClient fallback...")
+    except Exception as e:
+        sys.exit(f"❌ Still can't find libraries: {e}")
 
-# ── 3. CONFIGURATION ────────────────────────
+# ── CONFIGURATION ───────────────────────────
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -964,15 +964,17 @@ async def main():
     print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
+    # Initialize the specific Toncenter provider
     client = ToncenterClient(api_key=API_KEY)
     
     try:
+        # Connect to the provider
         await client.connect()
 
         # Step 1: Wallet Setup
-        # Using the async-ready constructor
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
         
+        # Get address string
         current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
         
         print(f"\n[1/3] Wallet Setup")
@@ -981,8 +983,7 @@ async def main():
 
         if current_addr != MY_ADDRESS:
             print("\n    ❌ ERROR: Address mismatch!")
-            print(f"    → Generated: {current_addr}")
-            print(f"    → Expected:  {MY_ADDRESS}")
+            print("    → Your mnemonic generates a different address.")
             return
 
         # Step 2: Balance Check
@@ -991,18 +992,18 @@ async def main():
         print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
 
         if balance < 0.02 * 1e9:
-            print("    ❌ Not enough TON.")
+            print("    ❌ Not enough TON (Need ~0.02 for gas + test).")
             return
 
         # Step 3: Transfer
         print("\n[3/3] Sending 0.01 TON...")
-        # In this specific version, transfer is used like this:
+        # Note: Pytoniq 0.1.43 uses 'transfer' with these parameters
         await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
         
         print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
 
     except Exception as e:
-        print(f"\n    ❌ Error: {e}")
+        print(f"\n    ❌ Error during execution: {e}")
     finally:
         await client.close()
 
