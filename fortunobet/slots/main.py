@@ -967,10 +967,11 @@ async def test():
         # True = URL Safe
         # False = NON-BOUNCEABLE (This is why you see UQD2... instead of UQCg6...)
         wallet_address = wallet.address.to_string(
-            is_user_friendly=True, 
-            is_url_safe=True, 
-            is_bounceable=False
-        )        
+            is_user_friendly=True,
+            is_url_safe=True,
+            is_bounceable=False,
+            is_test_only=False
+        )     
         print(f"    ✅ Wallet address: {wallet_address}")
         print(f"    (Matches Tonkeeper: {'Yes' if wallet_address.startswith('UQD2') else 'No - Check code'})")
         
