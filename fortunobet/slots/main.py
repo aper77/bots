@@ -923,9 +923,9 @@
 
 
 import asyncio
-from tonutils.client import TonCenter  # TonCenter exists in 0.5.7
-from tonutils.wallet import WalletV5R1
+from tonutils.wallet import WalletV5
 
+# Your 24-word mnemonic
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -933,32 +933,21 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
-API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 
 async def main():
-    client = TonCenter(api_key=API_KEY)
-
-    await client.connect()
-
-    wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-    addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
-    print(f"Wallet Address: {addr}")
+    wallet = await WalletV5.from_mnemonic(MNEMONIC)
+    print(f"Wallet Address: {wallet.address.to_string()}")
 
     balance = await wallet.get_balance()
     print(f"Balance: {balance / 1e9:.4f} TON")
 
     if balance < 0.02 * 1e9:
-        print("❌ Not enough TON to send transaction.")
-        await client.close()
+        print("❌ Not enough TON to send.")
         return
 
-    print(f"Sending 0.01 TON to {DESTINATION}...")
-    await wallet.transfer(destination=DESTINATION, amount=0.01, body="Test Payment")
+    # Send 0.01 TON
+    await wallet.transfer(destination=DESTINATION, amount=0.01 * 1e9)
     print("✅ Transfer sent!")
 
-    await client.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(main())
