@@ -933,27 +933,25 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
-DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"  # your wallet
+DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # recipient
+TRANSFER_AMOUNT = 0.01  # in TON
 # ─────────────────────────────────────────────
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Final Payment")
+    print("FortunoBet — TON W5 Test Payment")
     print("="*50)
 
-    # Initialize LiteClient (no API key needed)
+    # Initialize LiteClient
     client = LiteClient.from_mainnet_config()
 
     try:
-        # Connect to the network
         await client.connect()
 
-        # Step 1: Wallet Setup
+        # Step 1: Wallet setup from mnemonic
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-        current_addr = wallet.address.to_str(
-            is_user_friendly=True, is_bounceable=False, is_url_safe=True
-        )
+        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
 
         print(f"\n[1/3] Wallet Setup")
         print(f"    ✅ Script Address: {current_addr}")
@@ -964,23 +962,23 @@ async def main():
             print("    → Your mnemonic generates a different address.")
             return
 
-        # Step 2: Balance Check
+        # Step 2: Check wallet balance
         print("\n[2/3] Checking Balance...")
         balance = await wallet.get_balance()
         print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
 
-        if balance < 0.02 * 1e9:
-            print("    ❌ Not enough TON (Need ~0.02 for gas + test).")
+        if balance < TRANSFER_AMOUNT * 1e9 + 0.01 * 1e9:  # include gas buffer
+            print(f"    ❌ Not enough TON to send {TRANSFER_AMOUNT} TON + gas.")
             return
 
         # Step 3: Transfer
-        print("\n[3/3] Sending 0.01 TON...")
-        await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
-
-        print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
+        print(f"\n[3/3] Sending {TRANSFER_AMOUNT} TON...")
+        await wallet.transfer(destination=DESTINATION, amount=TRANSFER_AMOUNT, body="Test Payment")
+        
+        print(f"\n{'='*50}\n✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT.\n{'='*50}\n")
 
     except Exception as e:
-        print(f"\n    ❌ Error during execution: {e}")
+        print(f"\n❌ Error during execution: {e}")
     finally:
         await client.close()
 
