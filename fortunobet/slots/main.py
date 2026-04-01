@@ -923,35 +923,42 @@
 
 
 import asyncio
+import warnings
 from pytoniq import WalletV5R1, LiteClient
 
-# ── CONFIGURATION ───────────────────────────
+# ── SUPPRESS WARNING ───────────────────────
+warnings.filterwarnings("ignore", "unknown init block found")
+# ─────────────────────────────────────────
+
+# ── CONFIGURATION ─────────────────────────
 MNEMONIC = [
-    "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
-    "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
+    "lawsuit", "paddle", "skull", "autumn", "embrace", "urge",
+    "wrist", "spell", "easily", "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"  # your wallet
-DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # recipient
-TRANSFER_AMOUNT = 0.01  # in TON
-# ─────────────────────────────────────────────
+MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+TRANSFER_AMOUNT = 0.01  # TON
+# ─────────────────────────────────────────
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Test Payment")
+    print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
-    # Initialize LiteClient
+    # Initialize LiteClient (no API key needed)
     client = LiteClient.from_mainnet_config()
 
     try:
         await client.connect()
 
-        # Step 1: Wallet setup from mnemonic
+        # Step 1: Load wallet from mnemonic
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+        current_addr = wallet.address.to_str(
+            is_user_friendly=True, is_bounceable=False, is_url_safe=True
+        )
 
         print(f"\n[1/3] Wallet Setup")
         print(f"    ✅ Script Address: {current_addr}")
@@ -971,14 +978,20 @@ async def main():
             print(f"    ❌ Not enough TON to send {TRANSFER_AMOUNT} TON + gas.")
             return
 
-        # Step 3: Transfer
+        # Step 3: Transfer TON
         print(f"\n[3/3] Sending {TRANSFER_AMOUNT} TON...")
-        await wallet.transfer(destination=DESTINATION, amount=TRANSFER_AMOUNT, body="Test Payment")
-        
-        print(f"\n{'='*50}\n✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT.\n{'='*50}\n")
+        tx = await wallet.transfer(
+            destination=DESTINATION,
+            amount=TRANSFER_AMOUNT,
+            body="Test Payment"
+        )
+
+        print(f"\n✅ SUCCESS! {TRANSFER_AMOUNT} TON SENT.")
+        print(f"Transaction ID / Hash: {tx.hash}\n")
 
     except Exception as e:
         print(f"\n❌ Error during execution: {e}")
+
     finally:
         await client.close()
 
