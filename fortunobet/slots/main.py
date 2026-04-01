@@ -941,26 +941,26 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
+MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-TEST_AMOUNT_TON   = 0.01 
+TEST_AMOUNT_TON   = 0.01  # Change if needed
 
 async def test():
     print("\n" + "="*50)
     print("FortunoBet — TON Direct Address Fix")
     print("="*50)
 
-    # ── Step 1: Build wallet ──
+    # ── Step 1: Build wallet for signing ──
     try:
         _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC,
             version=WalletVersionEnum.v4r2,  # Matches Tonkeeper W5
             workchain=0,
-            subwallet_id=0  # Main wallet
+            subwallet_id=0
         )
-        wallet_address = wallet.address.to_string(True, True, True)
-        print(f"    🔍 Using wallet address: {wallet_address}")
-        # No need to compare with UQDP… address
+        derived_address = wallet.address.to_string(True, True, True)
+        print(f"    🔍 Wallet derived address (for signing): {derived_address}")
     except Exception as e:
         print(f"    ❌ Wallet setup error: {e}")
         return
@@ -968,10 +968,13 @@ async def test():
     headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
 
     async with aiohttp.ClientSession() as session:
-        # ── Step 2: Check balance ──
+        # ── Step 2: Check balance using UQDP address ──
         print("\n[2/5] Checking balance...")
-        async with session.get("https://toncenter.com/api/v2/getAddressBalance",
-                               params={"address": wallet_address}, headers=headers) as r:
+        async with session.get(
+            "https://toncenter.com/api/v2/getAddressBalance",
+            params={"address": MY_TONKEEPER_ADDRESS},
+            headers=headers
+        ) as r:
             raw = await r.json()
             if raw.get("ok"):
                 balance = int(raw["result"]) / 1e9
@@ -985,9 +988,11 @@ async def test():
 
         # ── Step 3: Get seqno ──
         print("\n[3/5] Getting seqno...")
-        async with session.post("https://toncenter.com/api/v2/runGetMethod",
-                                json={"address": wallet_address, "method": "seqno", "stack": []},
-                                headers=headers) as r:
+        async with session.post(
+            "https://toncenter.com/api/v2/runGetMethod",
+            json={"address": MY_TONKEEPER_ADDRESS, "method": "seqno", "stack": []},
+            headers=headers
+        ) as r:
             raw = await r.json()
             seqno = 0
             if raw.get("ok") and raw["result"]["stack"]:
@@ -1012,8 +1017,11 @@ async def test():
 
         # ── Step 5: Send transaction ──
         print("\n[5/5] Sending to Mainnet...")
-        async with session.post("https://toncenter.com/api/v2/sendBoc",
-                                json={"boc": boc}, headers=headers) as r:
+        async with session.post(
+            "https://toncenter.com/api/v2/sendBoc",
+            json={"boc": boc},
+            headers=headers
+        ) as r:
             raw = await r.json()
             if raw.get("ok"):
                 print(f"\n✅ SUCCESS! {TEST_AMOUNT_TON} TON SENT!\n")
