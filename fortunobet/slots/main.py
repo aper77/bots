@@ -922,29 +922,8 @@
 
 
 
-import sys
-import os
 import asyncio
-
-# ── FORCED PATH INJECTOR ────────────────────
-tmp_path = "/tmp/.local/lib/python3.10/site-packages"
-if tmp_path not in sys.path:
-    sys.path.insert(0, tmp_path) 
-# ─────────────────────────────────────────────
-
-try:
-    # UPDATED IMPORTS for pytoniq 0.1.43+
-    from pytoniq import WalletV5R1
-    from pytoniq.provider.toncenter import ToncenterClient
-    print("✅ Libraries loaded successfully!")
-except ImportError:
-    try:
-        # Fallback for different pytoniq structures
-        from pytoniq_core import WalletV5R1
-        from pytoniq import LiteClient as ToncenterClient
-        print("✅ Using LiteClient fallback...")
-    except Exception as e:
-        sys.exit(f"❌ Still can't find libraries: {e}")
+from pytoniq import WalletV5R1, LiteClient
 
 # ── CONFIGURATION ───────────────────────────
 MNEMONIC = [
@@ -955,7 +934,6 @@ MNEMONIC = [
 ]
 
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
-API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 # ─────────────────────────────────────────────
 
@@ -964,19 +942,19 @@ async def main():
     print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
-    # Initialize the specific Toncenter provider
-    client = ToncenterClient(api_key=API_KEY)
-    
+    # Initialize LiteClient (no API key needed)
+    client = LiteClient.from_mainnet_config()
+
     try:
-        # Connect to the provider
+        # Connect to the network
         await client.connect()
 
         # Step 1: Wallet Setup
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-        
-        # Get address string
-        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
-        
+        current_addr = wallet.address.to_str(
+            is_user_friendly=True, is_bounceable=False, is_url_safe=True
+        )
+
         print(f"\n[1/3] Wallet Setup")
         print(f"    ✅ Script Address: {current_addr}")
         print(f"    ✅ Target Address: {MY_ADDRESS}")
@@ -997,9 +975,8 @@ async def main():
 
         # Step 3: Transfer
         print("\n[3/3] Sending 0.01 TON...")
-        # Note: Pytoniq 0.1.43 uses 'transfer' with these parameters
         await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
-        
+
         print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
 
     except Exception as e:
