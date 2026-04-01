@@ -923,10 +923,11 @@
 
 
 import asyncio
-from tonutils.wallet import WalletV5R1
-from tonutils.client import ToncenterClient
+from pytoniq import WalletV5R1, ToncenterClient
+import base64
 
 # ── CONFIGURATION ───────────────────────────
+# 1. Paste your 24 words here
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -934,35 +935,59 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-# Your UQDP address
+# 2. Your Tonkeeper Address (UQDP...)
 MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+
+# 3. API Key
 API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
+
+# 4. Target
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 # ─────────────────────────────────────────────
 
 async def main():
+    print("\n" + "="*50)
+    print("FortunoBet — TON W5 Final Test (Pytoniq)")
+    print("="*50)
+
+    # Initialize Client
     client = ToncenterClient(api_key=API_KEY)
     
-    # Create the W5 Wallet object
-    wallet = WalletV5R1.from_mnemonic(client, MNEMONIC)
-    
-    print(f"Script Address: {wallet.address}")
-    print(f"Target Address: {MY_ADDRESS}")
-    
-    if str(wallet.address) != MY_ADDRESS:
-        print("❌ Warning: Address still does not match. Checking W5 Beta...")
-        # Some early W5 wallets use a different ID, but V5R1 is the standard now.
-    
-    # Check Balance
-    balance = await wallet.get_balance()
-    print(f"Balance: {balance / 1e9} TON")
-    
-    if balance > 0.01 * 1e9:
-        print("Sending 0.01 TON...")
-        tx = await wallet.transfer(destination=DESTINATION, amount=0.01, comment="FortunoBet W5 Test")
-        print(f"✅ Success! Transaction hash: {tx}")
-    else:
-        print("❌ Insufficient funds.")
+    try:
+        # Create Wallet
+        # In pytoniq, we use from_mnemonic
+        wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
+        
+        print(f"\n[1/3] Wallet Setup")
+        # Use wallet.address.to_str() to compare
+        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+        print(f"    ✅ Script Address: {current_addr}")
+        print(f"    ✅ Target Address: {MY_ADDRESS}")
+
+        if current_addr != MY_ADDRESS:
+            print("\n    ❌ ERROR: Address mismatch!")
+            print("    → The words provided do not match the UQDP address.")
+            return
+
+        # Check Balance
+        print("\n[2/3] Checking Balance...")
+        balance = await wallet.get_balance()
+        print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
+
+        if balance < 0.02 * 1e9:
+            print("    ❌ Not enough TON (Need ~0.02 for gas + test).")
+            return
+
+        # Send Transaction
+        print("\n[3/3] Sending 0.01 TON...")
+        await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
+        
+        print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
+
+    except Exception as e:
+        print(f"\n    ❌ Error: {e}")
+    finally:
+        await client.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
