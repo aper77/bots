@@ -1033,39 +1033,39 @@
 #     asyncio.run(test())
 
 """
-TON Payment Test — using pytoniq (modern, works with all wallet versions)
-
-Install first:
-    pip install pytoniq
-
-Then run:
-    python3 test_ton.py
+TON Payment Test — Fixed for MyTonWallet mnemonics
+Run: python3 test_ton.py
 """
 
 import asyncio
 
-# ── YOUR DETAILS ─────────────────────────────
-MNEMONIC = [
-    "foot", "flee", "equip", "yard", "beef", "coffee",
-    "anchor", "skill", "sad", "during", "raise", "useless",
-    "clip", "confirm", "about", "brain", "treat", "trumpet",
-    "diary", "flip", "hour", "sword", "catch", "width"
-]
+MNEMONIC   = ["foot", "flee", "equip", "yard", "beef", "coffee", "anchor", "skill", "sad", "during", "raise", "useless", "clip", "confirm", "about", "brain", "treat", "trumpet", "diary", "flip", "hour", "sword", "catch", "width"]
 SEND_TO    = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-AMOUNT_TON = 0.01   # small test amount
-# ─────────────────────────────────────────────
+AMOUNT_TON = 0.01
 
 async def test():
     print("\n" + "="*50)
-    print("TON Payment Test — pytoniq")
+    print("TON Payment Test")
     print("="*50)
 
     try:
         from pytoniq import LiteBalancer, WalletV4R2
+        from pytoniq_core.crypto.keys import mnemonic_to_private_key
+        from pytoniq_core.crypto.keys import mnemonic_is_valid
     except ImportError:
-        print("❌ pytoniq not installed!")
-        print("Run: pip install pytoniq")
+        print("❌ Run: pip install pytoniq pytoniq-core")
         return
+
+    # ── Check if mnemonic is valid TON mnemonic ──
+    print("\n[0/4] Validating mnemonic...")
+    try:
+        is_valid = mnemonic_is_valid(MNEMONIC)
+        print(f"    TON mnemonic valid: {is_valid}")
+        if not is_valid:
+            print("    ⚠️  This is a BIP39 mnemonic (MyTonWallet/Tonkeeper use TON format)")
+            print("    → Trying BIP39 method instead...")
+    except Exception as e:
+        print(f"    Check failed: {e}")
 
     print("\n[1/4] Connecting to TON blockchain...")
     try:
@@ -1076,13 +1076,42 @@ async def test():
         print(f"    ❌ Connection failed: {e}")
         return
 
-    print("\n[2/4] Loading wallet from mnemonic...")
+    wallet = None
+
+    # ── Try method 1: Standard TON mnemonic ──────
+    print("\n[2/4] Loading wallet (method 1 — TON mnemonic)...")
     try:
         wallet = await WalletV4R2.from_mnemonic(provider, MNEMONIC)
         addr   = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
         print(f"    ✅ Wallet address: {addr}")
     except Exception as e:
-        print(f"    ❌ Wallet load failed: {e}")
+        print(f"    ❌ Method 1 failed: {e}")
+
+    # ── Try method 2: with password='' ───────────
+    if not wallet:
+        print("    Trying method 2 — with empty password...")
+        try:
+            wallet = await WalletV4R2.from_mnemonic(provider, MNEMONIC, password="")
+            addr   = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
+            print(f"    ✅ Wallet address: {addr}")
+        except Exception as e:
+            print(f"    ❌ Method 2 failed: {e}")
+
+    # ── Try method 3: private key directly ───────
+    if not wallet:
+        print("    Trying method 3 — via private key...")
+        try:
+            _pub, priv = mnemonic_to_private_key(MNEMONIC)
+            wallet     = await WalletV4R2.from_private_key(provider, priv)
+            addr       = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
+            print(f"    ✅ Wallet address: {addr}")
+        except Exception as e:
+            print(f"    ❌ Method 3 failed: {e}")
+
+    if not wallet:
+        print("\n❌ Could not load wallet. Your words may be BIP39 format.")
+        print("   Solution: In MyTonWallet → Settings → Recovery phrase")
+        print("   Make sure you copy ALL 24 words in correct order.")
         await provider.close_all()
         return
 
