@@ -927,16 +927,17 @@ import aiohttp
 import json
 
 # ── CONFIGURATION ───────────────────────────
-# Example: MNEMONIC = ["word1", "word2", ... "word24"]
+# Example: MNEMONIC = ["apple", "banana", ... "zebra"]
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
+
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # Target wallet
-TEST_AMOUNT_TON   = 0.01   # Amount to send
+TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+TEST_AMOUNT_TON   = 0.01
 # ─────────────────────────────────────────────
 
 async def test():
@@ -949,115 +950,95 @@ async def test():
         "X-API-Key": TONCENTER_API_KEY
     }
 
-    # ── Step 1: Build wallet from mnemonic ────
+    # ── Step 1: Build wallet ────
     print("\n[1/5] Building wallet from mnemonic...")
     try:
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
         from tonsdk.utils import to_nano
         import base64
 
-        # Using v4r2 to match modern Tonkeeper wallets
-        _mnemonics, _pub_k, _priv_k, wallet = Wallets.from_mnemonics(
+        # Initialize the wallet as V4R2 (Standard for Tonkeeper)
+        _m, _pub, _priv, wallet = Wallets.from_mnemonics(
             MNEMONIC, WalletVersionEnum.v4r2, workchain=0
         )
 
-        # CRITICAL FIX: 
-        # (True, True, False) -> User-friendly, URL-safe, NON-BOUNCEABLE (UQD2...)
+        # SETTINGS EXPLAINED:
+        # True = User Friendly (starts with U)
+        # True = URL Safe
+        # False = NON-BOUNCEABLE (This is why you see UQD2... instead of UQCg6...)
         wallet_address = wallet.address.to_string(True, True, False)
-        print(f"    ✅ Wallet address: {wallet_address}")
         
-    except ImportError:
-        print("    ❌ tonsdk not installed! Run: pip install tonsdk")
-        return
+        print(f"    ✅ Wallet address: {wallet_address}")
+        print(f"    (Matches Tonkeeper: {'Yes' if wallet_address.startswith('UQD2') else 'No - Check code'})")
+        
     except Exception as e:
-        print(f"    ❌ Mnemonic error: {e}")
+        print(f"    ❌ Setup error: {e}")
         return
 
     async with aiohttp.ClientSession() as session:
 
-        # ── Step 2: Check wallet balance ──────
+        # ── Step 2: Check balance ────
         print("\n[2/5] Checking wallet balance...")
+        url_bal = "https://toncenter.com/api/v2/getAddressBalance"
         try:
-            async with session.get(
-                "https://toncenter.com/api/v2/getAddressBalance",
-                params={"address": wallet_address},
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                if raw.get("ok"):
-                    balance_nano = int(raw["result"])
-                    balance_ton  = balance_nano / 1_000_000_000
-                    print(f"    ✅ Balance: {balance_ton:.4f} TON")
-                    if balance_ton < TEST_AMOUNT_TON:
-                        print(f"    ❌ Not enough TON! Need at least {TEST_AMOUNT_TON} TON")
-                        print(f"    → Ensure {wallet_address} has funds.")
+            async with session.get(url_bal, params={"address": wallet_address}, headers=headers) as r:
+                data = await r.json()
+                if data.get("ok"):
+                    bal_ton = int(data["result"]) / 10**9
+                    print(f"    ✅ Balance: {bal_ton:.4f} TON")
+                    if bal_ton < TEST_AMOUNT_TON:
+                        print(f"    ❌ Insufficient funds. Send TON to: {wallet_address}")
                         return
                 else:
-                    print(f"    ❌ API error: {raw}")
+                    print(f"    ❌ API Error: {data}")
                     return
         except Exception as e:
-            print(f"    ❌ Balance check failed: {e}")
+            print(f"    ❌ Request failed: {e}")
             return
 
-        # ── Step 3: Get seqno ─────────────────
-        print("\n[3/5] Getting wallet seqno...")
+        # ── Step 3: Get Seqno ────
+        print("\n[3/5] Getting seqno (checking if wallet is active)...")
+        url_run = "https://toncenter.com/api/v2/runGetMethod"
         try:
-            async with session.post(
-                "https://toncenter.com/api/v2/runGetMethod",
-                json={
-                    "address": wallet_address,
-                    "method":  "seqno",
-                    "stack":   []
-                },
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                if raw.get("ok"):
-                    stack = raw["result"]["stack"]
-                    # Extract seqno from stack
-                    if stack:
-                        val = stack[0]
-                        seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
-                    else:
-                        seqno = 0
-                    print(f"    ✅ Seqno: {seqno}")
-                else:
-                    print(f"    ❌ API error: {raw}")
-                    return
-        except Exception as e:
-            print(f"    ❌ Seqno failed: {e}")
-            return
+            payload = {"address": wallet_address, "method": "seqno", "stack": []}
+            async with session.post(url_run, json=payload, headers=headers) as r:
+                data = await r.json()
+                seqno = 0
+                if data.get("ok") and data["result"]["stack"]:
+                    val = data["result"]["stack"][0]
+                    seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
+                print(f"    ✅ Seqno: {seqno}")
+        except Exception:
+            seqno = 0
+            print("    ⚠️ Seqno failed (Wallet might be new/uninitialized). Using 0.")
 
-        # ── Step 4: Build transaction ─────────
-        print(f"\n[4/5] Building transaction...")
+        # ── Step 4: Build BOC ────
+        print("\n[4/5] Building transaction...")
         try:
             query = wallet.create_transfer_message(
                 to_addr=TEST_SEND_TO,
                 amount=to_nano(TEST_AMOUNT_TON, "ton"),
                 seqno=seqno,
-                payload="FortunoBet Test",
+                payload="FortunoBet Test"
             )
             boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            print(f"    ✅ Transaction built.")
+            print("    ✅ BOC (Transaction data) created.")
         except Exception as e:
             print(f"    ❌ Build failed: {e}")
             return
 
-        # ── Step 5: Send transaction ──────────
-        print(f"\n[5/5] Sending transaction...")
+        # ── Step 5: Send ────
+        print("\n[5/5] Sending to Mainnet...")
+        url_send = "https://toncenter.com/api/v2/sendBoc"
         try:
-            async with session.post(
-                "https://toncenter.com/api/v2/sendBoc",
-                json={"boc": boc},
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                if raw.get("ok"):
-                    print(f"\n{'='*50}\n✅ SUCCESS! {TEST_AMOUNT_TON} TON sent.\n{'='*50}\n")
+            async with session.post(url_send, json={"boc": boc}, headers=headers) as r:
+                res = await r.json()
+                if res.get("ok"):
+                    print(f"\n{'='*50}\n✅ TRANSACTION SUCCESSFUL!\n{'='*50}\n")
                 else:
-                    print(f"\n❌ SEND FAILED: {raw.get('error', raw)}")
+                    print(f"\n❌ SEND FAILED: {res}")
         except Exception as e:
-            print(f"    ❌ Send failed: {e}")
+            print(f"    ❌ Final Step error: {e}")
 
 if __name__ == "__main__":
     asyncio.run(test())
