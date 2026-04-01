@@ -1038,7 +1038,7 @@ import base64
 from tonsdk.contract.wallet import Wallets, WalletVersionEnum
 from tonsdk.utils import to_nano
 
-# ── CONFIG ──
+# ── YOUR WALLET ──
 MNEMONIC = [
     "foot", "flee", "equip", "yard", "beef", "coffee",
     "anchor", "skill", "sad", "during", "raise", "useless",
@@ -1049,11 +1049,12 @@ MNEMONIC = [
 MY_WALLET_ADDRESS = "UQAWimN1rdaCPu9IXVPh67vzlxuDI88Mrj3cTLMX8KGjM1Rd"
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 
-SEND_TO = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-AMOUNT_TON = 0.01  # Change if needed
+# ── TRANSACTION SETTINGS ──
+SEND_TO = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # recipient address
+AMOUNT_TON = 0.01  # TON amount to send (can change)
 
 async def main():
-    # Build wallet from mnemonic (v4r1 wallet)
+    # Build wallet
     _m, _p, _k, wallet = Wallets.from_mnemonics(
         MNEMONIC,
         version=WalletVersionEnum.v4r1,
@@ -1097,7 +1098,7 @@ async def main():
             to_addr=SEND_TO,
             amount=to_nano(AMOUNT_TON, "ton"),
             seqno=seqno,
-            payload="Test send from v4r1 wallet"
+            payload="TON send from Python script"
         )
         boc = base64.b64encode(query["message"].to_boc(False)).decode()
         print("✅ BOC built successfully.")
