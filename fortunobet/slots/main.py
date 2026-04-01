@@ -1032,75 +1032,88 @@
 # if __name__ == "__main__":
 #     asyncio.run(test())
 
+"""
+TON Payment Test — using pytoniq (modern, works with all wallet versions)
+
+Install first:
+    pip install pytoniq
+
+Then run:
+    python3 test_ton.py
+"""
+
 import asyncio
-import aiohttp
-import base64
-from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-from tonsdk.utils import to_nano
 
-# ── CONFIG: Change these if you want to send TON
-TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-SEND_TO = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"  # Recipient address
-AMOUNT_TON = 0.01  # Amount of TON to send
+# ── YOUR DETAILS ─────────────────────────────
+MNEMONIC = [
+    "foot", "flee", "equip", "yard", "beef", "coffee",
+    "anchor", "skill", "sad", "during", "raise", "useless",
+    "clip", "confirm", "about", "brain", "treat", "trumpet",
+    "diary", "flip", "hour", "sword", "catch", "width"
+]
+SEND_TO    = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+AMOUNT_TON = 0.01   # small test amount
+# ─────────────────────────────────────────────
 
-async def main():
-    # ── Step 1: Generate a new v4r1 wallet
-    _m, _p, _k, wallet = Wallets.create_new_wallet(version=WalletVersionEnum.v4r1, workchain=0, subwallet_id=0)
-    mnemonic = _m  # list of 24 words
-    wallet_address = wallet.address
-    print("\n✅ New v4r1 Wallet Generated!")
-    print(f"Wallet Address: {wallet_address}")
-    print("Mnemonic (SAVE THIS SECURELY):")
-    print(mnemonic)
+async def test():
+    print("\n" + "="*50)
+    print("TON Payment Test — pytoniq")
+    print("="*50)
 
-    headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
+    try:
+        from pytoniq import LiteBalancer, WalletV4R2
+    except ImportError:
+        print("❌ pytoniq not installed!")
+        print("Run: pip install pytoniq")
+        return
 
-    async with aiohttp.ClientSession() as session:
-        # ── Step 2: Check balance
-        async with session.get(
-            "https://toncenter.com/api/v2/getAddressBalance",
-            params={"address": wallet_address},
-            headers=headers
-        ) as r:
-            raw = await r.json()
-            balance = int(raw["result"]) / 1e9 if raw.get("ok") else 0
-            print(f"\nBalance: {balance:.4f} TON")
-            if balance < AMOUNT_TON:
-                print("❌ Not enough TON to send!")
-                return
+    print("\n[1/4] Connecting to TON blockchain...")
+    try:
+        provider = LiteBalancer.from_mainnet_config(trust_level=2)
+        await provider.start_up()
+        print("    ✅ Connected!")
+    except Exception as e:
+        print(f"    ❌ Connection failed: {e}")
+        return
 
-        # ── Step 3: Get seqno
-        async with session.post(
-            "https://toncenter.com/api/v2/runGetMethod",
-            json={"address": wallet_address, "method": "seqno", "stack": []},
-            headers=headers
-        ) as r:
-            raw = await r.json()
-            val = raw["result"]["stack"][0]
-            seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
-            print(f"Seqno: {seqno}")
+    print("\n[2/4] Loading wallet from mnemonic...")
+    try:
+        wallet = await WalletV4R2.from_mnemonic(provider, MNEMONIC)
+        addr   = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
+        print(f"    ✅ Wallet address: {addr}")
+    except Exception as e:
+        print(f"    ❌ Wallet load failed: {e}")
+        await provider.close_all()
+        return
 
-        # ── Step 4: Build transaction
-        query = wallet.create_transfer_message(
-            to_addr=SEND_TO,
-            amount=to_nano(AMOUNT_TON, "ton"),
-            seqno=seqno,
-            payload="Python v4r1 wallet send"
+    print("\n[3/4] Checking balance...")
+    try:
+        balance_nano = await provider.get_balance(wallet.address)
+        balance_ton  = balance_nano / 1_000_000_000
+        print(f"    ✅ Balance: {balance_ton:.4f} TON")
+        if balance_ton < AMOUNT_TON:
+            print(f"    ❌ Not enough TON!")
+            print(f"    → Send TON to: {addr}")
+            await provider.close_all()
+            return
+    except Exception as e:
+        print(f"    ❌ Balance check failed: {e}")
+        await provider.close_all()
+        return
+
+    print(f"\n[4/4] Sending {AMOUNT_TON} TON to {SEND_TO}...")
+    try:
+        await wallet.transfer(
+            destination=SEND_TO,
+            amount=int(AMOUNT_TON * 1_000_000_000),
+            body="FortunoBet Test Payment",
         )
-        boc = base64.b64encode(query["message"].to_boc(False)).decode()
-        print("✅ BOC built successfully.")
+        print(f"\n{'='*50}")
+        print(f"✅ SUCCESS! {AMOUNT_TON} TON sent!")
+        print(f"{'='*50}\n")
+    except Exception as e:
+        print(f"    ❌ Send failed: {e}")
 
-        # ── Step 5: Send transaction
-        async with session.post(
-            "https://toncenter.com/api/v2/sendBoc",
-            json={"boc": boc},
-            headers=headers
-        ) as r:
-            raw = await r.json()
-            if raw.get("ok"):
-                print(f"✅ SUCCESS! {AMOUNT_TON} TON SENT!")
-            else:
-                print(f"❌ SEND FAILED: {raw.get('error','Unknown Error')}")
+    await provider.close_all()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+asyncio.run(test())
