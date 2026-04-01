@@ -927,107 +927,114 @@
 
 
 
-import asyncio
-import aiohttp
-import base64
+# import asyncio
+# import aiohttp
+# import base64
+# from tonsdk.contract.wallet import Wallets, WalletVersionEnum
+# from tonsdk.utils import to_nano
+
+# # ── CONFIG ──
+# MNEMONIC = [
+#     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
+#     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
+#     "behind", "style", "icon", "oak", "recipe", "method",
+#     "coast", "gun", "family", "crop", "wrestle", "budget",
+# ]
+
+# MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+# TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
+# TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+# TEST_AMOUNT_TON   = 0.01
+
+# # Likely subwallet IDs for Tonkeeper W5 wallet
+# SUBWALLET_IDS = [0, 698983191, 1, 2]  
+
+# async def test():
+#     print("\n" + "="*50)
+#     print("FortunoBet — TON Auto Subwallet Fix")
+#     print("="*50)
+
+#     headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
+
+#     for subwallet_id in SUBWALLET_IDS:
+#         print(f"\nTrying subwallet ID: {subwallet_id} ...")
+#         try:
+#             _m, _p, _k, wallet = Wallets.from_mnemonics(
+#                 MNEMONIC,
+#                 version=WalletVersionEnum.v4r2,
+#                 workchain=0,
+#                 subwallet_id=subwallet_id
+#             )
+#             derived_address = wallet.address.to_string(True, True, True)
+#         except Exception as e:
+#             print(f"    ❌ Wallet setup error: {e}")
+#             continue
+
+#         async with aiohttp.ClientSession() as session:
+#             # Check balance
+#             async with session.get(
+#                 "https://toncenter.com/api/v2/getAddressBalance",
+#                 params={"address": MY_TONKEEPER_ADDRESS},
+#                 headers=headers
+#             ) as r:
+#                 raw = await r.json()
+#                 if raw.get("ok"):
+#                     balance = int(raw["result"]) / 1e9
+#                     print(f"    ✅ Balance: {balance:.4f} TON")
+#                     if balance < TEST_AMOUNT_TON:
+#                         print("    ❌ Not enough TON!")
+#                         continue
+#                 else:
+#                     print(f"    ❌ API Error: {raw}")
+#                     continue
+
+#             # Get seqno
+#             async with session.post(
+#                 "https://toncenter.com/api/v2/runGetMethod",
+#                 json={"address": MY_TONKEEPER_ADDRESS, "method": "seqno", "stack": []},
+#                 headers=headers
+#             ) as r:
+#                 raw = await r.json()
+#                 seqno = 0
+#                 if raw.get("ok") and raw["result"]["stack"]:
+#                     val = raw["result"]["stack"][0]
+#                     seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
+#                 print(f"    ✅ Seqno: {seqno}")
+
+#             # Build transaction
+#             try:
+#                 query = wallet.create_transfer_message(
+#                     to_addr=TEST_SEND_TO,
+#                     amount=to_nano(TEST_AMOUNT_TON, "ton"),
+#                     seqno=seqno,
+#                     payload="FortunoBet Test",
+#                 )
+#                 boc = base64.b64encode(query["message"].to_boc(False)).decode()
+#             except Exception as e:
+#                 print(f"    ❌ Build failed: {e}")
+#                 continue
+
+#             # Send transaction
+#             async with session.post(
+#                 "https://toncenter.com/api/v2/sendBoc",
+#                 json={"boc": boc},
+#                 headers=headers
+#             ) as r:
+#                 raw = await r.json()
+#                 if raw.get("ok"):
+#                     print(f"\n✅ SUCCESS! {TEST_AMOUNT_TON} TON SENT using subwallet {subwallet_id}!\n")
+#                     return  # Stop after successful send
+#                 else:
+#                     print(f"    ❌ SEND FAILED: {raw.get('error','Unknown Error')}")
+
+#     print("\n❌ Could not send TON. None of the subwallet IDs worked.")
+
+# if __name__ == "__main__":
+#     asyncio.run(test())
+
 from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-from tonsdk.utils import to_nano
 
-# ── CONFIG ──
-MNEMONIC = [
-    "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
-    "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
-    "behind", "style", "icon", "oak", "recipe", "method",
-    "coast", "gun", "family", "crop", "wrestle", "budget",
-]
-
-MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
-TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-TEST_AMOUNT_TON   = 0.01
-
-# Likely subwallet IDs for Tonkeeper W5 wallet
-SUBWALLET_IDS = [0, 698983191, 1, 2]  
-
-async def test():
-    print("\n" + "="*50)
-    print("FortunoBet — TON Auto Subwallet Fix")
-    print("="*50)
-
-    headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
-
-    for subwallet_id in SUBWALLET_IDS:
-        print(f"\nTrying subwallet ID: {subwallet_id} ...")
-        try:
-            _m, _p, _k, wallet = Wallets.from_mnemonics(
-                MNEMONIC,
-                version=WalletVersionEnum.v4r2,
-                workchain=0,
-                subwallet_id=subwallet_id
-            )
-            derived_address = wallet.address.to_string(True, True, True)
-        except Exception as e:
-            print(f"    ❌ Wallet setup error: {e}")
-            continue
-
-        async with aiohttp.ClientSession() as session:
-            # Check balance
-            async with session.get(
-                "https://toncenter.com/api/v2/getAddressBalance",
-                params={"address": MY_TONKEEPER_ADDRESS},
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                if raw.get("ok"):
-                    balance = int(raw["result"]) / 1e9
-                    print(f"    ✅ Balance: {balance:.4f} TON")
-                    if balance < TEST_AMOUNT_TON:
-                        print("    ❌ Not enough TON!")
-                        continue
-                else:
-                    print(f"    ❌ API Error: {raw}")
-                    continue
-
-            # Get seqno
-            async with session.post(
-                "https://toncenter.com/api/v2/runGetMethod",
-                json={"address": MY_TONKEEPER_ADDRESS, "method": "seqno", "stack": []},
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                seqno = 0
-                if raw.get("ok") and raw["result"]["stack"]:
-                    val = raw["result"]["stack"][0]
-                    seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
-                print(f"    ✅ Seqno: {seqno}")
-
-            # Build transaction
-            try:
-                query = wallet.create_transfer_message(
-                    to_addr=TEST_SEND_TO,
-                    amount=to_nano(TEST_AMOUNT_TON, "ton"),
-                    seqno=seqno,
-                    payload="FortunoBet Test",
-                )
-                boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            except Exception as e:
-                print(f"    ❌ Build failed: {e}")
-                continue
-
-            # Send transaction
-            async with session.post(
-                "https://toncenter.com/api/v2/sendBoc",
-                json={"boc": boc},
-                headers=headers
-            ) as r:
-                raw = await r.json()
-                if raw.get("ok"):
-                    print(f"\n✅ SUCCESS! {TEST_AMOUNT_TON} TON SENT using subwallet {subwallet_id}!\n")
-                    return  # Stop after successful send
-                else:
-                    print(f"    ❌ SEND FAILED: {raw.get('error','Unknown Error')}")
-
-    print("\n❌ Could not send TON. None of the subwallet IDs worked.")
-
-if __name__ == "__main__":
-    asyncio.run(test())
+# Create a new v4r1 wallet
+_m, _p, _k, wallet = Wallets.create_new_wallet(version=WalletVersionEnum.v4r1)
+print("Wallet Address (UQDP format):", wallet.address.to_string(True, True, True))
+print("Mnemonic words:", _m)
