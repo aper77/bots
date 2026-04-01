@@ -939,8 +939,8 @@ MNEMONIC = [
 MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1" 
 
 # ── 3. WALLET VERSION ──────────────────────────
-# Keep as v4r2 for now. 
-WALLET_VERSION = "v4r2" 
+# UPDATED: Switched to v4r1 to fix the 'Failed to unpack' error
+WALLET_VERSION = "v4r1" 
 
 # ── 4. API & TARGETS ───────────────────────────
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
@@ -960,7 +960,8 @@ async def test():
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
         from tonsdk.utils import to_nano
 
-        ver_enum = WalletVersionEnum.v4r2 if WALLET_VERSION == "v4r2" else WalletVersionEnum.v4r1
+        # Selecting v4r1 for this attempt
+        ver_enum = WalletVersionEnum.v4r1
         sub_id = 698983191 
 
         _m, _p, _k, wallet = Wallets.from_mnemonics(
@@ -977,7 +978,9 @@ async def test():
         async with session.get("https://toncenter.com/api/v2/getAddressBalance", 
                                params={"address": MY_TONKEEPER_ADDRESS}, headers=headers) as r:
             raw = await r.json()
-            if not raw.get("ok"): print(f"    ❌ API Error: {raw}"); return
+            if not raw.get("ok"): 
+                print(f"    ❌ API Error: {raw}")
+                return
             balance = int(raw["result"]) / 1e9
             print(f"    ✅ Balance: {balance:.4f} TON")
 
@@ -995,26 +998,31 @@ async def test():
 
         # Step 4: Build
         print("\n[4/5] Building transaction...")
-        query = wallet.create_transfer_message(
-            to_addr=TEST_SEND_TO, amount=to_nano(TEST_AMOUNT_TON, "ton"),
-            seqno=seqno, payload="FortunoBet Test"
-        )
-        boc = base64.b64encode(query["message"].to_boc(False)).decode()
-        print("    ✅ BOC created.")
+        try:
+            query = wallet.create_transfer_message(
+                to_addr=TEST_SEND_TO, 
+                amount=to_nano(TEST_AMOUNT_TON, "ton"),
+                seqno=seqno, 
+                payload="FortunoBet Test"
+            )
+            boc = base64.b64encode(query["message"].to_boc(False)).decode()
+            print("    ✅ BOC created.")
+        except Exception as e:
+            print(f"    ❌ Build failed: {e}")
+            return
 
         # Step 5: Send
         print("\n[5/5] Sending...")
-        # FIXED URL BELOW: .com instead of .get
         async with session.post("https://toncenter.com/api/v2/sendBoc", 
                                  json={"boc": boc}, headers=headers) as r:
             res = await r.json()
             if res.get("ok"):
                 print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT!\n{'='*50}\n")
             else:
-                error_msg = res.get('error', 'Unknown Error')
+                error_msg = str(res.get('error', 'Unknown Error'))
                 print(f"\n❌ FAILED: {error_msg}")
                 if "unpack" in error_msg.lower():
-                    print("    → Change WALLET_VERSION to 'v4r1' at the top and try again.")
+                    print("    → Account state mismatch. Ensure your 24 words are for this UQDP address.")
 
 if __name__ == "__main__":
     asyncio.run(test())
