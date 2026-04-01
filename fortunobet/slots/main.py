@@ -1033,49 +1033,48 @@
 #     asyncio.run(test())
 
 """
-TON Payment Test — Tonkeeper format
-Install: pip install tonsdk aiohttp
-Run:     python3 test_ton.py
+TON Payment Test — New Tonkeeper wallet
+Run: python3 test_ton.py
 """
-
 import asyncio
 import aiohttp
 import base64
 
-# Tonkeeper test wallet (TON native mnemonic format)
 MNEMONIC = [
-    "lawsuit", "paddle",  "skull",   "autumn", "embrace", "urge",
-    "wrist",   "spell",   "easily",  "vast",   "poet",    "clarify",
-    "behind",  "style",   "icon",    "oak",    "recipe",  "method",
-    "coast",   "gun",     "family",  "crop",   "wrestle", "budget",
+    "disagree", "crystal",  "priority", "marble",  "limb",    "sentence",
+    "output",   "hotel",    "cushion",  "retreat",  "depth",   "alcohol",
+    "sleep",    "novel",    "cigar",    "brisk",    "valid",   "garment",
+    "dial",     "day",      "front",    "eyebrow",  "orange",  "letter",
 ]
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 SEND_TO           = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+REAL_ADDRESS      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
 AMOUNT_TON        = 0.01
 
 async def test():
     print("\n" + "="*50)
-    print("TON Payment Test — Tonkeeper format")
+    print("TON Payment Test — New Tonkeeper wallet")
     print("="*50)
 
     print("\n[1/5] Building wallet from mnemonic...")
     try:
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-        from tonsdk.utils import to_nano
-
         _, _, _, wallet = Wallets.from_mnemonics(
             MNEMONIC, WalletVersionEnum.v4r2, workchain=0
         )
         addr = wallet.address.to_string(True, True, False)
-        print(f"    ✅ Address: {addr}")
+        print(f"    ✅ Generated address : {addr}")
+        print(f"    📱 Your real address : {REAL_ADDRESS}")
+        if addr == REAL_ADDRESS:
+            print(f"    🎉 ADDRESSES MATCH! Perfect!")
+        else:
+            print(f"    ❌ Addresses do NOT match — wrong words or wrong wallet version")
+            return
     except Exception as e:
         print(f"    ❌ Failed: {e}")
         return
 
-    headers = {
-        "Content-Type": "application/json",
-        "X-API-Key": TONCENTER_API_KEY
-    }
+    headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
 
     async with aiohttp.ClientSession() as s:
 
@@ -1083,17 +1082,13 @@ async def test():
         try:
             async with s.get(
                 "https://toncenter.com/api/v2/getAddressBalance",
-                params={"address": addr},
-                headers=headers
+                params={"address": addr}, headers=headers
             ) as r:
                 res     = await r.json()
                 balance = int(res["result"]) / 1e9
                 print(f"    ✅ Balance: {balance:.4f} TON")
                 if balance < AMOUNT_TON:
-                    print(f"    ⚠️  No TON in this wallet yet.")
-                    print(f"    → To test sending, send some TON to: {addr}")
-                    print(f"\n    ✅ BUT wallet loaded correctly!")
-                    print(f"    ✅ This mnemonic format WORKS with our bot!")
+                    print(f"    ❌ Not enough TON!")
                     return
         except Exception as e:
             print(f"    ❌ {e}")
@@ -1109,13 +1104,13 @@ async def test():
                 res   = await r.json()
                 stack = res["result"]["stack"]
                 val   = stack[0]
-                seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
+                seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value","0x0"), 16)
                 print(f"    ✅ Seqno: {seqno}")
         except Exception as e:
             print(f"    ❌ {e}")
             return
 
-        print(f"\n[4/5] Building transaction...")
+        print("\n[4/5] Building transaction...")
         try:
             from tonsdk.utils import to_nano
             query = wallet.create_transfer_message(
@@ -1130,17 +1125,17 @@ async def test():
             print(f"    ❌ {e}")
             return
 
-        print(f"\n[5/5] Sending {AMOUNT_TON} TON...")
+        print(f"\n[5/5] Sending {AMOUNT_TON} TON to {SEND_TO}...")
         try:
             async with s.post(
                 "https://toncenter.com/api/v2/sendBoc",
-                json={"boc": boc},
-                headers=headers
+                json={"boc": boc}, headers=headers
             ) as r:
                 res = await r.json()
                 if res.get("ok"):
                     print(f"\n{'='*50}")
                     print(f"✅ SUCCESS! {AMOUNT_TON} TON SENT!")
+                    print(f"✅ AUTO PAYMENT WORKS!")
                     print(f"{'='*50}\n")
                 else:
                     print(f"    ❌ {res.get('error', res)}")
