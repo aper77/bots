@@ -971,7 +971,7 @@ async def test():
         # We use v4r2 and the specific Subwallet ID used by Tonkeeper
         _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC, 
-            version=WalletVersionEnum.v4r2, 
+            version=WalletVersionEnum.v4r1, 
             workchain=0, 
             subwallet_id=698983191
         )
