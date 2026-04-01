@@ -922,41 +922,77 @@
 
 
 
+import sys
 import asyncio
-from tonutils.client import TonCenterHTTP
-from tonutils.wallet import WalletV5R1
 
+# ── PATH FIX ───────────────────────────────
+user_site = "/tmp/.local/lib/python3.10/site-packages"
+if user_site not in sys.path:
+    sys.path.insert(0, user_site)
+
+# ── TONUTILS IMPORTS ───────────────────────
+try:
+    from tonutils.client import TonCenterHTTP
+    from tonutils.wallet import WalletV5R1
+    print("✅ Libraries loaded successfully!")
+except ImportError as e:
+    sys.exit(f"❌ Cannot import tonutils: {e}")
+
+# ── CONFIGURATION ──────────────────────────
 MNEMONIC = [
-    "lawsuit", "paddle", "skull", "autumn", "embrace", "urge",
-    "wrist", "spell", "easily", "vast", "poet", "clarify",
+    "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
+    "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
+MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-API_KEY = "YOUR_TONCENTER_API_KEY"  # Replace with your real key
-AMOUNT = 0.01  # TON
 
+# ── ASYNC MAIN ─────────────────────────────
 async def main():
+    print("\n" + "="*50)
+    print("FortunoBet — TON W5 Test Payment")
+    print("="*50)
+
+    # Initialize TonCenter HTTP client
     client = TonCenterHTTP(api_key=API_KEY)
+
     await client.connect()
 
-    wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-    addr = wallet.address.to_str(is_user_friendly=True)
-    print(f"Wallet address: {addr}")
+    try:
+        # Load wallet from mnemonic
+        wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
+        current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
 
-    balance = await wallet.get_balance()
-    print(f"Balance: {balance / 1e9:.4f} TON")
+        print(f"\n[1/3] Wallet Setup")
+        print(f"    ✅ Script Address: {current_addr}")
+        print(f"    ✅ Target Address: {MY_ADDRESS}")
 
-    if balance < AMOUNT * 1e9 + 0.02 * 1e9:
-        print("❌ Not enough balance for transfer + gas")
+        if current_addr != MY_ADDRESS:
+            print("\n❌ ERROR: Address mismatch! Check your mnemonic.")
+            return
+
+        # Check balance
+        print("\n[2/3] Checking Balance...")
+        balance = await wallet.get_balance()
+        print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
+
+        if balance < 0.02 * 1e9:
+            print("❌ Not enough TON (need ~0.02 for gas + test)")
+            return
+
+        # Send 0.01 TON
+        print("\n[3/3] Sending 0.01 TON...")
+        tx_hash = await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Test")
+        print(f"✅ SUCCESS! Transaction hash: {tx_hash}")
+
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+    finally:
         await client.close()
-        return
 
-    tx = await wallet.transfer(destination=DESTINATION, amount=AMOUNT, body="Test Payment")
-    print(f"✅ SUCCESS! Transaction hash: {tx.hash}")
-
-    await client.close()
-
+# ── RUN ────────────────────────────────────
 if __name__ == "__main__":
     asyncio.run(main())
