@@ -940,7 +940,7 @@ MNEMONIC = [
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
-MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+MY_TONKEEPER_ADDRESS = "EQCg6dYfFeiCgBYYYXIAtv09K067wowN7n2Vjmvg1EfkuXiH"
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 TEST_AMOUNT_TON   = 0.01 
