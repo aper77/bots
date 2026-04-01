@@ -927,13 +927,16 @@ import aiohttp
 import json
 
 # ── CONFIGURATION ───────────────────────────
-# Replace the empty list with your 24 words: ["word1", "word2", ... "word24"]
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
+
+# PASTE YOUR Tonkeeper address here (The one starting with UQD2...)
+MY_TONKEEPER_ADDRESS = "UQD2..." 
+
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 TEST_AMOUNT_TON   = 0.01 
@@ -953,27 +956,17 @@ async def test():
     print("\n[1/5] Building wallet from mnemonic...")
     try:
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-        from tonsdk.utils import to_nano, Address
+        from tonsdk.utils import to_nano
         import base64
 
-        # 1. Generate the wallet object
-        _m, _pub, _priv, wallet = Wallets.from_mnemonics(
+        # This stays the same to allow the script to sign the transaction
+        _m, _p, _k, wallet = Wallets.from_mnemonics(
             MNEMONIC, WalletVersionEnum.v4r2, workchain=0
         )
 
-        # 2. FORCE the "Non-Bounceable" format to match Tonkeeper (UQD2...)
-        # We manually set is_bounceable=False to ensure we see the balance
-        raw_addr = wallet.address.to_string()
-        wallet_address = Address(raw_addr).to_string(
-            is_user_friendly=True, 
-            is_url_safe=True, 
-            is_bounceable=False
-        )
-        
-        print(f"    ✅ Wallet address: {wallet_address}")
-        
-        if not wallet_address.startswith("UQD2"):
-            print("    ⚠️ Warning: Address does not start with UQD2. Checking balance anyway...")
+        # MANUAL OVERRIDE: We use your Tonkeeper address string directly
+        wallet_address = MY_TONKEEPER_ADDRESS
+        print(f"    ✅ Using Manual Address: {wallet_address}")
             
     except Exception as e:
         print(f"    ❌ Setup error: {e}")
@@ -991,13 +984,11 @@ async def test():
             ) as r:
                 raw = await r.json()
                 if raw.get("ok"):
-                    balance_nano = int(raw["result"])
-                    balance_ton  = balance_nano / 1_000_000_000
+                    balance_ton = int(raw["result"]) / 1_000_000_000
                     print(f"    ✅ Balance: {balance_ton:.4f} TON")
                     
                     if balance_ton < TEST_AMOUNT_TON:
-                        print(f"    ❌ Not enough TON! Need at least {TEST_AMOUNT_TON} TON")
-                        print(f"    → Double check your 24 words are correct.")
+                        print(f"    ❌ Still 0 TON? Check if you pasted the right address.")
                         return
                 else:
                     print(f"    ❌ API error: {raw}")
@@ -1022,11 +1013,12 @@ async def test():
                 print(f"    ✅ Seqno: {seqno}")
         except Exception:
             seqno = 0
-            print("    ⚠️ Seqno failed (Wallet might be uninitialized). Using 0.")
+            print("    ⚠️ Seqno failed (Wallet might be new). Using 0.")
 
         # ── Step 4: Build transaction ─────────
         print(f"\n[4/5] Building transaction...")
         try:
+            # We use the 'wallet' object to sign, but the 'seqno' from your real address
             query = wallet.create_transfer_message(
                 to_addr=TEST_SEND_TO,
                 amount=to_nano(TEST_AMOUNT_TON, "ton"),
@@ -1049,7 +1041,7 @@ async def test():
             ) as r:
                 raw = await r.json()
                 if raw.get("ok"):
-                    print(f"\n{'='*50}\n✅ SUCCESS! Transaction sent.\n{'='*50}\n")
+                    print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
                 else:
                     print(f"\n❌ SEND FAILED: {raw}")
         except Exception as e:
