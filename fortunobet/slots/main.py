@@ -961,7 +961,7 @@ async def test():
         _mnemonics, _pub_k, _priv_k, wallet = Wallets.from_mnemonics(
             MNEMONIC, WalletVersionEnum.v4r2, workchain=0
         )
-       wallet_address = wallet.address.to_string(False, True, True)
+        wallet_address = wallet.address.to_string(False, True, True)
         print(f"    ✅ Wallet address: {wallet_address}")
     except ImportError:
         print("    ❌ tonsdk not installed! Run: pip install tonsdk")
