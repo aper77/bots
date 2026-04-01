@@ -922,23 +922,10 @@
 
 
 
-import sys
 import asyncio
+from tonutils.client import TonCenter  # TonCenter exists in 0.5.7
+from tonutils.wallet import WalletV5R1
 
-# ── PATH FIX ───────────────────────────────
-user_site = "/tmp/.local/lib/python3.10/site-packages"
-if user_site not in sys.path:
-    sys.path.insert(0, user_site)
-
-# ── TONUTILS IMPORTS ───────────────────────
-try:
-    from tonutils.client.toncenter import ToncenterHTTP
-    from tonutils.wallet.wallet_v5 import WalletV5R1
-    print("✅ Libraries loaded successfully!")
-except ImportError as e:
-    sys.exit(f"❌ Cannot import tonutils: {e}")
-
-# ── CONFIGURATION ──────────────────────────
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -950,58 +937,28 @@ MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
 API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 
-# ── MAIN ASYNC FUNCTION ───────────────────
 async def main():
-    print("\n" + "="*50)
-    print("FortunoBet — TON W5 Test Payment")
-    print("="*50)
+    client = TonCenter(api_key=API_KEY)
 
-    # Initialize Toncenter HTTP client
-    client = ToncenterHTTP(api_key=API_KEY)
+    await client.connect()
 
-    try:
-        await client.connect()
+    wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
+    addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
+    print(f"Wallet Address: {addr}")
 
-        # Step 1: Wallet Setup
-        wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
-        current_addr = wallet.address.to_str(
-            is_user_friendly=True, is_bounceable=False, is_url_safe=True
-        )
+    balance = await wallet.get_balance()
+    print(f"Balance: {balance / 1e9:.4f} TON")
 
-        print(f"\n[1/3] Wallet Setup")
-        print(f"    ✅ Script Address: {current_addr}")
-        print(f"    ✅ Target Address: {MY_ADDRESS}")
-
-        if current_addr != MY_ADDRESS:
-            print("\n    ❌ ERROR: Address mismatch!")
-            print("    → Your mnemonic generates a different address.")
-            return
-
-        # Step 2: Balance Check
-        print("\n[2/3] Checking Balance...")
-        balance = await wallet.get_balance()
-        print(f"    ✅ Balance: {balance / 1e9:.4f} TON")
-
-        if balance < 0.02 * 1e9:
-            print("    ❌ Not enough TON (need ~0.02 for gas + test).")
-            return
-
-        # Step 3: Transfer 0.01 TON
-        print("\n[3/3] Sending 0.01 TON...")
-        await wallet.transfer(
-            destination=DESTINATION,
-            amount=0.01,
-            body="FortunoBet Test Payment"
-        )
-
-        print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
-
-    except Exception as e:
-        print(f"\n    ❌ Error during execution: {e}")
-
-    finally:
+    if balance < 0.02 * 1e9:
+        print("❌ Not enough TON to send transaction.")
         await client.close()
+        return
 
-# ── RUN SCRIPT ────────────────────────────
+    print(f"Sending 0.01 TON to {DESTINATION}...")
+    await wallet.transfer(destination=DESTINATION, amount=0.01, body="Test Payment")
+    print("✅ Transfer sent!")
+
+    await client.close()
+
 if __name__ == "__main__":
     asyncio.run(main())
