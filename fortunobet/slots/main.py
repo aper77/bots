@@ -1033,116 +1033,106 @@
 #     asyncio.run(test())
 
 """
-TON Payment Test — Fixed for MyTonWallet mnemonics
-Run: python3 test_ton.py
+TON Payment Test — BIP39 mnemonic (MyTonWallet format)
+Install: pip install mnemonic tonsdk aiohttp pynacl
+Run:     python3 test_ton.py
 """
 
 import asyncio
+import aiohttp
+import base64
 
-MNEMONIC   = ["foot", "flee", "equip", "yard", "beef", "coffee", "anchor", "skill", "sad", "during", "raise", "useless", "clip", "confirm", "about", "brain", "treat", "trumpet", "diary", "flip", "hour", "sword", "catch", "width"]
-SEND_TO    = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-AMOUNT_TON = 0.01
+MNEMONIC          = ["foot","flee","equip","yard","beef","coffee","anchor","skill","sad","during","raise","useless","clip","confirm","about","brain","treat","trumpet","diary","flip","hour","sword","catch","width"]
+TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
+SEND_TO           = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
+AMOUNT_TON        = 0.01
+
+def bip39_seed_to_keypair(words: list):
+    from mnemonic import Mnemonic
+    import nacl.signing
+    seed      = Mnemonic("english").to_seed(" ".join(words), passphrase="")
+    signing   = nacl.signing.SigningKey(seed[:32])
+    return bytes(signing), bytes(signing.verify_key)
 
 async def test():
     print("\n" + "="*50)
-    print("TON Payment Test")
+    print("TON Payment Test — BIP39 / MyTonWallet")
     print("="*50)
 
+    print("\n[1/5] Building keypair...")
     try:
-        from pytoniq import LiteBalancer, WalletV4R2
-        from pytoniq_core.crypto.keys import mnemonic_to_private_key
-        from pytoniq_core.crypto.keys import mnemonic_is_valid
-    except ImportError:
-        print("❌ Run: pip install pytoniq pytoniq-core")
+        priv, pub = bip39_seed_to_keypair(MNEMONIC)
+        print(f"    ✅ pub key: {pub.hex()[:20]}...")
+    except Exception as e:
+        print(f"    ❌ {e} — run: pip install mnemonic pynacl")
         return
 
-    # ── Check if mnemonic is valid TON mnemonic ──
-    print("\n[0/4] Validating mnemonic...")
+    print("\n[2/5] Building wallet address...")
     try:
-        is_valid = mnemonic_is_valid(MNEMONIC)
-        print(f"    TON mnemonic valid: {is_valid}")
-        if not is_valid:
-            print("    ⚠️  This is a BIP39 mnemonic (MyTonWallet/Tonkeeper use TON format)")
-            print("    → Trying BIP39 method instead...")
+        from tonsdk.contract.wallet import WalletV4ContractR2
+        wallet   = WalletV4ContractR2(public_key=pub, private_key=priv)
+        addr     = wallet.address.to_string(True, True, False)
+        print(f"    ✅ Address: {addr}")
     except Exception as e:
-        print(f"    Check failed: {e}")
-
-    print("\n[1/4] Connecting to TON blockchain...")
-    try:
-        provider = LiteBalancer.from_mainnet_config(trust_level=2)
-        await provider.start_up()
-        print("    ✅ Connected!")
-    except Exception as e:
-        print(f"    ❌ Connection failed: {e}")
+        print(f"    ❌ {e}")
         return
 
-    wallet = None
+    headers = {"Content-Type": "application/json", "X-API-Key": TONCENTER_API_KEY}
 
-    # ── Try method 1: Standard TON mnemonic ──────
-    print("\n[2/4] Loading wallet (method 1 — TON mnemonic)...")
-    try:
-        wallet = await WalletV4R2.from_mnemonic(provider, MNEMONIC)
-        addr   = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
-        print(f"    ✅ Wallet address: {addr}")
-    except Exception as e:
-        print(f"    ❌ Method 1 failed: {e}")
+    async with aiohttp.ClientSession() as s:
 
-    # ── Try method 2: with password='' ───────────
-    if not wallet:
-        print("    Trying method 2 — with empty password...")
+        print("\n[3/5] Checking balance...")
         try:
-            wallet = await WalletV4R2.from_mnemonic(provider, MNEMONIC, password="")
-            addr   = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
-            print(f"    ✅ Wallet address: {addr}")
+            async with s.get("https://toncenter.com/api/v2/getAddressBalance",
+                             params={"address": addr}, headers=headers) as r:
+                res = await r.json()
+                print(f"    Raw: {res}")
+                if not res.get("ok"):
+                    print("    ❌ API error")
+                    return
+                balance = int(res["result"]) / 1e9
+                print(f"    ✅ Balance: {balance:.4f} TON")
+                if balance < AMOUNT_TON:
+                    print(f"    ❌ Not enough TON! Send to:\n    {addr}")
+                    return
         except Exception as e:
-            print(f"    ❌ Method 2 failed: {e}")
-
-    # ── Try method 3: private key directly ───────
-    if not wallet:
-        print("    Trying method 3 — via private key...")
-        try:
-            _pub, priv = mnemonic_to_private_key(MNEMONIC)
-            wallet     = await WalletV4R2.from_private_key(provider, priv)
-            addr       = wallet.address.to_str(is_user_friendly=True, is_bounceable=False)
-            print(f"    ✅ Wallet address: {addr}")
-        except Exception as e:
-            print(f"    ❌ Method 3 failed: {e}")
-
-    if not wallet:
-        print("\n❌ Could not load wallet. Your words may be BIP39 format.")
-        print("   Solution: In MyTonWallet → Settings → Recovery phrase")
-        print("   Make sure you copy ALL 24 words in correct order.")
-        await provider.close_all()
-        return
-
-    print("\n[3/4] Checking balance...")
-    try:
-        balance_nano = await provider.get_balance(wallet.address)
-        balance_ton  = balance_nano / 1_000_000_000
-        print(f"    ✅ Balance: {balance_ton:.4f} TON")
-        if balance_ton < AMOUNT_TON:
-            print(f"    ❌ Not enough TON!")
-            print(f"    → Send TON to: {addr}")
-            await provider.close_all()
+            print(f"    ❌ {e}")
             return
-    except Exception as e:
-        print(f"    ❌ Balance check failed: {e}")
-        await provider.close_all()
-        return
 
-    print(f"\n[4/4] Sending {AMOUNT_TON} TON to {SEND_TO}...")
-    try:
-        await wallet.transfer(
-            destination=SEND_TO,
-            amount=int(AMOUNT_TON * 1_000_000_000),
-            body="FortunoBet Test Payment",
-        )
-        print(f"\n{'='*50}")
-        print(f"✅ SUCCESS! {AMOUNT_TON} TON sent!")
-        print(f"{'='*50}\n")
-    except Exception as e:
-        print(f"    ❌ Send failed: {e}")
+        print("\n[4/5] Getting seqno...")
+        try:
+            async with s.post("https://toncenter.com/api/v2/runGetMethod",
+                              json={"address": addr, "method": "seqno", "stack": []},
+                              headers=headers) as r:
+                res   = await r.json()
+                print(f"    Raw: {res}")
+                stack = res["result"]["stack"]
+                val   = stack[0]
+                seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value","0x0"), 16)
+                print(f"    ✅ Seqno: {seqno}")
+        except Exception as e:
+            print(f"    ❌ {e}")
+            return
 
-    await provider.close_all()
+        print(f"\n[5/5] Sending {AMOUNT_TON} TON...")
+        try:
+            from tonsdk.utils import to_nano
+            query = wallet.create_transfer_message(
+                to_addr=SEND_TO,
+                amount=to_nano(AMOUNT_TON, "ton"),
+                seqno=seqno,
+                payload="FortunoBet Payout",
+            )
+            boc = base64.b64encode(query["message"].to_boc(False)).decode()
+            async with s.post("https://toncenter.com/api/v2/sendBoc",
+                              json={"boc": boc}, headers=headers) as r:
+                res = await r.json()
+                print(f"    Raw: {res}")
+                if res.get("ok"):
+                    print(f"\n{'='*50}\n✅ SUCCESS! {AMOUNT_TON} TON SENT!\n{'='*50}\n")
+                else:
+                    print(f"    ❌ Send failed: {res.get('error', res)}")
+        except Exception as e:
+            print(f"    ❌ {e}")
 
 asyncio.run(test())
