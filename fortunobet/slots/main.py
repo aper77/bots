@@ -927,33 +927,24 @@ import os
 import asyncio
 
 # ── 1. FORCE THE PATH ───────────────────────
-# We add the specific folder where your pip installed the files
-paths = [
-    "/tmp/.local/lib/python3.10/site-packages",
-    os.path.expanduser("~/.local/lib/python3.10/site-packages")
-]
-for p in paths:
-    if p not in sys.path:
-        sys.path.insert(0, p)
+tmp_path = "/tmp/.local/lib/python3.10/site-packages"
+if tmp_path not in sys.path:
+    sys.path.insert(0, tmp_path)
 
-# ── 2. SMART IMPORTS ────────────────────────
-# This tries every possible location for the W5 wallet and Client
+# ── 2. EXACT DEEP IMPORTS ───────────────────
 try:
-    from pytoniq import WalletV5R1, ToncenterClient
-    print("✅ Method A Success")
+    # This is the exact path for pytoniq 0.1.43
+    from pytoniq.contract.wallets.v5.r1 import WalletV5R1
+    from pytoniq.provider.toncenter import ToncenterClient
+    print("✅ Libraries located (Deep Import)")
 except ImportError:
     try:
-        from pytoniq.contract.wallet import WalletV5R1
-        from pytoniq.provider.toncenter import ToncenterClient
-        print("✅ Method B Success")
-    except ImportError:
-        try:
-            from pytoniq_core.contract.wallet import WalletV5R1
-            from pytoniq.provider.toncenter import ToncenterClient
-            print("✅ Method C Success")
-        except ImportError as e:
-            print(f"❌ Error: {e}")
-            sys.exit("Could not find WalletV5R1. Please contact support.")
+        # Fallback for the other common structure
+        from pytoniq import WalletV5R1, ToncenterClient
+        print("✅ Libraries located (Standard Import)")
+    except ImportError as e:
+        print(f"❌ Still failing. System sees: {e}")
+        sys.exit("Please run: python3 -m pip install --user --upgrade pytoniq")
 
 # ── 3. CONFIGURATION ────────────────────────
 MNEMONIC = [
@@ -970,17 +961,16 @@ DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 
 async def main():
     print("\n" + "="*50)
-    print("FortunoBet — TON W5 Final Test")
+    print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
-    # Initialize Client
     client = ToncenterClient(api_key=API_KEY)
     
     try:
         await client.connect()
 
         # Step 1: Wallet Setup
-        # In this version, from_mnemonic is the correct way
+        # Using the async-ready constructor
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
         
         current_addr = wallet.address.to_str(is_user_friendly=True, is_bounceable=False, is_url_safe=True)
@@ -991,6 +981,8 @@ async def main():
 
         if current_addr != MY_ADDRESS:
             print("\n    ❌ ERROR: Address mismatch!")
+            print(f"    → Generated: {current_addr}")
+            print(f"    → Expected:  {MY_ADDRESS}")
             return
 
         # Step 2: Balance Check
@@ -1004,6 +996,7 @@ async def main():
 
         # Step 3: Transfer
         print("\n[3/3] Sending 0.01 TON...")
+        # In this specific version, transfer is used like this:
         await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
         
         print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
