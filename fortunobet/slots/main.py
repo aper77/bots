@@ -927,24 +927,24 @@ import os
 import asyncio
 
 # ── FORCED PATH INJECTOR ────────────────────
-# We know exactly where pip just put your files. This is that path:
 tmp_path = "/tmp/.local/lib/python3.10/site-packages"
 if tmp_path not in sys.path:
     sys.path.insert(0, tmp_path) 
 # ─────────────────────────────────────────────
 
 try:
-    # We import directly from the core engines to be safe
-    from pytoniq import WalletV5R1, ToncenterClient
+    # UPDATED IMPORTS for pytoniq 0.1.43+
+    from pytoniq import WalletV5R1
+    from pytoniq.provider.toncenter import ToncenterClient
     print("✅ Libraries loaded successfully!")
-except ImportError as e:
-    print(f"❌ Still can't find libraries: {e}")
-    print("Trying alternative import...")
+except ImportError:
     try:
+        # Fallback for different pytoniq structures
         from pytoniq_core import WalletV5R1
-        from pytoniq import ToncenterClient
-    except:
-        sys.exit("Critical Error: Please check your installation path.")
+        from pytoniq import LiteClient as ToncenterClient
+        print("✅ Using LiteClient fallback...")
+    except Exception as e:
+        sys.exit(f"❌ Still can't find libraries: {e}")
 
 # ── CONFIGURATION ───────────────────────────
 MNEMONIC = [
@@ -964,11 +964,14 @@ async def main():
     print("FortunoBet — TON W5 Final Payment")
     print("="*50)
 
+    # Initialize the specific Toncenter provider
     client = ToncenterClient(api_key=API_KEY)
     
     try:
+        # Connect to the provider
+        await client.connect()
+
         # Step 1: Wallet Setup
-        # pytoniq uses from_mnemonic as an async-ready method
         wallet = await WalletV5R1.from_mnemonic(client, MNEMONIC)
         
         # Get address string
@@ -994,7 +997,7 @@ async def main():
 
         # Step 3: Transfer
         print("\n[3/3] Sending 0.01 TON...")
-        # Pytoniq transfer is straightforward
+        # Note: Pytoniq 0.1.43 uses 'transfer' with these parameters
         await wallet.transfer(destination=DESTINATION, amount=0.01, body="FortunoBet Final")
         
         print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT.\n{'='*50}\n")
