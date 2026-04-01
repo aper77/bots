@@ -936,11 +936,10 @@ MNEMONIC = [
 ]
 
 # ── 2. YOUR TONKEEPER ADDRESS ──────────────────
-# Paste your UQDP... address here
 MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1" 
 
-# ── 3. WALLET VERSION (The "Lock and Key") ─────
-# If v4r2 gives "Failed to unpack", change this to "v4r1"
+# ── 3. WALLET VERSION ──────────────────────────
+# Keep as v4r2 for now. 
 WALLET_VERSION = "v4r2" 
 
 # ── 4. API & TARGETS ───────────────────────────
@@ -961,10 +960,7 @@ async def test():
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
         from tonsdk.utils import to_nano
 
-        # Select version based on the toggle above
         ver_enum = WalletVersionEnum.v4r2 if WALLET_VERSION == "v4r2" else WalletVersionEnum.v4r1
-        
-        # Standard Tonkeeper subwallet_id
         sub_id = 698983191 
 
         _m, _p, _k, wallet = Wallets.from_mnemonics(
@@ -1008,14 +1004,17 @@ async def test():
 
         # Step 5: Send
         print("\n[5/5] Sending...")
-        async with session.post("https://toncenter.get/api/v2/sendBoc", 
+        # FIXED URL BELOW: .com instead of .get
+        async with session.post("https://toncenter.com/api/v2/sendBoc", 
                                  json={"boc": boc}, headers=headers) as r:
             res = await r.json()
             if res.get("ok"):
                 print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT!\n{'='*50}\n")
             else:
-                print(f"\n❌ FAILED: {res.get('error')}")
-                print("    → If 'Failed to unpack', change WALLET_VERSION to 'v4r1' at the top.")
+                error_msg = res.get('error', 'Unknown Error')
+                print(f"\n❌ FAILED: {error_msg}")
+                if "unpack" in error_msg.lower():
+                    print("    → Change WALLET_VERSION to 'v4r1' at the top and try again.")
 
 if __name__ == "__main__":
     asyncio.run(test())
