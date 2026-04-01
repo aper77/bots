@@ -923,11 +923,10 @@
 
 
 import asyncio
-import aiohttp
-import json
-import base64
+from tonutils.wallet import WalletV5R1
+from tonutils.client import ToncenterClient
 
-# ── 1. MNEMONIC (Your 24 words) ────────────────
+# ── CONFIGURATION ───────────────────────────
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
@@ -935,94 +934,35 @@ MNEMONIC = [
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
 
-# ── 2. YOUR TONKEEPER ADDRESS ──────────────────
-MY_TONKEEPER_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1" 
-
-# ── 3. WALLET VERSION ──────────────────────────
-# UPDATED: Switched to v4r1 to fix the 'Failed to unpack' error
-WALLET_VERSION = "v4r1" 
-
-# ── 4. API & TARGETS ───────────────────────────
-TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
-TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-TEST_AMOUNT_TON   = 0.01 
+# Your UQDP address
+MY_ADDRESS = "UQDPwPEdG-8d0Tr-lgZtLSlyvt-Mti1N3sBmMw90UaXL7-L1"
+API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
+DESTINATION = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
 # ─────────────────────────────────────────────
 
-async def test():
-    print("\n" + "="*50)
-    print(f"FortunoBet — TON Test (Version: {WALLET_VERSION})")
-    print("="*50)
-
-    headers = {"X-API-Key": TONCENTER_API_KEY}
-
-    print("\n[1/5] Building wallet...")
-    try:
-        from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-        from tonsdk.utils import to_nano
-
-        # Selecting v4r1 for this attempt
-        ver_enum = WalletVersionEnum.v4r1
-        sub_id = 698983191 
-
-        _m, _p, _k, wallet = Wallets.from_mnemonics(
-            MNEMONIC, version=ver_enum, workchain=0, subwallet_id=sub_id
-        )
-        print(f"    ✅ Using Address: {MY_TONKEEPER_ADDRESS}")
-    except Exception as e:
-        print(f"    ❌ Setup error: {e}")
-        return
-
-    async with aiohttp.ClientSession() as session:
-        # Step 2: Balance
-        print("\n[2/5] Checking balance...")
-        async with session.get("https://toncenter.com/api/v2/getAddressBalance", 
-                               params={"address": MY_TONKEEPER_ADDRESS}, headers=headers) as r:
-            raw = await r.json()
-            if not raw.get("ok"): 
-                print(f"    ❌ API Error: {raw}")
-                return
-            balance = int(raw["result"]) / 1e9
-            print(f"    ✅ Balance: {balance:.4f} TON")
-
-        # Step 3: Seqno
-        print("\n[3/5] Getting seqno...")
-        async with session.post("https://toncenter.com/api/v2/runGetMethod", 
-                                 json={"address": MY_TONKEEPER_ADDRESS, "method": "seqno", "stack": []}, 
-                                 headers=headers) as r:
-            raw = await r.json()
-            seqno = 0
-            if raw.get("ok") and raw["result"]["stack"]:
-                val = raw["result"]["stack"][0]
-                seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
-            print(f"    ✅ Seqno: {seqno}")
-
-        # Step 4: Build
-        print("\n[4/5] Building transaction...")
-        try:
-            query = wallet.create_transfer_message(
-                to_addr=TEST_SEND_TO, 
-                amount=to_nano(TEST_AMOUNT_TON, "ton"),
-                seqno=seqno, 
-                payload="FortunoBet Test"
-            )
-            boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            print("    ✅ BOC created.")
-        except Exception as e:
-            print(f"    ❌ Build failed: {e}")
-            return
-
-        # Step 5: Send
-        print("\n[5/5] Sending...")
-        async with session.post("https://toncenter.com/api/v2/sendBoc", 
-                                 json={"boc": boc}, headers=headers) as r:
-            res = await r.json()
-            if res.get("ok"):
-                print(f"\n{'='*50}\n✅ SUCCESS! 0.01 TON SENT!\n{'='*50}\n")
-            else:
-                error_msg = str(res.get('error', 'Unknown Error'))
-                print(f"\n❌ FAILED: {error_msg}")
-                if "unpack" in error_msg.lower():
-                    print("    → Account state mismatch. Ensure your 24 words are for this UQDP address.")
+async def main():
+    client = ToncenterClient(api_key=API_KEY)
+    
+    # Create the W5 Wallet object
+    wallet = WalletV5R1.from_mnemonic(client, MNEMONIC)
+    
+    print(f"Script Address: {wallet.address}")
+    print(f"Target Address: {MY_ADDRESS}")
+    
+    if str(wallet.address) != MY_ADDRESS:
+        print("❌ Warning: Address still does not match. Checking W5 Beta...")
+        # Some early W5 wallets use a different ID, but V5R1 is the standard now.
+    
+    # Check Balance
+    balance = await wallet.get_balance()
+    print(f"Balance: {balance / 1e9} TON")
+    
+    if balance > 0.01 * 1e9:
+        print("Sending 0.01 TON...")
+        tx = await wallet.transfer(destination=DESTINATION, amount=0.01, comment="FortunoBet W5 Test")
+        print(f"✅ Success! Transaction hash: {tx}")
+    else:
+        print("❌ Insufficient funds.")
 
 if __name__ == "__main__":
-    asyncio.run(test())
+    asyncio.run(main())
