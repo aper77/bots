@@ -927,17 +927,16 @@ import aiohttp
 import json
 
 # ── CONFIGURATION ───────────────────────────
-# Example: MNEMONIC = ["apple", "banana", ... "zebra"]
+# Replace the empty list with your 24 words: ["word1", "word2", ... "word24"]
 MNEMONIC = [
     "lawsuit",  "paddle",  "skull",  "autumn",  "embrace",  "urge",
     "wrist",  "spell",  "easily",  "vast", "poet", "clarify",
     "behind", "style", "icon", "oak", "recipe", "method",
     "coast", "gun", "family", "crop", "wrestle", "budget",
 ]
-
 TONCENTER_API_KEY = "bb283e94ecd9f2b1be3c3ebb4d88971f89b1768fe50544b818f8a7f6e9cef6b5"
 TEST_SEND_TO      = "UQD2nimQdNGpQGFnmNvYUhiXTS92RjPCtdRRcsFYHn-6auoM"
-TEST_AMOUNT_TON   = 0.01
+TEST_AMOUNT_TON   = 0.01 
 # ─────────────────────────────────────────────
 
 async def test():
@@ -950,99 +949,111 @@ async def test():
         "X-API-Key": TONCENTER_API_KEY
     }
 
-    # ── Step 1: Build wallet ────
+    # ── Step 1: Build wallet from mnemonic ────
     print("\n[1/5] Building wallet from mnemonic...")
     try:
         from tonsdk.contract.wallet import Wallets, WalletVersionEnum
-        from tonsdk.utils import to_nano
+        from tonsdk.utils import to_nano, Address
         import base64
 
-        # Initialize the wallet as V4R2 (Standard for Tonkeeper)
+        # 1. Generate the wallet object
         _m, _pub, _priv, wallet = Wallets.from_mnemonics(
             MNEMONIC, WalletVersionEnum.v4r2, workchain=0
         )
 
-        # SETTINGS EXPLAINED:
-        # True = User Friendly (starts with U)
-        # True = URL Safe
-        # False = NON-BOUNCEABLE (This is why you see UQD2... instead of UQCg6...)
-        wallet_address = wallet.address.to_string(
-            is_user_friendly=True,
-            is_url_safe=True,
-            is_bounceable=False,
-            is_test_only=False
-        )     
-        print(f"    ✅ Wallet address: {wallet_address}")
-        print(f"    (Matches Tonkeeper: {'Yes' if wallet_address.startswith('UQD2') else 'No - Check code'})")
+        # 2. FORCE the "Non-Bounceable" format to match Tonkeeper (UQD2...)
+        # We manually set is_bounceable=False to ensure we see the balance
+        raw_addr = wallet.address.to_string()
+        wallet_address = Address(raw_addr).to_string(
+            is_user_friendly=True, 
+            is_url_safe=True, 
+            is_bounceable=False
+        )
         
+        print(f"    ✅ Wallet address: {wallet_address}")
+        
+        if not wallet_address.startswith("UQD2"):
+            print("    ⚠️ Warning: Address does not start with UQD2. Checking balance anyway...")
+            
     except Exception as e:
         print(f"    ❌ Setup error: {e}")
         return
 
     async with aiohttp.ClientSession() as session:
 
-        # ── Step 2: Check balance ────
+        # ── Step 2: Check wallet balance ──────
         print("\n[2/5] Checking wallet balance...")
-        url_bal = "https://toncenter.com/api/v2/getAddressBalance"
         try:
-            async with session.get(url_bal, params={"address": wallet_address}, headers=headers) as r:
-                data = await r.json()
-                if data.get("ok"):
-                    bal_ton = int(data["result"]) / 10**9
-                    print(f"    ✅ Balance: {bal_ton:.4f} TON")
-                    if bal_ton < TEST_AMOUNT_TON:
-                        print(f"    ❌ Insufficient funds. Send TON to: {wallet_address}")
+            async with session.get(
+                "https://toncenter.com/api/v2/getAddressBalance",
+                params={"address": wallet_address},
+                headers=headers
+            ) as r:
+                raw = await r.json()
+                if raw.get("ok"):
+                    balance_nano = int(raw["result"])
+                    balance_ton  = balance_nano / 1_000_000_000
+                    print(f"    ✅ Balance: {balance_ton:.4f} TON")
+                    
+                    if balance_ton < TEST_AMOUNT_TON:
+                        print(f"    ❌ Not enough TON! Need at least {TEST_AMOUNT_TON} TON")
+                        print(f"    → Double check your 24 words are correct.")
                         return
                 else:
-                    print(f"    ❌ API Error: {data}")
+                    print(f"    ❌ API error: {raw}")
                     return
         except Exception as e:
-            print(f"    ❌ Request failed: {e}")
+            print(f"    ❌ Balance check failed: {e}")
             return
 
-        # ── Step 3: Get Seqno ────
-        print("\n[3/5] Getting seqno (checking if wallet is active)...")
-        url_run = "https://toncenter.com/api/v2/runGetMethod"
+        # ── Step 3: Get seqno ─────────────────
+        print("\n[3/5] Getting wallet seqno...")
         try:
-            payload = {"address": wallet_address, "method": "seqno", "stack": []}
-            async with session.post(url_run, json=payload, headers=headers) as r:
-                data = await r.json()
+            async with session.post(
+                "https://toncenter.com/api/v2/runGetMethod",
+                json={"address": wallet_address, "method": "seqno", "stack": []},
+                headers=headers
+            ) as r:
+                raw = await r.json()
                 seqno = 0
-                if data.get("ok") and data["result"]["stack"]:
-                    val = data["result"]["stack"][0]
+                if raw.get("ok") and raw["result"]["stack"]:
+                    val = raw["result"]["stack"][0]
                     seqno = int(val[1], 16) if isinstance(val, list) else int(val.get("value", "0x0"), 16)
                 print(f"    ✅ Seqno: {seqno}")
         except Exception:
             seqno = 0
-            print("    ⚠️ Seqno failed (Wallet might be new/uninitialized). Using 0.")
+            print("    ⚠️ Seqno failed (Wallet might be uninitialized). Using 0.")
 
-        # ── Step 4: Build BOC ────
-        print("\n[4/5] Building transaction...")
+        # ── Step 4: Build transaction ─────────
+        print(f"\n[4/5] Building transaction...")
         try:
             query = wallet.create_transfer_message(
                 to_addr=TEST_SEND_TO,
                 amount=to_nano(TEST_AMOUNT_TON, "ton"),
                 seqno=seqno,
-                payload="FortunoBet Test"
+                payload="FortunoBet Test",
             )
             boc = base64.b64encode(query["message"].to_boc(False)).decode()
-            print("    ✅ BOC (Transaction data) created.")
+            print(f"    ✅ Transaction built.")
         except Exception as e:
             print(f"    ❌ Build failed: {e}")
             return
 
-        # ── Step 5: Send ────
-        print("\n[5/5] Sending to Mainnet...")
-        url_send = "https://toncenter.com/api/v2/sendBoc"
+        # ── Step 5: Send transaction ──────────
+        print(f"\n[5/5] Sending transaction...")
         try:
-            async with session.post(url_send, json={"boc": boc}, headers=headers) as r:
-                res = await r.json()
-                if res.get("ok"):
-                    print(f"\n{'='*50}\n✅ TRANSACTION SUCCESSFUL!\n{'='*50}\n")
+            async with session.post(
+                "https://toncenter.com/api/v2/sendBoc",
+                json={"boc": boc},
+                headers=headers
+            ) as r:
+                raw = await r.json()
+                if raw.get("ok"):
+                    print(f"\n{'='*50}\n✅ SUCCESS! Transaction sent.\n{'='*50}\n")
                 else:
-                    print(f"\n❌ SEND FAILED: {res}")
+                    print(f"\n❌ SEND FAILED: {raw}")
         except Exception as e:
-            print(f"    ❌ Final Step error: {e}")
+            print(f"    ❌ Send failed: {e}")
 
 if __name__ == "__main__":
     asyncio.run(test())
