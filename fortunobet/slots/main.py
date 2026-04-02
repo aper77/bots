@@ -229,27 +229,38 @@ def track_daily(uid: int):
     if k not in stats["daily_active"][today]:
         stats["daily_active"][today].append(k)
 
-DAILY_EARLY_BIRD_LIMIT  = 5   # first N players each day
-DAILY_EARLY_BIRD_SPINS  = 5   # free spins awarded
+DAILY_EARLY_BIRD_LIMIT  = 5   # first N DIFFERENT players each day get free spins
+DAILY_EARLY_BIRD_SPINS  = 5   # free spins awarded to each early bird
 
 def check_early_bird(uid: int) -> bool:
     """
-    Returns True and awards early-bird spins if this user is among
-    the first DAILY_EARLY_BIRD_LIMIT players to interact today.
-    Each user can only receive the bonus once per day.
+    Awards DAILY_EARLY_BIRD_SPINS free spins to the first
+    DAILY_EARLY_BIRD_LIMIT *different* users who open the bot today.
+
+    Rules:
+      - Maximum 5 different people per day get the bonus
+      - Each person can only receive it ONCE per day
+      - Same person cannot take multiple slots
+      - Resets automatically every day (date change)
+    Returns True if this user just won the bonus, False otherwise.
     """
-    today = str(date.today())
-    if today not in stats["daily_first_five"]:
-        stats["daily_first_five"][today] = []
-    k = str(uid)
-    winners = stats["daily_first_five"][today]
+    today   = str(date.today())
+    winners = stats["daily_first_five"].setdefault(today, [])
+    k       = str(uid)
+
+    # Guard 1: this user already claimed it today
     if k in winners:
-        return False                         # already got it today
+        return False
+
+    # Guard 2: all 5 slots are already taken by other people
     if len(winners) >= DAILY_EARLY_BIRD_LIMIT:
-        return False                         # quota filled for today
+        return False
+
+    # This user is one of the first 5 unique players today → award bonus
     winners.append(k)
     u = get_user(uid)
     u["spins"] += DAILY_EARLY_BIRD_SPINS
+    save_all()
     return True
 
 # ── Money helpers ──────────────────────────────────────────────────
@@ -370,11 +381,16 @@ def no_spins_kb(uid: int) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🎲 LOWER MY BET", callback_data="change_bet")],
     ])
 
-spin_again_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="🎰 SPIN AGAIN",  callback_data="spin")],
-    [InlineKeyboardButton(text="🎲 CHANGE BET",  callback_data="change_bet")],
-    [InlineKeyboardButton(text="💎 BUY SPINS",   callback_data="buy")],
-])
+def spin_again_kb(bet_size: int) -> InlineKeyboardMarkup:
+    """Dynamic spin-again keyboard showing current bet size."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=f"🎰 SPIN AGAIN  ·  {bet_size} spin{'s' if bet_size>1 else ''} = {usd(bet_size)}",
+            callback_data="spin"
+        )],
+        [InlineKeyboardButton(text="🎲 CHANGE BET",  callback_data="change_bet")],
+        [InlineKeyboardButton(text="💎 BUY SPINS",   callback_data="buy")],
+    ])
 
 # ── /start ─────────────────────────────────────────────────────────
 @dp.message(Command("start"))
@@ -482,35 +498,38 @@ async def change_bet_menu(callback: types.CallbackQuery):
 @dp.callback_query(F.data.startswith("bet_"))
 async def set_bet(callback: types.CallbackQuery):
     u        = get_user(callback.from_user.id)
-    bet_size = int(callback.data.split("_")[1])
+    bet_size = int(callback.data.split("_")[1])   # always int
     if u["spins"] < bet_size:
         await callback.answer(
             f"❌ Need {bet_size} spins ({usd(bet_size)}) for this bet!",
             show_alert=True
         )
         return
-    u["bet_size"] = bet_size
-    save_all()
+    u["bet_size"] = bet_size   # saved as int in user dict
+    save_all()                 # immediately persisted to disk
     await callback.message.answer(
-        f"✅ *Bet set to {bet_size}x!*\n\n"
+        f"✅ *Bet changed to {bet_size}x!*\n\n"
         f"💰 Balance: *{u['spins']}* spins ({usd(u['spins'])})\n\n"
-        f"Each spin costs *{bet_size}* spin{'s' if bet_size>1 else ''} ({usd(bet_size)})\n\n"
-        f"🔥 Jackpot = *+{int(bet_size * JACKPOT_MULT)}* spins ({usd(int(bet_size * JACKPOT_MULT))})\n"
-        f"💎 Bar win = *+{int(bet_size * BAR_MULT)}* spins ({usd(int(bet_size * BAR_MULT))})\n"
-        f"🍋 Fruit   = *+{int(bet_size * FRUIT_MULT)}* spins ({usd(int(bet_size * FRUIT_MULT))})\n"
-        f"⚡ Near miss = *+{int(bet_size * MINI_WIN_MULT)}* spins back ({usd(int(bet_size * MINI_WIN_MULT))})\n\n"
+        f"Each spin now costs *{bet_size}* spin{'s' if bet_size>1 else ''} ({usd(bet_size)})\n\n"
+        f"📊 *Possible outcomes per spin:*\n"
+        f"🔥 Jackpot 777 = *+{int(bet_size * JACKPOT_MULT)}* spins (net *+{int(bet_size * JACKPOT_MULT) - bet_size}*)\n"
+        f"💎 Bar win     = *+{int(bet_size * BAR_MULT)}* spins (net *+{int(bet_size * BAR_MULT) - bet_size}*)\n"
+        f"🍋 Fruit       = *+{int(bet_size * FRUIT_MULT)}* spins (net *+{int(bet_size * FRUIT_MULT) - bet_size}*)\n"
+        f"⚡ Near miss   = *+{int(bet_size * MINI_WIN_MULT)}* back (net *{int(bet_size * MINI_WIN_MULT) - bet_size}*)\n"
+        f"💨 Full loss   = 0 back (net *-{bet_size}*)\n\n"
         f"*Spin now and win big!* 🎰",
         reply_markup=main_kb(callback.from_user.id),
         parse_mode="Markdown",
     )
-    await callback.answer(f"Bet set to {bet_size}x!")
+    await callback.answer(f"✅ Bet set to {bet_size}x!")
 
 # ── Spin ────────────────────────────────────────────────────────────
 @dp.callback_query(F.data == "spin")
 async def play_slots(callback: types.CallbackQuery):
     uid      = callback.from_user.id
     u        = get_user(uid)
-    bet_size = u.get("bet_size", 1)
+    # ALWAYS read bet_size fresh from saved user data
+    bet_size = int(u.get("bet_size", 1))
 
     if u.get("banned"):
         await callback.answer("🚫 You are banned.", show_alert=True)
@@ -531,9 +550,12 @@ async def play_slots(callback: types.CallbackQuery):
         await callback.answer("❌ Not enough spins!")
         return
 
-    # Deduct bet before spin
-    u["spins"]             -= bet_size
-    u["total_spins_played"] = u.get("total_spins_played", 0) + bet_size
+    # Snapshot balance before spin so we can show exact change
+    balance_before = u["spins"]
+
+    # Deduct full bet before spin
+    u["spins"]              -= bet_size
+    u["total_spins_played"]  = u.get("total_spins_played", 0) + bet_size
     stats["total_spins_played"] = stats.get("total_spins_played", 0) + bet_size
     today = str(date.today())
     stats["daily_spins_played"][today] = stats["daily_spins_played"].get(today, 0) + bet_size
@@ -547,11 +569,14 @@ async def play_slots(callback: types.CallbackQuery):
 
     win_spins, win_text, win_type = calc_win(dice, bet_size)
 
-    # Update user stats
+    # Add winnings back
     u["spins"]    += win_spins
     u["total_won"] = u.get("total_won", 0) + win_spins
     if win_spins > u.get("biggest_win", 0):
         u["biggest_win"] = win_spins
+
+    # Net change for display
+    net = win_spins - bet_size  # negative = lost, positive = profit
 
     # Update global stats
     if win_type == "jackpot":
@@ -574,12 +599,15 @@ async def play_slots(callback: types.CallbackQuery):
     elif 0 < MIN_WITHDRAW - u["spins"] <= 50:
         hint = f"\n\n🔥 *Only {MIN_WITHDRAW - u['spins']} more spins to withdraw!*"
 
+    net_str = f"+{net}" if net >= 0 else str(net)
+
     await callback.message.answer(
         f"{win_text}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎲 Bet: *{bet_size}* spins  →  Won back: *{win_spins}* spins  →  Net: *{net_str}*\n"
         f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}"
         f"{hint}",
-        reply_markup=spin_again_kb,
+        reply_markup=spin_again_kb(bet_size),
         parse_mode="Markdown",
     )
     await callback.answer()
