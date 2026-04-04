@@ -1251,7 +1251,7 @@ from aiogram.types import (
 # =========================================================
 #  CONFIGURATION — only edit this section
 # =========================================================
-TOKEN             = "YOUR_NEW_BOT_TOKEN_HERE"   # <- paste your Aviator bot token
+TOKEN             = "8605162590:AAE9r8DRRnJw-3qRJQStQJk2ShTSuF0TI4o"   # <- paste your Aviator bot token
 ADMIN_ID          = 8612272966
 TONCENTER_API_KEY = "a4e8dd9e0111177cb876e4b0559e8a58b5eeb4b6acdbd981ad4f7b6123acad9c"
 ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
