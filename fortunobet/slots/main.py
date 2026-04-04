@@ -7,7 +7,7 @@ Run:     python3 bot.py
 ECONOMY:
   1 spin = $0.01 = 0.002 TON
   200 spins = $2.00 = 0.4 TON  <- min withdrawal
-  Buy: 100 spins = 10 Stars
+  Buy packages: choose how many Stars to spend (min 10)
 
 RTP 99%:
   777 Jackpot  = bet x 15   (1/64)
@@ -20,6 +20,7 @@ ADMIN COMMANDS:
   /admin              main dashboard
   /stats7             last 7 days
   /pay [id]           Tonkeeper payout link
+  /reject [id]        reject withdrawal, return spins
   /gift [id] [amount] give free spins
   /userinfo [id]      full user profile
   /ban [id]           ban user
@@ -29,6 +30,8 @@ ADMIN COMMANDS:
 FEATURES:
   Early-bird: first 5 unique players each day get +5 free spins
   Referral: when your friend joins via your link, YOU get +5 spins
+  Multi-package buy: user picks 10/25/50/100 Stars
+  Withdraw reject: admin can reject and spins auto-return to user
 """
 
 import logging
@@ -48,16 +51,16 @@ from aiogram.types import (
 )
 
 # =========================================================
-#  CONFIGURATION
+#  CONFIGURATION — only edit this section
 # =========================================================
 TOKEN             = "8785716937:AAHi1QULuw-OGhCVAhYOXg_aO6QpMkdmr_Y"
 ADMIN_ID          = 8612272966
 TONCENTER_API_KEY = "a4e8dd9e0111177cb876e4b0559e8a58b5eeb4b6acdbd981ad4f7b6123acad9c"
 ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
 
-SPIN_USD     = 0.01
-SPIN_TO_TON  = 0.002
-MIN_WITHDRAW = 200
+SPIN_USD     = 0.01    # 1 spin = $0.01
+SPIN_TO_TON  = 0.002   # 1 spin = 0.002 TON
+MIN_WITHDRAW = 200     # minimum spins to withdraw = $2.00
 
 JACKPOT_VALUE    = 43
 BAR_VALUE        = 1
@@ -70,6 +73,16 @@ FRUIT_MULT    = 1.5
 MINI_WIN_MULT = 0.8
 
 BET_OPTIONS = [1, 5, 10, 25, 50]
+
+# Buy packages: (stars, spins, label)
+# Minimum is always 10 Stars (first package)
+# User picks which package they want
+STAR_PACKAGES = [
+    (10,   100,  "Starter"),
+    (25,   250,  "Popular ⭐"),
+    (50,   500,  "Big Win"),
+    (100, 1000,  "Whale 🐋"),
+]
 
 DATA_FILE  = "user_data.json"
 STATS_FILE = "stats.json"
@@ -172,13 +185,11 @@ def get_user(uid: int) -> dict:
         today = str(date.today())
         stats["daily_new_players"][today] = stats["daily_new_players"].get(today, 0) + 1
         save_all()
-    # Backfill ever_deposited for old user records
     if "ever_deposited" not in user_data[k]:
         user_data[k]["ever_deposited"] = user_data[k].get("purchases", 0) > 0
     return user_data[k]
 
 def track_daily(uid: int):
-    """Mark user as active today. Called on /start AND on spin."""
     today = str(date.today())
     if today not in stats["daily_active"]:
         stats["daily_active"][today] = []
@@ -189,17 +200,16 @@ def track_daily(uid: int):
 def check_early_bird(uid: int) -> bool:
     """
     Award +5 spins to first 5 DIFFERENT users who open the bot today.
-    - Max 5 unique people per day
-    - Each person can only claim ONCE per day
-    - Resets automatically at midnight
+    Max 5 unique people per day. Each person claims ONCE per day.
+    Resets automatically at midnight.
     """
     today   = str(date.today())
     winners = stats["daily_first_five"].setdefault(today, [])
     k       = str(uid)
     if k in winners:
-        return False   # already claimed today
+        return False
     if len(winners) >= DAILY_EARLY_BIRD_LIMIT:
-        return False   # all 5 slots taken by other people
+        return False
     winners.append(k)
     u = get_user(uid)
     u["spins"] += DAILY_EARLY_BIRD_SPINS
@@ -220,8 +230,16 @@ def pay_link(to_addr: str, amount_ton: float, comment: str) -> str:
         f"?amount={nano}&text={quote(comment)}"
     )
 
-# ── Win engine ────────────────────────────────────────────
+# ── Win engine (99% RTP) ──────────────────────────────────
 def calc_win(dice: int, bet: int) -> tuple[int, str, str]:
+    """
+    Dice 1-64 distribution:
+      43       → JACKPOT 777  (bet x 15)
+      1        → BAR win      (bet x 4)
+      22, 64   → FRUIT win    (bet x 1.5)
+      10,20,30,40 → FULL LOSS (0)
+      all others (56/64) → NEAR MISS (bet x 0.8) ← gives 99% RTP
+    """
     if dice == JACKPOT_VALUE:
         w = int(bet * JACKPOT_MULT)
         return w, f"🔥 *JACKPOT! 7️⃣7️⃣7️⃣*\n+{w} spins · {usd(w)}\n\n🏆 *LEGEND!*", "jackpot"
@@ -237,6 +255,7 @@ def calc_win(dice: int, bet: int) -> tuple[int, str, str]:
     if dice in FULL_LOSS_VALUES:
         return 0, "💨 *No match.* Try again!", "loss"
 
+    # Near miss — 56 out of 64 values → 80% of bet returned
     w = int(bet * MINI_WIN_MULT)
     return w, f"⚡ *Near miss!*\n+{w} spins back", "mini"
 
@@ -252,13 +271,24 @@ def main_kb(uid: int) -> InlineKeyboardMarkup:
         )],
         [InlineKeyboardButton(text="🎲 Change Bet", callback_data="change_bet"),
          InlineKeyboardButton(text="📊 My Stats",   callback_data="my_stats")],
-        [InlineKeyboardButton(text="💎 Buy 100 Spins — 10 ⭐", callback_data="buy")],
-        [InlineKeyboardButton(text="💸 Withdraw to TON",        callback_data="withdraw_req")],
+        [InlineKeyboardButton(text="💎 Buy Spins",       callback_data="buy")],
+        [InlineKeyboardButton(text="💸 Withdraw to TON", callback_data="withdraw_req")],
         [InlineKeyboardButton(
             text="📢 Invite friend → +5 spins for you",
             url=f"https://t.me/share/url?url={ref_link}"
         )],
     ])
+
+def buy_kb() -> InlineKeyboardMarkup:
+    """Show all spin packages. User picks how many Stars to spend."""
+    rows = []
+    for stars, spins, label in STAR_PACKAGES:
+        rows.append([InlineKeyboardButton(
+            text=f"💎 {label} — {spins} spins · {stars} ⭐ (${stars * 0.013:.2f})",
+            callback_data=f"buypack_{stars}_{spins}"
+        )])
+    rows.append([InlineKeyboardButton(text="🔙 Back", callback_data="back_main")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 def bet_kb(uid: int) -> InlineKeyboardMarkup:
     u   = get_user(uid)
@@ -269,7 +299,7 @@ def bet_kb(uid: int) -> InlineKeyboardMarkup:
         jackpot = int(b * JACKPOT_MULT)
         net_nm  = int(b * MINI_WIN_MULT) - b
         rows.append([InlineKeyboardButton(
-            text=f"{ok} {b}x · jackpot +{jackpot} · near miss {net_nm}",
+            text=f"{ok} {b}x · jackpot +{jackpot} · near miss {net_nm:+}",
             callback_data=f"bet_{b}"
         )])
     rows.append([InlineKeyboardButton(text="🔙 Back", callback_data="back_main")])
@@ -278,7 +308,7 @@ def bet_kb(uid: int) -> InlineKeyboardMarkup:
 def no_spins_kb(uid: int) -> InlineKeyboardMarkup:
     ref_link = f"https://t.me/{BOT_NAME}?start={uid}"
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💎 Buy 100 Spins — 10 ⭐", callback_data="buy")],
+        [InlineKeyboardButton(text="💎 Buy Spins", callback_data="buy")],
         [InlineKeyboardButton(
             text="📢 Invite friend → +5 free spins",
             url=f"https://t.me/share/url?url={ref_link}"
@@ -310,7 +340,7 @@ async def cmd_start(message: Message, command: CommandObject):
     # Early-bird: first 5 unique players each day get +5 spins
     early_bird_won = check_early_bird(uid)
 
-    # Referral: forwarder gets +5 when NEW friend joins
+    # Referral: inviter gets +5 when NEW friend joins
     if command.args and is_new:
         try:
             ref_id = int(command.args)
@@ -330,12 +360,11 @@ async def cmd_start(message: Message, command: CommandObject):
         except (ValueError, TypeError):
             pass
 
-    # Opening /start counts as active today
     track_daily(uid)
     save_all()
 
-    bal     = user["spins"]
-    extras  = ""
+    bal    = user["spins"]
+    extras = ""
     if early_bird_won:
         pos    = len(stats["daily_first_five"].get(str(date.today()), []))
         extras = f"\n🌅 *Early Bird #{pos}!* +{DAILY_EARLY_BIRD_SPINS} free spins!\n"
@@ -395,7 +424,7 @@ async def set_bet(callback: types.CallbackQuery):
         f"🔥 Jackpot → +{jw} (net +{jw-bet_size})\n"
         f"💎 Bar     → +{bw} (net +{bw-bet_size})\n"
         f"🍋 Fruit   → +{fw} (net +{fw-bet_size})\n"
-        f"⚡ Near miss→ +{mw} back (net {mw-bet_size})\n"
+        f"⚡ Near miss→ +{mw} back (net {mw-bet_size:+})\n"
         f"💨 Loss    → 0 (net -{bet_size})",
         reply_markup=main_kb(callback.from_user.id),
         parse_mode="Markdown",
@@ -423,7 +452,7 @@ async def play_slots(callback: types.CallbackQuery):
         await callback.answer("❌ Not enough spins!")
         return
 
-    # Deduct bet
+    # Deduct bet before spin
     u["spins"]              -= bet_size
     u["total_spins_played"]  = u.get("total_spins_played", 0) + bet_size
     stats["total_spins_played"] = stats.get("total_spins_played", 0) + bet_size
@@ -432,10 +461,10 @@ async def play_slots(callback: types.CallbackQuery):
     track_daily(uid)
     save_all()
 
-    # Roll
+    # Roll the dice
     msg  = await callback.message.answer_dice(emoji="🎰")
     dice = msg.dice.value
-    await asyncio.sleep(2.5)
+    await asyncio.sleep(2.5)   # wait for animation
 
     win_spins, win_text, win_type = calc_win(dice, bet_size)
 
@@ -565,7 +594,7 @@ async def withdraw_amount(message: Message, state: FSMContext):
         await message.answer(f"❌ Type a number. Example: `{MIN_WITHDRAW}`", parse_mode="Markdown")
         return
     if amount < MIN_WITHDRAW:
-        await message.answer(f"❌ Minimum is *{MIN_WITHDRAW}* spins.", parse_mode="Markdown")
+        await message.answer(f"❌ Minimum is *{MIN_WITHDRAW}* spins ({usd(MIN_WITHDRAW)}).", parse_mode="Markdown")
         return
     if amount > u["spins"]:
         await message.answer(f"❌ You only have *{u['spins']}* spins.", parse_mode="Markdown")
@@ -627,19 +656,8 @@ async def withdraw_wallet(message: Message, state: FSMContext):
 
     ton_amount = ton(amount)
 
-    # ── CRITICAL: Deduct spins IMMEDIATELY when request is submitted ──
-    # This prevents the user from spending spins they have already
-    # requested to withdraw. The spins are held until you either:
-    #   ✅ CONFIRM  → payment is sent, spins stay deducted (already done)
-    #   ❌ REJECT   → spins are returned to user's balance automatically
-    #
-    # HOW TO REJECT / RETURN SPINS:
-    #   In the admin payout message, tap "❌ REJECT" button.
-    #   The bot will automatically add the spins back to the user,
-    #   clear their pending status, and notify them.
-    #   You can also use the command: /reject [user_id]
-    # ─────────────────────────────────────────────────────────────────
-    u["spins"]             -= amount   # deduct now — held until confirmed or rejected
+    # Deduct spins immediately — held until admin confirms or rejects
+    u["spins"]             -= amount
     u["pending_withdrawal"] = True
     u["pending_spins"]      = amount
     u["pending_wallet"]     = wallet
@@ -688,9 +706,7 @@ async def confirm_payment(callback: types.CallbackQuery):
     ton_amount = ton(amount)
     wallet     = u.get("pending_wallet")
 
-    # Spins were already deducted when the user submitted the request.
-    # Here we just clear the pending status and record the payout.
-    # DO NOT deduct spins again — that would double-deduct!
+    # Spins already deducted at request time — just clear pending status
     u["pending_withdrawal"] = False
     u["pending_spins"]      = 0
     u["pending_wallet"]     = None
@@ -712,19 +728,6 @@ async def confirm_payment(callback: types.CallbackQuery):
     )
     await callback.answer("✅ Payment confirmed!")
 
-# ── Reject withdrawal — returns spins to user ─────────────
-# This handler fires when admin taps ❌ REJECT in the payout message.
-# It gives the spins back to the user and cancels the withdrawal.
-#
-# You can also reject manually with the command: /reject [user_id]
-# Example: /reject 773227767
-#
-# When to reject:
-#   - Suspicious request
-#   - Wrong wallet address
-#   - You want to verify the user first
-#   - Any reason you don't want to pay right now
-# ─────────────────────────────────────────────────────────
 @dp.callback_query(F.data.startswith("reject_pay_"))
 async def reject_payment_button(callback: types.CallbackQuery):
     if callback.from_user.id != ADMIN_ID:
@@ -740,7 +743,7 @@ async def reject_payment_button(callback: types.CallbackQuery):
 
     amount = u.get("pending_spins", 0)
 
-    # Return spins to the user
+    # Return spins to user
     u["spins"]             += amount
     u["pending_withdrawal"] = False
     u["pending_spins"]      = 0
@@ -750,14 +753,13 @@ async def reject_payment_button(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer(
         f"❌ *Withdrawal rejected.*\n"
-        f"User `{target_id}` — *{amount} spins* returned to their balance.",
+        f"User `{target_id}` — *{amount} spins* returned.",
         parse_mode="Markdown"
     )
-    # Notify the user their spins are back
     await bot.send_message(
         int(target_id),
         f"❌ *Withdrawal not approved.*\n\n"
-        f"Your *{amount} spins* have been returned to your balance.\n"
+        f"Your *{amount} spins* have been returned.\n"
         f"💰 Balance: *{u['spins']}* spins\n\n"
         f"Contact support if you have questions.",
         parse_mode="Markdown",
@@ -765,9 +767,7 @@ async def reject_payment_button(callback: types.CallbackQuery):
     )
     await callback.answer("❌ Withdrawal rejected, spins returned.")
 
-# /reject [user_id]
-# Manually reject a pending withdrawal and return spins to user.
-# Use this if you need to reject without the original payout message.
+# /reject [user_id] — manually reject without original message
 # Example: /reject 773227767
 @dp.message(Command("reject"))
 async def admin_reject(message: Message):
@@ -778,12 +778,10 @@ async def admin_reject(message: Message):
         u         = user_data.get(target_id)
 
         if not u or not u.get("pending_withdrawal"):
-            await message.answer(f"❌ No pending withdrawal for user `{target_id}`.", parse_mode="Markdown")
+            await message.answer(f"❌ No pending withdrawal for `{target_id}`.", parse_mode="Markdown")
             return
 
         amount = u.get("pending_spins", 0)
-
-        # Return spins to the user
         u["spins"]             += amount
         u["pending_withdrawal"] = False
         u["pending_spins"]      = 0
@@ -791,42 +789,39 @@ async def admin_reject(message: Message):
         save_all()
 
         await message.answer(
-            f"❌ *Withdrawal rejected.*\n"
-            f"User `{target_id}` — *{amount} spins* returned to their balance.\n"
-            f"New balance: *{u['spins']}* spins",
+            f"❌ *Rejected.* `{target_id}` — *{amount} spins* returned. Balance: *{u['spins']}*",
             parse_mode="Markdown"
         )
         await bot.send_message(
             int(target_id),
             f"❌ *Withdrawal not approved.*\n\n"
-            f"Your *{amount} spins* have been returned to your balance.\n"
-            f"💰 Balance: *{u['spins']}* spins\n\n"
-            f"Contact support if you have questions.",
+            f"Your *{amount} spins* have been returned.\n"
+            f"💰 Balance: *{u['spins']}* spins",
             parse_mode="Markdown",
             reply_markup=main_kb(int(target_id))
         )
     except (IndexError, ValueError):
-        await message.answer("❌ Usage: `/reject [user_id]`\nExample: `/reject 773227767`", parse_mode="Markdown")
+        await message.answer("❌ Usage: `/reject [user_id]`", parse_mode="Markdown")
 
 # =========================================================
 #  ADMIN COMMANDS
 # =========================================================
 
+# /admin — full dashboard
 @dp.message(Command("admin"))
 async def admin_dashboard(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
 
-    today         = str(date.today())
-    active_today  = len(stats["daily_active"].get(today, []))
-    early_today   = len(stats["daily_first_five"].get(today, []))
-    new_today     = stats["daily_new_players"].get(today, 0)
-    dep_today     = len(stats["daily_depositors"].get(today, []))
-    purch_today   = stats["daily_purchases"].get(today, 0)
-    stars_today   = stats["daily_stars_spent"].get(today, 0)
-    rev_today     = stats["daily_revenue_spins"].get(today, 0) * SPIN_USD
+    today        = str(date.today())
+    active_today = len(stats["daily_active"].get(today, []))
+    early_today  = len(stats["daily_first_five"].get(today, []))
+    new_today    = stats["daily_new_players"].get(today, 0)
+    dep_today    = len(stats["daily_depositors"].get(today, []))
+    purch_today  = stats["daily_purchases"].get(today, 0)
+    stars_today  = stats["daily_stars_spent"].get(today, 0)
+    rev_today    = stats["daily_revenue_spins"].get(today, 0) * SPIN_USD
 
-    # Count all-time unique depositors from user records
     total_depositors = sum(1 for v in user_data.values() if v.get("ever_deposited"))
 
     pending     = [(k, v) for k, v in user_data.items() if v.get("pending_withdrawal")]
@@ -834,22 +829,10 @@ async def admin_dashboard(message: Message):
     top_refs    = sorted(user_data.items(), key=lambda x: x[1].get("referrals", 0), reverse=True)[:5]
     top_winners = sorted(user_data.items(), key=lambda x: x[1].get("biggest_win", 0), reverse=True)[:3]
 
-    top_text  = "\n".join([
-        f"  {i+1}. `{k}` — {v.get('spins',0)} spins ({usd(v.get('spins',0))})"
-        for i,(k,v) in enumerate(top_players)
-    ])
-    ref_text  = "\n".join([
-        f"  {i+1}. `{k}` — {v.get('referrals',0)} referrals"
-        for i,(k,v) in enumerate(top_refs)
-    ])
-    win_text  = "\n".join([
-        f"  {i+1}. `{k}` — {v.get('biggest_win',0)} spins ({usd(v.get('biggest_win',0))})"
-        for i,(k,v) in enumerate(top_winners)
-    ])
-    pend_text = "\n".join([
-        f"  • `{k}` — {ton(v.get('pending_spins',0))} TON ({usd(v.get('pending_spins',0))})"
-        for k,v in pending
-    ]) or "  None ✅"
+    top_text  = "\n".join([f"  {i+1}. `{k}` — {v.get('spins',0)} spins ({usd(v.get('spins',0))})" for i,(k,v) in enumerate(top_players)])
+    ref_text  = "\n".join([f"  {i+1}. `{k}` — {v.get('referrals',0)} referrals" for i,(k,v) in enumerate(top_refs)])
+    win_text  = "\n".join([f"  {i+1}. `{k}` — {v.get('biggest_win',0)} spins ({usd(v.get('biggest_win',0))})" for i,(k,v) in enumerate(top_winners)])
+    pend_text = "\n".join([f"  • `{k}` — {ton(v.get('pending_spins',0))} TON ({usd(v.get('pending_spins',0))})" for k,v in pending]) or "  None ✅"
 
     spins_sold = stats.get("total_spins_bought", 0)
     revenue    = spins_sold * SPIN_USD
@@ -858,15 +841,14 @@ async def admin_dashboard(message: Message):
         f"🔐 *ADMIN DASHBOARD*\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
         f"👥 *PLAYERS*\n"
-        f"  Total registered: *{stats['total_players']}*\n"
-        f"  Active today (opened bot or spun): *{active_today}*\n"
+        f"  Total: *{stats['total_players']}*\n"
+        f"  Active today: *{active_today}*\n"
         f"  New today: *{new_today}*\n"
-        f"  Early-bird claimed today: *{early_today}/{DAILY_EARLY_BIRD_LIMIT}*\n"
+        f"  Early-bird today: *{early_today}/{DAILY_EARLY_BIRD_LIMIT}*\n"
         f"  Total referrals: *{stats['total_referrals']}*\n\n"
-        f"💰 *DEPOSITORS (Stars buyers)*\n"
-        f"  All-time depositors: *{total_depositors}* / {stats['total_players']} players\n"
-        f"  Unique depositors today: *{dep_today}*\n"
-        f"  Purchases today: *{purch_today}* · ⭐ Stars: *{stars_today}*\n"
+        f"💰 *DEPOSITORS*\n"
+        f"  All-time: *{total_depositors}* / {stats['total_players']} players\n"
+        f"  Today: *{dep_today}* · Purchases: *{purch_today}* · ⭐ Stars: *{stars_today}*\n"
         f"  Revenue today: *${rev_today:.2f}*\n\n"
         f"🎰 *GAME (ALL TIME)*\n"
         f"  Spins played: *{stats.get('total_spins_played',0)}*\n"
@@ -881,10 +863,11 @@ async def admin_dashboard(message: Message):
         f"📢 *TOP 5 REFERRERS*\n{ref_text}\n\n"
         f"🥇 *TOP 3 BIGGEST WINS*\n{win_text}\n\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🛠 `/pay` `/gift` `/userinfo` `/ban` `/unban` `/broadcast` `/stats7` `/reject`",
+        f"🛠 `/pay` `/reject` `/gift` `/userinfo` `/ban` `/unban` `/broadcast` `/stats7`",
         parse_mode="Markdown",
     )
 
+# /stats7 — last 7 days breakdown
 @dp.message(Command("stats7"))
 async def admin_stats7(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -933,6 +916,8 @@ async def admin_stats7(message: Message):
         parse_mode="Markdown",
     )
 
+# /pay [user_id] — send Tonkeeper payment link
+# Example: /pay 773227767
 @dp.message(Command("pay"))
 async def admin_pay(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -964,8 +949,10 @@ async def admin_pay(message: Message):
             ])
         )
     except (IndexError, ValueError):
-        await message.answer("❌ Usage: `/pay [user_id]`", parse_mode="Markdown")
+        await message.answer("❌ Usage: `/pay [user_id]`\nExample: `/pay 773227767`", parse_mode="Markdown")
 
+# /gift [user_id] [amount] — give free spins
+# Example: /gift 773227767 100
 @dp.message(Command("gift"))
 async def admin_gift(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -990,8 +977,10 @@ async def admin_gift(message: Message):
             reply_markup=main_kb(int(target_id))
         )
     except (IndexError, ValueError):
-        await message.answer("❌ Usage: `/gift [user_id] [amount]`", parse_mode="Markdown")
+        await message.answer("❌ Usage: `/gift [user_id] [amount]`\nExample: `/gift 773227767 100`", parse_mode="Markdown")
 
+# /userinfo [user_id] — full user profile
+# Example: /userinfo 773227767
 @dp.message(Command("userinfo"))
 async def admin_userinfo(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -1010,8 +999,9 @@ async def admin_userinfo(message: Message):
             f"🎲 Bet: *{u.get('bet_size',1)}x* · 👥 Invited: *{u.get('referrals',0)}*\n"
             f"💎 Purchases: *{u.get('purchases',0)}* · Deposited: *{u.get('ever_deposited',False)}*\n"
             f"📅 Joined: {u.get('joined_date','N/A')} · 🚫 Banned: *{u.get('banned',False)}*\n"
-            f"⏳ Pending withdrawal: *{u.get('pending_withdrawal',False)}*\n"
-            f"💸 Pending: *{u.get('pending_spins',0)}* spins · 👛 `{u.get('pending_wallet','None')}`",
+            f"⏳ Pending: *{u.get('pending_withdrawal',False)}* · "
+            f"Spins held: *{u.get('pending_spins',0)}*\n"
+            f"👛 `{u.get('pending_wallet','None')}`",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="🎁 Gift spins", callback_data=f"gift_menu_{target_id}")],
@@ -1040,6 +1030,8 @@ async def toggle_ban(callback: types.CallbackQuery):
     await callback.answer(f"{status} user {target_id}", show_alert=True)
     await callback.message.answer(f"{status} user `{target_id}`.", parse_mode="Markdown")
 
+# /ban [user_id]
+# Example: /ban 773227767
 @dp.message(Command("ban"))
 async def admin_ban(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -1052,6 +1044,8 @@ async def admin_ban(message: Message):
     except (IndexError, ValueError):
         await message.answer("❌ Usage: `/ban [user_id]`", parse_mode="Markdown")
 
+# /unban [user_id]
+# Example: /unban 773227767
 @dp.message(Command("unban"))
 async def admin_unban(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -1064,6 +1058,8 @@ async def admin_unban(message: Message):
     except (IndexError, ValueError):
         await message.answer("❌ Usage: `/unban [user_id]`", parse_mode="Markdown")
 
+# /broadcast [message] — send to all users
+# Example: /broadcast 🔥 Double wins today!
 @dp.message(Command("broadcast"))
 async def admin_broadcast(message: Message):
     if message.from_user.id != ADMIN_ID:
@@ -1088,58 +1084,83 @@ async def admin_broadcast(message: Message):
 
     await message.answer(f"✅ Sent: *{sent}* · Failed: *{failed}*", parse_mode="Markdown")
 
-# ── Stars payment ─────────────────────────────────────────
-#
-# HOW DEPOSITS WORK:
-#   1. User taps "Buy 100 Spins" → bot sends a Telegram Stars invoice
-#   2. User pays 10 Stars inside Telegram
-#   3. Telegram sends pre_checkout_query → bot must answer within 10 sec
-#   4. Telegram sends successful_payment → bot adds 100 spins
-#
-# SAFETY GUARDS:
-#   - pre_check verifies the payload is "buy_100" before approving
-#   - success_pay checks the telegram_payment_charge_id to prevent
-#     duplicate spins if Telegram retries the same payment event
-#   - All deposits tracked: ever_deposited, daily_depositors, purchases
-#
-# IF A USER SAYS THEY PAID BUT GOT NO SPINS:
-#   Check /userinfo [user_id] → purchases count
-#   If purchases didn't increase, use /gift [user_id] 100 to compensate
-# ─────────────────────────────────────────────────────────
+# =========================================================
+#  BUY SPINS — multi-package Stars payment
+# =========================================================
+
 @dp.callback_query(F.data == "buy")
 async def process_buy(callback: types.CallbackQuery):
+    """Show spin package selection menu. Minimum 10 Stars."""
+    await callback.message.answer(
+        f"💎 *Buy Spins*\n\n"
+        f"Minimum: *10 Stars* = 100 spins\n"
+        f"1 spin = $0.01 · 99% RTP\n\n"
+        f"Pick your package 👇",
+        parse_mode="Markdown",
+        reply_markup=buy_kb()
+    )
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("buypack_"))
+async def process_buypack(callback: types.CallbackQuery):
+    """Send invoice for chosen package."""
+    try:
+        parts = callback.data.split("_")
+        stars = int(parts[1])
+        spins = int(parts[2])
+    except (ValueError, IndexError):
+        await callback.answer("❌ Invalid package.", show_alert=True)
+        return
+
+    label = next((l for s, sp, l in STAR_PACKAGES if s == stars and sp == spins), "Spins")
+
     await bot.send_invoice(
         callback.message.chat.id,
-        title="100 Spins — $1.00 Value",
-        description="100 spins · 1 spin = $0.01 · 99% RTP · Instant TON payouts",
-        payload="buy_100",          # verified in pre_check below
+        title=f"{label} — {spins} Spins",
+        description=f"{spins} spins · 1 spin = $0.01 · 99% RTP · TON payouts",
+        payload=f"buy_{stars}_{spins}",
         provider_token="",
         currency="XTR",
-        prices=[LabeledPrice(label="100 Spins", amount=10)],
+        prices=[LabeledPrice(label=f"{spins} Spins", amount=stars)],
     )
     await callback.answer()
 
 @dp.pre_checkout_query()
 async def pre_check(q: PreCheckoutQuery):
-    # Only approve payments for our known product payload.
-    # Reject anything unexpected — this stops replayed or tampered invoices.
-    if q.invoice_payload != "buy_100":
-        await q.answer(ok=False, error_message="Unknown product. Please contact support.")
+    """Verify payload is a valid package before approving payment."""
+    try:
+        parts = q.invoice_payload.split("_")
+        if parts[0] != "buy":
+            raise ValueError
+        stars = int(parts[1])
+        spins = int(parts[2])
+        valid = any(s == stars and sp == spins for s, sp, _ in STAR_PACKAGES)
+        if not valid:
+            raise ValueError
+    except (ValueError, IndexError):
+        await q.answer(ok=False, error_message="Unknown product. Contact support.")
         return
     await q.answer(ok=True)
 
 @dp.message(F.successful_payment)
 async def success_pay(m: Message):
-    uid       = m.from_user.id
-    u         = get_user(uid)
-    today     = str(date.today())
+    uid   = m.from_user.id
+    u     = get_user(uid)
+    today = str(date.today())
 
-    # Guard against duplicate payment events (Telegram can retry on network issues).
-    # We store every charge ID we've already processed. If we see it again, skip.
+    # Parse spins from payload
+    try:
+        parts = m.successful_payment.invoice_payload.split("_")
+        stars = int(parts[1])
+        spins = int(parts[2])
+    except (ValueError, IndexError):
+        spins = 100
+        stars = 10
+
+    # Guard against duplicate payment events
     charge_id = m.successful_payment.telegram_payment_charge_id
     seen      = u.setdefault("processed_charge_ids", [])
     if charge_id in seen:
-        # Already processed this exact payment — do nothing, just confirm quietly
         await m.answer(
             f"✅ Payment already credited!\n💰 Balance: *{u['spins']}* spins",
             parse_mode="Markdown",
@@ -1147,35 +1168,33 @@ async def success_pay(m: Message):
         )
         return
 
-    # Mark this charge as processed so we never double-credit it
     seen.append(charge_id)
-    # Keep only last 20 charge IDs to avoid the list growing forever
     if len(seen) > 20:
         u["processed_charge_ids"] = seen[-20:]
 
-    # Credit the spins
-    u["spins"]    += 100
+    # Credit spins
+    u["spins"]    += spins
     u["purchases"] = u.get("purchases", 0) + 1
 
-    # Track first-time depositor (all-time unique buyers)
+    # Track first-time depositor
     if not u.get("ever_deposited"):
         u["ever_deposited"] = True
         stats["total_depositors"] = stats.get("total_depositors", 0) + 1
 
-    # Track unique daily depositors (how many different people bought today)
+    # Track unique daily depositors
     dep_list = stats["daily_depositors"].setdefault(today, [])
     if str(uid) not in dep_list:
         dep_list.append(str(uid))
 
-    # Update all revenue stats
-    stats["total_spins_bought"]         = stats.get("total_spins_bought", 0) + 100
+    # Revenue stats
+    stats["total_spins_bought"]         = stats.get("total_spins_bought", 0) + spins
     stats["daily_purchases"][today]     = stats["daily_purchases"].get(today, 0) + 1
-    stats["daily_stars_spent"][today]   = stats["daily_stars_spent"].get(today, 0) + 10
-    stats["daily_revenue_spins"][today] = stats["daily_revenue_spins"].get(today, 0) + 100
+    stats["daily_stars_spent"][today]   = stats["daily_stars_spent"].get(today, 0) + stars
+    stats["daily_revenue_spins"][today] = stats["daily_revenue_spins"].get(today, 0) + spins
     save_all()
 
     await m.answer(
-        f"✅ *+100 Spins added!*\n"
+        f"✅ *+{spins} Spins added!*\n"
         f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n\n"
         f"Good luck! 🎰🔥",
         parse_mode="Markdown",
