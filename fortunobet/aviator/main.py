@@ -1197,37 +1197,10 @@
 
 
 """
-AviatorBet ✈️ — PRODUCTION VERSION with GIF Animation
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fortuno Aviator ✈️ — PRODUCTION VERSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Install: pip install aiogram
-Run:     python3 aviator_bot.py
-
-ECONOMY:
-  1 spin = $0.01 = 0.002 TON
-  200 spins = $2.00 = 0.4 TON  <- min withdrawal
-  Buy packages: 10 / 25 / 50 / 100 Stars
-
-RTP ~97%:
-  Crash point generated via provably-fair formula.
-  House edge = 3% baked into crash distribution.
-
-GAME FLOW:
-  1. User picks bet (1/5/10/25/50 spins)
-  2. Presses FLY — GIF animation plays
-  3. Multiplier climbs in real time
-  4. Press CASHOUT before crash to win (bet x multiplier)
-  5. No cashout before crash = full bet lost
-
-ADMIN COMMANDS:
-  /admin              main dashboard
-  /stats7             last 7 days
-  /pay [id]           Tonkeeper payout link
-  /reject [id]        reject withdrawal, return spins
-  /gift [id] [amount] give free spins
-  /userinfo [id]      full user profile
-  /ban [id]           ban user
-  /unban [id]         unban user
-  /broadcast [msg]    message all users
+Run:     python3 main.py
 """
 
 import logging
@@ -1249,9 +1222,9 @@ from aiogram.types import (
 )
 
 # =========================================================
-#  CONFIGURATION — only edit this section
+#  CONFIGURATION
 # =========================================================
-TOKEN             = "8605162590:AAE9r8DRRnJw-3qRJQStQJk2ShTSuF0TI4o"   # <- paste your Aviator bot token
+TOKEN             = "8605162590:AAE9r8DRRnJw-3qRJQStQJk2ShTSuF0TI4o"
 ADMIN_ID          = 8612272966
 TONCENTER_API_KEY = "a4e8dd9e0111177cb876e4b0559e8a58b5eeb4b6acdbd981ad4f7b6123acad9c"
 ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
@@ -1259,8 +1232,7 @@ ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
 SPIN_USD     = 0.01
 SPIN_TO_TON  = 0.002
 MIN_WITHDRAW = 200
-
-HOUSE_EDGE = 0.03   # 3% house edge = 97% RTP
+HOUSE_EDGE   = 0.03   # 3% house edge = 97% RTP
 
 BET_OPTIONS = [1, 5, 10, 25, 50]
 
@@ -1277,17 +1249,12 @@ BOT_NAME   = "FortunoAviatorBot"
 
 DAILY_EARLY_BIRD_LIMIT = 5
 DAILY_EARLY_BIRD_SPINS = 5
-
-TICK_INTERVAL = 0.6   # seconds between multiplier updates
-
-# GIF animation shown when game starts
-PLANE_GIF_URL = "https://media.giphy.com/media/XT5rnm7mzyoP2fKiXk/giphy.gif"
+TICK_INTERVAL          = 1.0   # 1 second per update — easy to follow
 # =========================================================
 
 bot = Bot(token=TOKEN)
 dp  = Dispatcher(storage=MemoryStorage())
 
-# active games: {user_id: {bet, crash, multiplier, msg_id, chat_id, cashed_out, task}}
 active_games: dict = {}
 
 class WithdrawStates(StatesGroup):
@@ -1425,20 +1392,15 @@ def pay_link(to_addr: str, amount_ton: float, comment: str) -> str:
 
 # ── Crash point generator (97% RTP) ──────────────────────
 def generate_crash_point() -> float:
-    """
-    97% RTP crash generator.
-    3% of rounds crash instantly at 1.00x.
-    Remaining rounds use smooth inverse distribution.
-    """
     r = random.random()
     if r < HOUSE_EDGE:
         return 1.00
     r2    = random.random()
     crash = 1.0 / (1.0 - r2 * (1.0 - HOUSE_EDGE))
-    crash = max(1.01, min(crash, 200.0))
-    return round(crash, 2)
+    return round(max(1.01, min(crash, 200.0)), 2)
 
-def plane_animation(mult: float) -> str:
+# ── Simple plane emoji based on height ───────────────────
+def get_plane(mult: float) -> str:
     if mult < 2.0:
         return "✈️"
     elif mult < 5.0:
@@ -1448,10 +1410,29 @@ def plane_animation(mult: float) -> str:
     else:
         return "🛸"
 
-def progress_bar(mult: float, crash: float) -> str:
-    pct    = min(mult / crash, 1.0)
-    filled = int(pct * 10)
-    return "▰" * filled + "▱" * (10 - filled)
+# ── Simple message for flying state ──────────────────────
+def flying_text(bet: int, mult: float) -> str:
+    plane = get_plane(mult)
+    if mult < 1.5:
+        mood = "Just took off... 👀"
+    elif mult < 2.0:
+        mood = "Flying steady... 😏"
+    elif mult < 3.0:
+        mood = "Going higher! 😮"
+    elif mult < 5.0:
+        mood = "Getting risky... 😬"
+    elif mult < 10.0:
+        mood = "Very high now! 😱"
+    else:
+        mood = "INSANE height!! 🤑"
+
+    potential = round(bet * mult)
+    return (
+        f"{plane}  *{mult:.2f}x*  —  {mood}\n\n"
+        f"🎯 Bet: *{bet}* spins\n"
+        f"💵 Cashout now = *{potential}* spins\n\n"
+        f"⬇️ Press the button before it crashes!"
+    )
 
 # ── Keyboards ─────────────────────────────────────────────
 def main_kb(uid: int) -> InlineKeyboardMarkup:
@@ -1486,13 +1467,13 @@ def bet_kb(uid: int) -> InlineKeyboardMarkup:
             row = []
     if row:
         rows.append(row)
-    rows.append([InlineKeyboardButton(text="🚀 FLY!", callback_data="startgame")])
-    rows.append([InlineKeyboardButton(text="🔙 Back", callback_data="back_main")])
+    rows.append([InlineKeyboardButton(text="🚀 FLY NOW!", callback_data="startgame")])
+    rows.append([InlineKeyboardButton(text="🔙 Back",     callback_data="back_main")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 def cashout_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💰 CASHOUT NOW!", callback_data="cashout")],
+        [InlineKeyboardButton(text="💰  CASH OUT NOW!  💰", callback_data="cashout")],
     ])
 
 def buy_kb() -> InlineKeyboardMarkup:
@@ -1551,15 +1532,15 @@ async def cmd_start(message: Message):
     u["ever_started"] = True
     save_all()
 
-    early_msg = "\n🎁 *Early-bird bonus: +5 spins!* You're one of the first 5 today!" if early else ""
+    early_msg = "\n🎁 *Early bird bonus: +5 free spins!* You are one of the first 5 today!" if early else ""
 
     await message.answer(
         f"✈️ *Welcome to Fortuno Aviator!*\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"🎮 Fly high, cash out before the crash!\n"
-        f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n"
+        f"🎮 Watch the plane fly — cash out before it crashes!\n"
+        f"💰 Your balance: *{u['spins']}* spins\n"
         f"{early_msg}\n\n"
-        f"Pick an action below 👇",
+        f"What do you want to do? 👇",
         parse_mode="Markdown",
         reply_markup=main_kb(uid)
     )
@@ -1568,16 +1549,19 @@ async def cmd_start(message: Message):
 @dp.callback_query(F.data == "howtoplay")
 async def howtoplay(callback: types.CallbackQuery):
     await callback.message.answer(
-        "✈️ *How to Play Fortuno Aviator*\n"
+        "✈️ *How To Play — Very Simple!*\n"
         "━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "1️⃣ Press *PLAY* and choose your bet (1–50 spins)\n"
-        "2️⃣ Press *🚀 FLY!* — watch the plane take off!\n"
-        "3️⃣ Multiplier climbs: 1.00x → 2x → 5x → 10x...\n"
-        "4️⃣ Press *💰 CASHOUT* before the plane crashes!\n"
-        "5️⃣ Cashout at 3.00x with 10 spins → you win *30 spins!*\n\n"
-        "💥 *No cashout before crash = you lose your bet!*\n\n"
-        "📈 *RTP: 97%* — player-friendly odds\n"
-        "💸 *Min withdrawal: 200 spins = $2.00 = 0.4 TON*",
+        "1️⃣  Press *PLAY* and choose how many spins to bet\n\n"
+        "2️⃣  Press *🚀 FLY NOW!* — the plane takes off!\n\n"
+        "3️⃣  You will see the number going up:\n"
+        "       ✈️ 1.20x → 1.85x → 2.43x → 3.10x...\n\n"
+        "4️⃣  Press *💰 CASH OUT NOW* at any time!\n\n"
+        "✅ *Example:*\n"
+        "       Bet 10 spins → cashout at 3x → WIN 30 spins!\n\n"
+        "💥 *If you wait too long — plane crashes!*\n"
+        "       You lose your bet. Cash out early!\n\n"
+        "📈 97% RTP — very good odds for you!\n"
+        "💸 Min cashout: 200 spins = $2.00",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="✈️ Play Now!", callback_data="play")],
@@ -1592,7 +1576,8 @@ async def back_main(callback: types.CallbackQuery):
     uid = callback.from_user.id
     u   = get_user(uid)
     await callback.message.answer(
-        f"✈️ *Fortuno Aviator*\n💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}",
+        f"✈️ *Fortuno Aviator*\n"
+        f"💰 Your balance: *{u['spins']}* spins",
         parse_mode="Markdown",
         reply_markup=main_kb(uid)
     )
@@ -1615,17 +1600,17 @@ async def process_play(callback: types.CallbackQuery):
     track_daily(uid)
 
     await callback.message.answer(
-        f"✈️ *Choose Your Bet*\n"
-        f"━━━━━━━━━━━━━━━━\n"
-        f"💰 Balance: *{u['spins']}* spins\n"
+        f"✈️ *Choose How Many Spins To Bet*\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"💰 Your balance: *{u['spins']}* spins\n"
         f"Current bet: *{u.get('bet_size', 1)}* spin{'s' if u.get('bet_size',1) > 1 else ''}\n\n"
-        f"Select bet size then press 🚀 FLY!",
+        f"👇 Pick your bet then press 🚀 FLY NOW!",
         parse_mode="Markdown",
         reply_markup=bet_kb(uid)
     )
     await callback.answer()
 
-# ── Set Bet Size ──────────────────────────────────────────
+# ── Set Bet ───────────────────────────────────────────────
 @dp.callback_query(F.data.startswith("setbet_"))
 async def set_bet(callback: types.CallbackQuery):
     uid = callback.from_user.id
@@ -1652,42 +1637,66 @@ async def start_game(callback: types.CallbackQuery):
 
     bet = u.get("bet_size", 1)
     if u["spins"] < bet:
-        await callback.answer(f"❌ Not enough spins! You need {bet} spins.", show_alert=True)
+        await callback.answer(
+            f"❌ Not enough spins! You need {bet} spins but you only have {u['spins']}.",
+            show_alert=True
+        )
         return
 
-    # Deduct bet immediately
+    # Deduct bet
     u["spins"] -= bet
     save_all()
 
     # Generate secret crash point
     crash_point = generate_crash_point()
 
-    # ── Send GIF animation ────────────────────────────────
-    await bot.send_animation(
-        chat_id=callback.message.chat.id,
-        animation=PLANE_GIF_URL,
-        caption=(
-            f"✈️ *TAKING OFF!*\n"
-            f"🎯 Bet: *{bet}* spins\n"
-            f"⚡️ Get ready to cashout!"
-        ),
+    # Send countdown
+    countdown_msg = await callback.message.answer(
+        f"✈️ *Get ready...*\n\n"
+        f"🎯 Bet: *{bet}* spins\n"
+        f"⏳ Plane is taking off in 3 seconds...\n\n"
+        f"👇 *Press CASH OUT the moment you want to stop!*",
         parse_mode="Markdown"
     )
 
-    # Small delay so GIF plays before multiplier message appears
-    await asyncio.sleep(1.5)
+    await asyncio.sleep(1)
+    try:
+        await bot.edit_message_text(
+            chat_id=countdown_msg.chat.id,
+            message_id=countdown_msg.message_id,
+            text=(
+                f"✈️ *Get ready...*\n\n"
+                f"🎯 Bet: *{bet}* spins\n"
+                f"⏳ Taking off in 2 seconds...\n\n"
+                f"👇 *Press CASH OUT the moment you want to stop!*"
+            ),
+            parse_mode="Markdown"
+        )
+    except Exception:
+        pass
 
-    # ── Send multiplier message with cashout button ───────
+    await asyncio.sleep(1)
+    try:
+        await bot.edit_message_text(
+            chat_id=countdown_msg.chat.id,
+            message_id=countdown_msg.message_id,
+            text=(
+                f"✈️ *Get ready...*\n\n"
+                f"🎯 Bet: *{bet}* spins\n"
+                f"⏳ Taking off in 1 second...\n\n"
+                f"👇 *Press CASH OUT the moment you want to stop!*"
+            ),
+            parse_mode="Markdown"
+        )
+    except Exception:
+        pass
+
+    await asyncio.sleep(1)
+
+    # Send the live game message
     msg = await bot.send_message(
         chat_id=callback.message.chat.id,
-        text=(
-            f"✈️ *Fortuno Aviator — FLYING!*\n"
-            f"━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🎯 Bet: *{bet}* spins\n"
-            f"📈 Multiplier: *1.00x*\n"
-            f"▱▱▱▱▱▱▱▱▱▱\n\n"
-            f"💰 Press CASHOUT before the plane flies away!"
-        ),
+        text=flying_text(bet, 1.00),
         parse_mode="Markdown",
         reply_markup=cashout_kb()
     )
@@ -1703,7 +1712,6 @@ async def start_game(callback: types.CallbackQuery):
         "task":       None,
     }
 
-    # Start multiplier loop
     task = asyncio.create_task(run_game(uid))
     active_games[uid]["task"] = task
 
@@ -1717,7 +1725,6 @@ async def run_game(uid: int):
         mult  = 1.00
         crash = game["crash"]
         bet   = game["bet"]
-        tick  = 0
 
         while mult < crash:
             await asyncio.sleep(TICK_INTERVAL)
@@ -1725,43 +1732,30 @@ async def run_game(uid: int):
             if game["cashed_out"]:
                 return
 
-            # Multiplier speed increases as it climbs
+            # Multiplier grows — slower at first, faster as it climbs
             if mult < 2.0:
-                mult += random.uniform(0.05, 0.15)
+                mult += random.uniform(0.08, 0.18)
             elif mult < 5.0:
-                mult += random.uniform(0.10, 0.30)
+                mult += random.uniform(0.15, 0.35)
             elif mult < 10.0:
-                mult += random.uniform(0.20, 0.60)
+                mult += random.uniform(0.30, 0.70)
             else:
-                mult += random.uniform(0.50, 2.00)
+                mult += random.uniform(0.80, 2.50)
 
             mult = round(min(mult, crash), 2)
             game["multiplier"] = mult
-            tick += 1
 
-            # Update message every 2 ticks to avoid Telegram rate limit
-            if tick % 2 == 0 or mult >= crash:
-                plane     = plane_animation(mult)
-                potential = round(bet * mult)
-                bar       = progress_bar(mult, crash)
-                try:
-                    await bot.edit_message_text(
-                        chat_id=game["chat_id"],
-                        message_id=game["msg_id"],
-                        text=(
-                            f"{plane} *Fortuno Aviator — FLYING!*\n"
-                            f"━━━━━━━━━━━━━━━━━━━━━\n"
-                            f"🎯 Bet: *{bet}* spins\n"
-                            f"📈 Multiplier: *{mult:.2f}x*\n"
-                            f"{bar}\n"
-                            f"💵 Cashout now = *{potential}* spins\n\n"
-                            f"💰 Press CASHOUT before crash!"
-                        ),
-                        parse_mode="Markdown",
-                        reply_markup=cashout_kb()
-                    )
-                except Exception:
-                    pass
+            # Update message every tick — 1 second so users can follow easily
+            try:
+                await bot.edit_message_text(
+                    chat_id=game["chat_id"],
+                    message_id=game["msg_id"],
+                    text=flying_text(bet, mult),
+                    parse_mode="Markdown",
+                    reply_markup=cashout_kb()
+                )
+            except Exception:
+                pass
 
         # ── CRASHED ───────────────────────────────────────
         if not game["cashed_out"]:
@@ -1781,12 +1775,12 @@ async def run_game(uid: int):
                     chat_id=game["chat_id"],
                     message_id=game["msg_id"],
                     text=(
-                        f"💥 *CRASHED at {crash:.2f}x!*\n"
-                        f"━━━━━━━━━━━━━━━━━━━━━\n"
-                        f"🎯 Bet: *{bet}* spins\n"
-                        f"❌ You lost *{bet}* spins\n"
-                        f"💰 Balance: *{u['spins']}* spins\n\n"
-                        f"Try again! 🚀"
+                        f"💥 *CRASHED at {crash:.2f}x!*\n\n"
+                        f"😭 Too slow! The plane flew away!\n\n"
+                        f"🎯 You bet: *{bet}* spins\n"
+                        f"❌ You lost: *{bet}* spins\n"
+                        f"💰 Your balance: *{u['spins']}* spins\n\n"
+                        f"Try again — cash out faster next time! 💪"
                     ),
                     parse_mode="Markdown",
                     reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -1802,7 +1796,7 @@ async def run_game(uid: int):
     except asyncio.CancelledError:
         pass
     except Exception as e:
-        logging.error(f"Game error for {uid}: {e}")
+        logging.error(f"Game error for uid {uid}: {e}")
         active_games.pop(uid, None)
 
 # ── Cashout ───────────────────────────────────────────────
@@ -1812,11 +1806,11 @@ async def process_cashout(callback: types.CallbackQuery):
     game = active_games.get(uid)
 
     if not game:
-        await callback.answer("⚠️ No active game found.", show_alert=True)
+        await callback.answer("⚠️ No active game. Press Play to start!", show_alert=True)
         return
 
     if game["cashed_out"]:
-        await callback.answer("💥 Too late! Already crashed!", show_alert=True)
+        await callback.answer("💥 Too late! The plane already crashed!", show_alert=True)
         return
 
     game["cashed_out"] = True
@@ -1850,21 +1844,20 @@ async def process_cashout(callback: types.CallbackQuery):
     stats["daily_rounds_played"][today] = stats["daily_rounds_played"].get(today, 0) + 1
     save_all()
 
-    plane = plane_animation(mult)
+    plane = get_plane(mult)
 
     try:
         await bot.edit_message_text(
             chat_id=game["chat_id"],
             message_id=game["msg_id"],
             text=(
-                f"{plane} *CASHED OUT at {mult:.2f}x!*\n"
-                f"━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🎯 Bet: *{bet}* spins\n"
+                f"{plane} *YOU CASHED OUT!* 🎉\n\n"
                 f"📈 Multiplier: *{mult:.2f}x*\n"
-                f"🏆 Won: *{winnings}* spins\n"
-                f"📊 Profit: *+{profit}* spins\n"
-                f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n\n"
-                f"🔥 Perfect timing!"
+                f"🎯 You bet: *{bet}* spins\n"
+                f"🏆 You won: *{winnings}* spins\n"
+                f"📊 Profit: *+{profit}* spins\n\n"
+                f"💰 Your balance: *{u['spins']}* spins\n\n"
+                f"🔥 Well done! Play again?"
             ),
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -1875,31 +1868,29 @@ async def process_cashout(callback: types.CallbackQuery):
     except Exception:
         await bot.send_message(
             game["chat_id"],
-            f"✅ *Cashed out at {mult:.2f}x!*\nWon *{winnings}* spins!\n💰 Balance: *{u['spins']}* spins",
+            f"✅ *Cashed out at {mult:.2f}x!*\n"
+            f"Won *{winnings}* spins!\n"
+            f"💰 Balance: *{u['spins']}* spins",
             parse_mode="Markdown",
             reply_markup=main_kb(uid)
         )
 
     active_games.pop(uid, None)
-    await callback.answer(f"✅ Cashed out at {mult:.2f}x!")
+    await callback.answer(f"✅ Cashed out at {mult:.2f}x! You won {winnings} spins!")
 
 # ── My Stats ──────────────────────────────────────────────
 @dp.callback_query(F.data == "mystats")
 async def my_stats(callback: types.CallbackQuery):
-    uid    = callback.from_user.id
-    u      = get_user(uid)
-    played = u.get("total_rounds_played", 0)
-    best   = u.get("biggest_win", 0)
-    bestx  = u.get("highest_multiplier", 0.0)
-
+    uid   = callback.from_user.id
+    u     = get_user(uid)
     await callback.message.answer(
-        f"📊 *Your Stats — Fortuno Aviator*\n"
+        f"📊 *Your Stats*\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"✈️ Rounds played: *{played}*\n"
-        f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n"
-        f"🏆 Best win: *{best}* spins\n"
-        f"📈 Highest multiplier: *{bestx:.2f}x*\n"
-        f"🎁 Referrals: *{u.get('referrals', 0)}*\n"
+        f"✈️ Rounds played: *{u.get('total_rounds_played', 0)}*\n"
+        f"💰 Balance: *{u['spins']}* spins\n"
+        f"🏆 Best win ever: *{u.get('biggest_win', 0)}* spins\n"
+        f"📈 Highest multiplier: *{u.get('highest_multiplier', 0.0):.2f}x*\n"
+        f"👥 Friends invited: *{u.get('referrals', 0)}*\n"
         f"📅 Member since: {u.get('joined_date', 'N/A')}",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -1915,12 +1906,13 @@ async def referral_menu(callback: types.CallbackQuery):
     u    = get_user(uid)
     link = f"https://t.me/{BOT_NAME}?start={uid}"
     await callback.message.answer(
-        f"👥 *Referral Program*\n"
+        f"👥 *Invite Friends — Earn Free Spins!*\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"Invite friends and earn *+5 spins* each!\n\n"
-        f"🔗 Your link:\n`{link}`\n\n"
+        f"For every friend you invite → you get *+5 free spins!*\n\n"
+        f"🔗 Your invite link:\n`{link}`\n\n"
         f"👫 Friends invited: *{u.get('referrals', 0)}*\n"
-        f"🎁 Spins earned: *{u.get('referrals', 0) * 5}*",
+        f"🎁 Free spins earned: *{u.get('referrals', 0) * 5}*\n\n"
+        f"Share your link now and earn! 💰",
         parse_mode="Markdown",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔙 Back", callback_data="back_main")]
@@ -1935,13 +1927,16 @@ async def withdraw_menu(callback: types.CallbackQuery):
     u   = get_user(uid)
 
     if u["spins"] < MIN_WITHDRAW:
+        need = MIN_WITHDRAW - u["spins"]
         await callback.message.answer(
             f"💸 *Withdraw*\n\n"
-            f"❌ Minimum: *{MIN_WITHDRAW} spins* = {usd(MIN_WITHDRAW)}\n"
+            f"❌ You need at least *{MIN_WITHDRAW} spins* to withdraw.\n"
             f"💰 Your balance: *{u['spins']}* spins\n"
-            f"You need *{MIN_WITHDRAW - u['spins']}* more spins.",
+            f"📊 You need *{need}* more spins.\n\n"
+            f"Keep playing to reach {MIN_WITHDRAW} spins! 💪",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="✈️ Play Now", callback_data="play")],
                 [InlineKeyboardButton(text="💎 Buy Spins", callback_data="buy")],
                 [InlineKeyboardButton(text="🔙 Back",      callback_data="back_main")],
             ])
@@ -1952,8 +1947,8 @@ async def withdraw_menu(callback: types.CallbackQuery):
     if u["pending_withdrawal"]:
         await callback.message.answer(
             f"⏳ *Withdrawal Pending*\n\n"
-            f"You have a pending withdrawal of *{u['pending_spins']}* spins.\n"
-            f"Please wait for admin to process it.",
+            f"You already have a withdrawal request for *{u['pending_spins']}* spins.\n"
+            f"Please wait — admin will send your money within 24 hours.",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="🔙 Back", callback_data="back_main")]
@@ -1963,10 +1958,10 @@ async def withdraw_menu(callback: types.CallbackQuery):
         return
 
     await callback.message.answer(
-        f"💸 *Withdraw Spins*\n\n"
-        f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n"
-        f"Minimum: *{MIN_WITHDRAW}* spins = {usd(MIN_WITHDRAW)} = {ton(MIN_WITHDRAW)} TON\n\n"
-        f"Press below to start:",
+        f"💸 *Withdraw Your Winnings*\n\n"
+        f"💰 Your balance: *{u['spins']}* spins = {usd(u['spins'])} = {ton(u['spins'])} TON\n"
+        f"📌 Minimum: *{MIN_WITHDRAW} spins* = {usd(MIN_WITHDRAW)}\n\n"
+        f"Press the button below to request your withdrawal:",
         parse_mode="Markdown",
         reply_markup=withdraw_kb()
     )
@@ -1978,9 +1973,10 @@ async def withdraw_start(callback: types.CallbackQuery, state: FSMContext):
     u   = get_user(uid)
     await state.set_state(WithdrawStates.waiting_amount)
     await callback.message.answer(
-        f"💸 How many spins to withdraw?\n"
-        f"Min: *{MIN_WITHDRAW}* · Max: *{u['spins']}*\n\n"
-        f"Type the amount:",
+        f"💸 *How many spins do you want to withdraw?*\n\n"
+        f"Minimum: *{MIN_WITHDRAW}*\n"
+        f"Maximum: *{u['spins']}*\n\n"
+        f"👇 Type the number:",
         parse_mode="Markdown"
     )
     await callback.answer()
@@ -1992,7 +1988,7 @@ async def withdraw_amount(message: Message, state: FSMContext):
     try:
         amount = int(message.text.strip())
     except ValueError:
-        await message.answer("❌ Please enter a valid number.")
+        await message.answer("❌ Please type a number only. Example: 200")
         return
     if amount < MIN_WITHDRAW:
         await message.answer(f"❌ Minimum is {MIN_WITHDRAW} spins.")
@@ -2003,7 +1999,9 @@ async def withdraw_amount(message: Message, state: FSMContext):
     await state.update_data(amount=amount)
     await state.set_state(WithdrawStates.waiting_wallet)
     await message.answer(
-        f"💳 Enter your *TON wallet address*:\n(Example: `UQD...`)",
+        f"💳 *Enter your TON wallet address:*\n\n"
+        f"Example: `UQD...`\n\n"
+        f"👇 Paste your wallet address:",
         parse_mode="Markdown"
     )
 
@@ -2016,7 +2014,7 @@ async def withdraw_wallet(message: Message, state: FSMContext):
     amount = data["amount"]
 
     if len(wallet) < 10:
-        await message.answer("❌ Invalid wallet address.")
+        await message.answer("❌ That wallet address looks wrong. Please try again.")
         return
 
     u["spins"]             -= amount
@@ -2027,10 +2025,11 @@ async def withdraw_wallet(message: Message, state: FSMContext):
     await state.clear()
 
     await message.answer(
-        f"✅ *Withdrawal Submitted!*\n\n"
+        f"✅ *Withdrawal Request Sent!*\n\n"
         f"💰 Amount: *{amount}* spins = {usd(amount)} = {ton(amount)} TON\n"
         f"👛 Wallet: `{wallet}`\n\n"
-        f"⏳ Admin will process within 24h.",
+        f"⏳ Admin will send your money within 24 hours.\n"
+        f"Thank you for playing Fortuno Aviator! ✈️",
         parse_mode="Markdown",
         reply_markup=main_kb(uid)
     )
@@ -2042,7 +2041,8 @@ async def withdraw_wallet(message: Message, state: FSMContext):
             f"👤 User: `{uid}` · @{message.from_user.username or 'no username'}\n"
             f"💰 {amount} spins = {usd(amount)} = {ton(amount)} TON\n"
             f"👛 `{wallet}`\n\n"
-            f"/pay {uid} to approve · /reject {uid} to reject",
+            f"/pay {uid} to approve\n"
+            f"/reject {uid} to reject",
             parse_mode="Markdown"
         )
     except Exception:
@@ -2084,7 +2084,7 @@ async def admin_dashboard(message: Message):
         f"  💰 Cashouts: {stats['total_cashouts']} · 💥 Crashes: {stats['total_crashes']}\n"
         f"  🏆 Biggest win: {stats.get('biggest_win_ever', 0)} spins\n"
         f"  📈 Highest mult: {stats.get('highest_multiplier', 0.0):.2f}x\n"
-        f"  💸 TON paid: {stats['total_ton_paid']}\n\n"
+        f"  💸 TON paid out: {stats['total_ton_paid']} TON\n\n"
         f"⏳ *Pending Withdrawals*\n{pend_txt}",
         parse_mode="Markdown"
     )
@@ -2134,8 +2134,9 @@ async def admin_pay(message: Message):
         try:
             await bot.send_message(
                 int(target_id),
-                f"✅ *Withdrawal Approved!*\n"
-                f"💸 {spins} spins = {usd(spins)} = {amount} TON sent!\n"
+                f"✅ *Your withdrawal has been approved!*\n\n"
+                f"💸 {spins} spins = {usd(spins)} = {amount} TON\n"
+                f"Your money is on the way! 🎉\n\n"
                 f"Thanks for playing Fortuno Aviator ✈️",
                 parse_mode="Markdown",
                 reply_markup=main_kb(int(target_id))
@@ -2162,13 +2163,16 @@ async def admin_reject(message: Message):
         u["pending_spins"]      = 0
         u["pending_wallet"]     = None
         save_all()
-        await message.answer(f"✅ Rejected · returned {spins} spins to `{target_id}`.", parse_mode="Markdown")
+        await message.answer(
+            f"✅ Rejected · returned {spins} spins to `{target_id}`.",
+            parse_mode="Markdown"
+        )
         try:
             await bot.send_message(
                 int(target_id),
-                f"❌ *Withdrawal Rejected*\n"
-                f"💰 {spins} spins returned to your balance.\n"
-                f"Contact support if you have questions.",
+                f"❌ *Your withdrawal was rejected.*\n\n"
+                f"💰 {spins} spins have been returned to your balance.\n"
+                f"Please contact support if you have questions.",
                 parse_mode="Markdown",
                 reply_markup=main_kb(int(target_id))
             )
@@ -2189,12 +2193,16 @@ async def admin_gift(message: Message):
         u         = get_user(int(target_id))
         u["spins"] += amount
         save_all()
-        await message.answer(f"🎁 Gifted *{amount}* spins to `{target_id}`.", parse_mode="Markdown")
+        await message.answer(
+            f"🎁 Gifted *{amount}* spins to `{target_id}`.",
+            parse_mode="Markdown"
+        )
         try:
             await bot.send_message(
                 int(target_id),
-                f"🎁 *You received {amount} free spins!*\n"
-                f"💰 Balance: *{u['spins']}* spins\nGood luck! ✈️",
+                f"🎁 *You received {amount} free spins!*\n\n"
+                f"💰 Your balance: *{u['spins']}* spins\n"
+                f"Good luck! ✈️",
                 parse_mode="Markdown",
                 reply_markup=main_kb(int(target_id))
             )
@@ -2218,13 +2226,14 @@ async def admin_userinfo(message: Message):
             f"👤 *USER INFO* · `{target_id}`\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"💰 *{u.get('spins',0)}* spins · {usd(u.get('spins',0))} · {ton(u.get('spins',0))} TON\n"
-            f"✈️ Rounds: *{u.get('total_rounds_played',0)}*\n"
+            f"✈️ Rounds played: *{u.get('total_rounds_played',0)}*\n"
             f"🏆 Best win: *{u.get('biggest_win',0)}* spins\n"
             f"📈 Highest mult: *{u.get('highest_multiplier',0.0):.2f}x*\n"
             f"💎 Purchases: *{u.get('purchases',0)}* · Deposited: *{u.get('ever_deposited',False)}*\n"
-            f"👥 Invited: *{u.get('referrals',0)}* · 🎲 Bet: *{u.get('bet_size',1)}x*\n"
+            f"👥 Friends invited: *{u.get('referrals',0)}*\n"
             f"📅 Joined: {u.get('joined_date','N/A')} · 🚫 Banned: *{u.get('banned',False)}*\n"
-            f"⏳ Pending: *{u.get('pending_withdrawal',False)}* · Held: *{u.get('pending_spins',0)}*\n"
+            f"⏳ Pending withdrawal: *{u.get('pending_withdrawal',False)}*\n"
+            f"💵 Held spins: *{u.get('pending_spins',0)}*\n"
             f"👛 `{u.get('pending_wallet','None')}`",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
@@ -2288,7 +2297,7 @@ async def admin_broadcast(message: Message):
     except IndexError:
         await message.answer("❌ Usage: /broadcast [message]")
         return
-    await message.answer("📢 Sending...")
+    await message.answer("📢 Sending to all users...")
     sent = failed = 0
     for k in user_data:
         if user_data[k].get("banned"):
@@ -2303,7 +2312,10 @@ async def admin_broadcast(message: Message):
             await asyncio.sleep(0.05)
         except Exception:
             failed += 1
-    await message.answer(f"✅ Sent: *{sent}* · Failed: *{failed}*", parse_mode="Markdown")
+    await message.answer(
+        f"✅ Done!\nSent: *{sent}* · Failed: *{failed}*",
+        parse_mode="Markdown"
+    )
 
 # ── Buy Spins ─────────────────────────────────────────────
 @dp.callback_query(F.data == "buy")
@@ -2312,7 +2324,7 @@ async def process_buy(callback: types.CallbackQuery):
         f"💎 *Buy Spins*\n\n"
         f"Minimum: *10 Stars* = 100 spins\n"
         f"1 spin = $0.01 · 97% RTP\n\n"
-        f"Pick your package 👇",
+        f"👇 Pick your package:",
         parse_mode="Markdown",
         reply_markup=buy_kb()
     )
@@ -2400,16 +2412,19 @@ async def success_pay(m: Message):
     save_all()
 
     await m.answer(
-        f"✅ *+{spins} Spins added!*\n"
-        f"💰 Balance: *{u['spins']}* spins · {usd(u['spins'])}\n\n"
-        f"✈️ Fly high and win big!",
+        f"✅ *+{spins} Spins added to your account!*\n\n"
+        f"💰 Your balance: *{u['spins']}* spins\n\n"
+        f"✈️ Go fly and win big! Good luck! 🔥",
         parse_mode="Markdown",
         reply_markup=main_kb(uid)
     )
 
 # ── Main ──────────────────────────────────────────────────
 async def main():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
     logging.info("Fortuno Aviator ✈️ is online!")
     await dp.start_polling(bot)
 
