@@ -49,7 +49,7 @@ posts = [
 
 # ========== TUESDAY APRIL 7 (3 posts) ==========
 {"date":"2026-04-07","time":"14:00","content":"🎰 <b>PLAY POKER — Bonus waiting on 1WIN!</b>\n\nTexas Hold'em. Live tables. Real players. 💰\nYour bonus is waiting. Promo code ready.\n\nFast payouts. High multipliers.\nNo fees on deposits or withdrawals. ✅\n\nSTOP WATCHING. Start playing. 🔥\n\nDeposit ₦20,000 → play with ₦120,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Play NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["fortunobet.jpeg"]},
-{"date":"2026-04-07","time":"19:00","content":"🎰 <b>FORTUNOSLOTS IS LIVE — 99% RTP</b>\n\nNo apps. Just Click & Play. ⚡️\nOpay, Palmpay, MoMo instant payouts. 💸\n\n🎁 FIRST 5 PLAYERS NOW:\nGet 5 FREE SPINS instantly. 📈\n\nSTOP WATCHING. Your turn NOW. 🔥\n\n👉 <b>PLAY:</b>\nhttps://t.me/FortunoSlotsbot","images":["fortunoslotsbot.jpg"]},
+{"date":"2026-04-07","time":"19:38","content":"🎰 <b>FORTUNOSLOTS IS LIVE — 99% RTP</b>\n\nNo apps. Just Click & Play. ⚡️\nOpay, Palmpay, MoMo instant payouts. 💸\n\n🎁 FIRST 5 PLAYERS NOW:\nGet 5 FREE SPINS instantly. 📈\n\nSTOP WATCHING. Your turn NOW. 🔥\n\n👉 <b>PLAY:</b>\nhttps://t.me/FortunoSlotsbot","images":["fortunoslotsbot.jpg"]},
 {"date":"2026-04-07","time":"00:00","content":"🎰 <b>PIÑATA WINS — 600% + 500 FREE SPINS!</b>\n\nCatch your win in Piñata. 💰\nWelcome bonus: 600% + 500FS.\n\nFirst deposits only. Code FORTUNOBET.\nFast payouts. High multipliers. 🔥\n\nDeposit ₦10,000 → play with ₦70,000\n\n🔑 Code: <code>fortunobet</code>\n\n👉 <b>Claim NOW:</b>\nhttps://1wfafs.life/casino/list?open=register&p=z4m5","images":["fortunobet.png"]},
 
 # ========== WEDNESDAY APRIL 8 (2 posts) ==========
