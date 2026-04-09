@@ -276,12 +276,9 @@ def db_stats() -> dict:
 
 async def make_invite(bot: Bot, expires_dt: datetime) -> str | None:
     try:
-        # Telegram requires Unix timestamp integer for expire_date
-        # Add 1 hour buffer so link doesn't expire before user clicks it
-        expire_timestamp = int((expires_dt + timedelta(hours=1)).timestamp())
+        expire_timestamp = int(expires_dt.timestamp())
         invite = await bot.create_chat_invite_link(
             chat_id=VIP_CHANNEL_ID,
-            member_limit=1,
             expire_date=expire_timestamp
         )
         return invite.invite_link
