@@ -126,49 +126,24 @@
 
 
 
-    """
-FORTUNOBET AUTO-POSTER v3.0
-============================
-Schedule (Armenia UTC+4):
-  14:59 Armenia TODAY        → ONE-TIME TEST POST
-  12:00 Armenia = 09:00 Nigeria  → Morning post (daily)
-  00:00 Armenia = 21:00 Nigeria  → Evening post (daily, PEAK)
-
-PUT THESE 4 FILES IN THE SAME FOLDER:
-  fortunobet_autoposter.py
-  football.jpeg
-  tennis.jpeg
-  basketball.png
-
-INSTALL:
-  pip install requests python-telegram-bot apscheduler
-
-RUN:
-  python fortunobet_autoposter.py
-
-RUN FOREVER:
-  pm2 start fortunobet_autoposter.py --interpreter python3 --name fortunobet
-  pm2 save
-  pm2 startup
-"""
-
+    import asyncio
 import requests
-import asyncio
 import random
 import logging
 import os
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram import Bot
+from telegram import Bot, Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 from telegram.constants import ParseMode
 
 # ============================================================
 # CONFIG
 # ============================================================
 
-ODDS_API_KEY   = "bd55794e7bf843f14ab61e3521a8023a"
-BOT_TOKEN      = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
+VIP_TOKEN      = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
 VIP_CHANNEL_ID = -1003729457344
+ODDS_API_KEY   = "bd55794e7bf843f14ab61e3521a8023a"
 REF_CODE       = "z4m5"
 PROMO_CODE     = "fortunobet"
 
@@ -293,6 +268,107 @@ SPORT_EMOJIS = {
     "basketball": "🏀",
     "default":    "🏆",
 }
+
+# ============================================================
+# VIP PAYMENT BOT HANDLERS
+# ============================================================
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("⚡ 7 Days - 150 Stars ($3)", callback_data='pay_weekly')],
+        [InlineKeyboardButton("💎 30 Days - 500 Stars ($10)", callback_data='pay_monthly')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(
+        "💎 <b>FORTUNOBET VIP ACCESS</b>\n\n"
+        "🎯 <b>What You Get:</b>\n"
+        "• Premium betting tips daily\n"
+        "• Higher odds selections\n"
+        "• Early access to best games\n"
+        "• Telegram support\n\n"
+        "📊 <b>How It Works:</b>\n"
+        "• Free channel: Basic tips\n"
+        "• VIP channel: Premium selections\n"
+        "• Posted when quality games available\n"
+        "• 1-5 tips per day depending on matches\n\n"
+        "⚡ <b>Choose your access:</b>",
+        reply_markup=reply_markup,
+        parse_mode="HTML"
+    )
+
+
+async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'pay_weekly':
+        title    = "VIP Weekly Access"
+        desc     = "7 days of premium betting tips"
+        price    = 150
+        payload  = "weekly"
+        duration = "7 days"
+    else:
+        title    = "VIP Monthly Access"
+        desc     = "30 days of premium betting tips"
+        price    = 500
+        payload  = "monthly"
+        duration = "30 days"
+
+    await query.edit_message_text(
+        f"💎 <b>{title}</b>\n\n"
+        f"✅ {duration} of VIP access\n"
+        f"✅ Premium betting tips\n"
+        f"✅ Higher odds selections\n"
+        f"✅ Early access to best games\n"
+        f"✅ Telegram support\n\n"
+        f"💰 <b>Price: {price} Stars (${price/50:.0f})</b>\n\n"
+        f"👇 Tap button below to pay:",
+        parse_mode="HTML"
+    )
+
+    await context.bot.send_invoice(
+        chat_id=query.message.chat_id,
+        title=title,
+        description=desc,
+        payload=payload,
+        provider_token="",
+        currency="XTR",
+        prices=[LabeledPrice(title, price)]
+    )
+
+
+async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.pre_checkout_query.answer(ok=True)
+
+
+async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    invite_link = await context.bot.create_chat_invite_link(
+        chat_id=VIP_CHANNEL_ID,
+        member_limit=1
+    )
+    payload  = update.message.successful_payment.invoice_payload
+    duration = "7 days" if payload == "weekly" else "30 days"
+
+    await update.message.reply_text(
+        f"✅ <b>PAYMENT CONFIRMED!</b>\n\n"
+        f"🎯 Your {duration} VIP access is ready!\n\n"
+        f"👇 <b>JOIN NOW:</b>\n"
+        f"{invite_link.invite_link}\n\n"
+        f"💚 Welcome to VIP channel!",
+        parse_mode="HTML"
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=VIP_CHANNEL_ID,
+            text=f"💎 <b>NEW VIP MEMBER!</b>\n\n"
+                 f"Welcome @{update.message.from_user.username or 'Member'}!\n"
+                 f"Access: {duration}\n\n"
+                 f"Enjoy premium tips! 🔥",
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
 
 # ============================================================
 # ODDS API
@@ -451,7 +527,6 @@ def generate_morning_post(pick: dict) -> str:
     emoji   = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
     link    = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
     deposit = random.choice(DEPOSIT_OFFERS)
-
     return (
         f"{emoji} <b>{random.choice(BET_OPENERS_MORNING).format(pick=pick['pick'])}</b>\n\n"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
@@ -471,12 +546,10 @@ def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
     emoji   = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
     link    = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
     deposit = random.choice(DEPOSIT_OFFERS)
-
     morning_ref = (
         f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check the result! ✅\n\n"
         if morning_pick else ""
     )
-
     return (
         f"{emoji} <b>{random.choice(BET_OPENERS_EVENING)}</b>\n\n"
         f"{morning_ref}"
@@ -493,11 +566,11 @@ def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
     )
 
 # ============================================================
-# TELEGRAM
+# TELEGRAM SEND WITH IMAGE
 # ============================================================
 
 async def send_to_vip(text: str, sport_cat: str):
-    bot        = Bot(token=BOT_TOKEN)
+    bot        = Bot(token=VIP_TOKEN)
     image_path = SPORT_IMAGES.get(sport_cat, SPORT_IMAGES["default"])
     caption    = text[:1024]
     try:
@@ -519,10 +592,10 @@ async def send_to_vip(text: str, sport_cat: str):
             )
         log.info("✅ Post sent.")
     except Exception as e:
-        log.error(f"Telegram error: {e}")
+        log.error(f"Telegram send error: {e}")
 
 # ============================================================
-# STATE + JOBS
+# SCHEDULER JOBS
 # ============================================================
 
 _morning_pick: dict | None = None
@@ -553,52 +626,64 @@ async def test_job():
     log.info("=== TEST POST (14:59 Armenia) ===")
     pick = find_best_match()
     if not pick:
-        log.warning("No pick for test post. Skipping.")
+        log.warning("No pick for test. Skipping.")
         return
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
     log.info("✅ Test post sent!")
 
 # ============================================================
-# MAIN
+# MAIN — runs VIP bot + scheduler together
 # ============================================================
 
 async def main():
-    log.info("🚀 Fortunobet Auto-Poster v3.0")
+    log.info("🚀 Fortunobet VIP Bot + Auto-Poster starting...")
 
+    # Check images
     for sport, path in SPORT_IMAGES.items():
         log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
 
+    # --- Scheduler setup ---
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
-
-    # Daily schedule
-    scheduler.add_job(morning_job, "cron", hour=12, minute=0,  id="morning")
-    scheduler.add_job(evening_job, "cron", hour=0,  minute=0,  id="evening")
+    scheduler.add_job(morning_job, "cron", hour=12, minute=0, id="morning")
+    scheduler.add_job(evening_job, "cron", hour=0,  minute=0, id="evening")
 
     # One-time test post at 14:59 Armenia today
     now_armenia = datetime.now(timezone(timedelta(hours=4)))
     test_time   = now_armenia.replace(hour=14, minute=59, second=0, microsecond=0)
-
     if now_armenia < test_time:
-        scheduler.add_job(
-            test_job,
-            "date",
-            run_date=test_time,
-            id="test_post",
-            timezone="Asia/Yerevan"
-        )
+        scheduler.add_job(test_job, "date", run_date=test_time, id="test_post", timezone="Asia/Yerevan")
         log.info("🧪 Test post scheduled: 14:59 Armenia today.")
     else:
-        log.warning("⚠️  14:59 Armenia already passed. Test post will not fire.")
-        log.warning("    Start the script before 14:59 Armenia time.")
+        log.warning("⚠️  14:59 Armenia already passed. Test post will not fire today.")
 
     scheduler.start()
-    log.info("Running: 14:59 test | 12:00 morning | 00:00 peak (Armenia time)")
+    log.info("Scheduler running: 14:59 test | 12:00 morning | 00:00 peak")
 
-    try:
-        while True:
-            await asyncio.sleep(60)
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
+    # --- VIP Payment Bot setup ---
+    app = Application.builder().token(VIP_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_payment))
+    app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
+
+    log.info("💎 VIP Payment Bot starting...")
+    log.info(f"VIP Channel ID: {VIP_CHANNEL_ID}")
+
+    # Run both together
+    async with app:
+        await app.initialize()
+        await app.start()
+        await app.updater.start_polling()
+        log.info("✅ Both systems running!")
+        try:
+            while True:
+                await asyncio.sleep(60)
+        except (KeyboardInterrupt, SystemExit):
+            log.info("Shutting down...")
+        finally:
+            scheduler.shutdown()
+            await app.updater.stop()
+            await app.stop()
 
 
 if __name__ == "__main__":
