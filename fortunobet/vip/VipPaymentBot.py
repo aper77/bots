@@ -127,21 +127,29 @@
 
 
     """
-FORTUNOBET AUTO-POSTER BOT v3.0
-================================
-- Fetches odds → picks best match → sends post WITH IMAGE to VIP channel
-- Images: football.jpeg / tennis.jpeg / basketball.png (same folder as script)
-- Schedule (Armenia UTC+4):
-    12:00 Armenia = 09:00 Nigeria  → Morning post
-    00:00 Armenia = 21:00 Nigeria  → Evening post (PEAK)
+FORTUNOBET AUTO-POSTER v3.0
+============================
+Schedule (Armenia UTC+4):
+  14:59 Armenia TODAY        → ONE-TIME TEST POST
+  12:00 Armenia = 09:00 Nigeria  → Morning post (daily)
+  00:00 Armenia = 21:00 Nigeria  → Evening post (daily, PEAK)
 
-SETUP:
-    pip install requests python-telegram-bot apscheduler
+PUT THESE 4 FILES IN THE SAME FOLDER:
+  fortunobet_autoposter.py
+  football.jpeg
+  tennis.jpeg
+  basketball.png
 
-PUT THESE FILES IN SAME FOLDER AS THIS SCRIPT:
-    football.jpeg
-    tennis.jpeg
-    basketball.png
+INSTALL:
+  pip install requests python-telegram-bot apscheduler
+
+RUN:
+  python fortunobet_autoposter.py
+
+RUN FOREVER:
+  pm2 start fortunobet_autoposter.py --interpreter python3 --name fortunobet
+  pm2 save
+  pm2 startup
 """
 
 import requests
@@ -151,7 +159,7 @@ import logging
 import os
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram import Bot, InputMediaPhoto
+from telegram import Bot
 from telegram.constants import ParseMode
 
 # ============================================================
@@ -164,7 +172,6 @@ VIP_CHANNEL_ID = -1003729457344
 REF_CODE       = "z4m5"
 PROMO_CODE     = "fortunobet"
 
-# Image files — must be in same folder as this script
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SPORT_IMAGES = {
@@ -174,7 +181,6 @@ SPORT_IMAGES = {
     "default":    os.path.join(SCRIPT_DIR, "football.jpeg"),
 }
 
-# Sport betting links
 SPORT_LINKS = {
     "soccer":     f"https://one-vv858.com/betting/prematch/soccer-18?p={REF_CODE}",
     "tennis":     f"https://one-vv858.com/betting/live/tennis-33?p={REF_CODE}",
@@ -200,7 +206,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ============================================================
-# SPORT PRIORITY — Football first for Nigeria/Ghana
+# SPORT PRIORITY
 # ============================================================
 
 SPORT_PRIORITY = [
@@ -300,20 +306,19 @@ def american_to_decimal(american: int) -> float:
 
 
 def fetch_odds(sport_key: str) -> list:
-    url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds"
-    params = {
-        "apiKey": ODDS_API_KEY,
-        "regions": "eu",
-        "markets": "h2h",
-        "oddsFormat": "decimal",
-        "dateFormat": "iso",
-    }
     try:
-        r = requests.get(url, params=params, timeout=10)
-        if r.status_code == 200:
-            return r.json()
-        log.warning(f"API {r.status_code} for {sport_key}")
-        return []
+        r = requests.get(
+            f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds",
+            params={
+                "apiKey": ODDS_API_KEY,
+                "regions": "eu",
+                "markets": "h2h",
+                "oddsFormat": "decimal",
+                "dateFormat": "iso",
+            },
+            timeout=10
+        )
+        return r.json() if r.status_code == 200 else []
     except Exception as e:
         log.error(f"Fetch error {sport_key}: {e}")
         return []
@@ -326,9 +331,7 @@ def fetch_active_sports() -> list:
             params={"apiKey": ODDS_API_KEY},
             timeout=10
         )
-        if r.status_code == 200:
-            return [s["key"] for s in r.json() if s.get("active")]
-        return []
+        return [s["key"] for s in r.json() if s.get("active")] if r.status_code == 200 else []
     except Exception as e:
         log.error(f"Sports list error: {e}")
         return []
@@ -338,12 +341,9 @@ def fetch_active_sports() -> list:
 # ============================================================
 
 def get_sport_category(sport_key: str) -> str:
-    if "soccer" in sport_key:
-        return "soccer"
-    elif "tennis" in sport_key:
-        return "tennis"
-    elif "basketball" in sport_key:
-        return "basketball"
+    if "soccer"     in sport_key: return "soccer"
+    if "tennis"     in sport_key: return "tennis"
+    if "basketball" in sport_key: return "basketball"
     return "default"
 
 
@@ -354,28 +354,21 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
     for match in matches:
         if exclude_id and match.get("id") == exclude_id:
             continue
-
-        bookmakers = match.get("bookmakers", [])
-        if not bookmakers:
+        if not match.get("bookmakers"):
             continue
-
         try:
-            commence = datetime.fromisoformat(
-                match["commence_time"].replace("Z", "+00:00")
-            )
+            commence = datetime.fromisoformat(match["commence_time"].replace("Z", "+00:00"))
         except Exception:
             continue
-
         if commence <= now:
             continue
 
         outcome_prices: dict[str, list[float]] = {}
-        for bm in bookmakers:
+        for bm in match["bookmakers"]:
             for market in bm.get("markets", []):
                 if market["key"] != "h2h":
                     continue
                 for outcome in market["outcomes"]:
-                    name  = outcome["name"]
                     price = outcome["price"]
                     if isinstance(price, (int, float)) and price > 10:
                         decimal = float(price)
@@ -383,23 +376,17 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
                         decimal = american_to_decimal(price)
                     else:
                         decimal = float(price)
-                    outcome_prices.setdefault(name, []).append(decimal)
+                    outcome_prices.setdefault(outcome["name"], []).append(decimal)
 
         if not outcome_prices:
             continue
 
-        avg_odds = {
-            team: round(sum(p) / len(p), 2)
-            for team, p in outcome_prices.items()
-        }
-
+        avg_odds    = {t: round(sum(p)/len(p), 2) for t, p in outcome_prices.items()}
         favorite    = min(avg_odds, key=avg_odds.get)
         fav_odds    = avg_odds[favorite]
         hours_until = (commence - now).total_seconds() / 3600
 
-        if not (MIN_ODDS <= fav_odds <= MAX_ODDS):
-            continue
-        if hours_until < 0.5:
+        if not (MIN_ODDS <= fav_odds <= MAX_ODDS) or hours_until < 0.5:
             continue
 
         candidates.append({
@@ -419,34 +406,25 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
     if not candidates:
         return None
 
-    good = [c for c in candidates if 2 <= c["hours_until"] <= 20]
-    pool = good if good else candidates
+    pool = [c for c in candidates if 2 <= c["hours_until"] <= 20] or candidates
     pool.sort(key=lambda c: abs(c["pick_odds"] - 1.55))
     return pool[0]
 
 
 def find_best_match(exclude_id: str = None) -> dict | None:
     log.info("Finding best match...")
-
     for sport_key in SPORT_PRIORITY:
         matches = fetch_odds(sport_key)
-        if not matches:
-            continue
-        pick = get_best_pick(matches, exclude_id=exclude_id)
+        pick    = get_best_pick(matches, exclude_id=exclude_id)
         if pick:
             log.info(f"Pick: {pick['pick']} @ {pick['pick_odds']} ({sport_key})")
             return pick
 
-    log.info("Trying fallback sports...")
-    active = fetch_active_sports()
     for cat in SPORT_CATEGORY_PRIORITY:
-        for sport_key in active:
+        for sport_key in fetch_active_sports():
             if sport_key in SPORT_PRIORITY or cat not in sport_key:
                 continue
-            matches = fetch_odds(sport_key)
-            if not matches:
-                continue
-            pick = get_best_pick(matches, exclude_id=exclude_id)
+            pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
             if pick:
                 log.info(f"Fallback: {pick['pick']} ({sport_key})")
                 return pick
@@ -459,104 +437,69 @@ def find_best_match(exclude_id: str = None) -> dict | None:
 # ============================================================
 
 def format_match_time(dt: datetime) -> str:
-    nigeria_time = dt + timedelta(hours=1)
-    return nigeria_time.strftime("%I:%M %p Nigeria time")
+    return (dt + timedelta(hours=1)).strftime("%I:%M %p Nigeria time")
 
 
 def build_odds_block(pick: dict) -> str:
-    lines = []
-    for team, odds in sorted(pick["all_odds"].items(), key=lambda x: x[1]):
-        if team == pick["pick"]:
-            lines.append(f"✅ {team} — {odds}")
-        else:
-            lines.append(f"     {team} — {odds}")
-    return "\n".join(lines)
+    return "\n".join(
+        f"✅ {t} — {o}" if t == pick["pick"] else f"     {t} — {o}"
+        for t, o in sorted(pick["all_odds"].items(), key=lambda x: x[1])
+    )
 
 
 def generate_morning_post(pick: dict) -> str:
-    emoji      = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
-    link       = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
-    deposit    = random.choice(DEPOSIT_OFFERS)
-    bet_amount = random.choice(BET_AMOUNTS)
-    match_time = format_match_time(pick["commence"])
-    opener     = random.choice(BET_OPENERS_MORNING).format(pick=pick["pick"])
-    analysis   = random.choice(ANALYSIS_LINES).format(pick=pick["pick"])
-    challenge  = random.choice(CHALLENGE_LINES)
-    cta        = random.choice(CTA_LABELS)
-    odds_block = build_odds_block(pick)
+    emoji   = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
+    link    = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
+    deposit = random.choice(DEPOSIT_OFFERS)
 
     return (
-        f"{emoji} <b>{opener}</b>\n"
-        f"\n"
+        f"{emoji} <b>{random.choice(BET_OPENERS_MORNING).format(pick=pick['pick'])}</b>\n\n"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
-        f"{pick['sport_title']} | {match_time}\n"
-        f"\n"
-        f"{odds_block}\n"
-        f"\n"
-        f"{analysis}\n"
-        f"{bet_amount} placed on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 💸\n"
-        f"\n"
-        f"{challenge}\n"
-        f"\n"
+        f"{pick['sport_title']} | {format_match_time(pick['commence'])}\n\n"
+        f"{build_odds_block(pick)}\n\n"
+        f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
+        f"{random.choice(BET_AMOUNTS)} placed on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 💸\n\n"
+        f"{random.choice(CHALLENGE_LINES)}\n\n"
         f"Deposit {deposit[0]} → play with {deposit[1]}\n"
-        f"🔑 Code: <code>{PROMO_CODE}</code>\n"
-        f"\n"
-        f"👉 <b>{cta}</b>\n"
+        f"🔑 Code: <code>{PROMO_CODE}</code>\n\n"
+        f"👉 <b>{random.choice(CTA_LABELS)}</b>\n"
         f"{link}"
     )
 
 
 def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
-    emoji      = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
-    link       = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
-    deposit    = random.choice(DEPOSIT_OFFERS)
-    bet_amount = random.choice(BET_AMOUNTS)
-    match_time = format_match_time(pick["commence"])
-    opener     = random.choice(BET_OPENERS_EVENING)
-    analysis   = random.choice(ANALYSIS_LINES).format(pick=pick["pick"])
-    challenge  = random.choice(CHALLENGE_LINES)
-    cta        = random.choice(CTA_LABELS)
-    odds_block = build_odds_block(pick)
+    emoji   = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
+    link    = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
+    deposit = random.choice(DEPOSIT_OFFERS)
 
-    morning_ref = ""
-    if morning_pick:
-        morning_ref = (
-            f"📌 Morning pick: <b>{morning_pick['pick']}</b> "
-            f"@ {morning_pick['pick_odds']} — check the result! ✅\n\n"
-        )
+    morning_ref = (
+        f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check the result! ✅\n\n"
+        if morning_pick else ""
+    )
 
     return (
-        f"{emoji} <b>{opener}</b>\n"
-        f"\n"
+        f"{emoji} <b>{random.choice(BET_OPENERS_EVENING)}</b>\n\n"
         f"{morning_ref}"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
-        f"{pick['sport_title']} | {match_time}\n"
-        f"\n"
-        f"{odds_block}\n"
-        f"\n"
-        f"{analysis}\n"
-        f"{bet_amount} on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 🔥\n"
-        f"\n"
-        f"{challenge}\n"
-        f"\n"
+        f"{pick['sport_title']} | {format_match_time(pick['commence'])}\n\n"
+        f"{build_odds_block(pick)}\n\n"
+        f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
+        f"{random.choice(BET_AMOUNTS)} on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 🔥\n\n"
+        f"{random.choice(CHALLENGE_LINES)}\n\n"
         f"Deposit {deposit[0]} → play with {deposit[1]}\n"
-        f"🔑 Code: <code>{PROMO_CODE}</code>\n"
-        f"\n"
-        f"👉 <b>{cta}</b>\n"
+        f"🔑 Code: <code>{PROMO_CODE}</code>\n\n"
+        f"👉 <b>{random.choice(CTA_LABELS)}</b>\n"
         f"{link}"
     )
 
 # ============================================================
-# TELEGRAM — Send photo + caption
+# TELEGRAM
 # ============================================================
 
 async def send_to_vip(text: str, sport_cat: str):
     bot        = Bot(token=BOT_TOKEN)
     image_path = SPORT_IMAGES.get(sport_cat, SPORT_IMAGES["default"])
-
-    # Telegram caption limit is 1024 chars
-    caption = text[:1024]
-
+    caption    = text[:1024]
     try:
         if os.path.exists(image_path):
             with open(image_path, "rb") as photo:
@@ -566,93 +509,75 @@ async def send_to_vip(text: str, sport_cat: str):
                     caption=caption,
                     parse_mode=ParseMode.HTML,
                 )
-            log.info(f"✅ Photo post sent ({sport_cat} image).")
         else:
-            # Fallback: send text only if image file missing
-            log.warning(f"Image not found: {image_path}. Sending text only.")
+            log.warning(f"Image missing: {image_path} — sending text only")
             await bot.send_message(
                 chat_id=VIP_CHANNEL_ID,
                 text=text,
                 parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
             )
-            log.info("✅ Text post sent (no image).")
+        log.info("✅ Post sent.")
     except Exception as e:
         log.error(f"Telegram error: {e}")
 
 # ============================================================
-# STATE
+# STATE + JOBS
 # ============================================================
 
 _morning_pick: dict | None = None
 
-# ============================================================
-# JOBS
-# ============================================================
 
 async def morning_job():
     global _morning_pick
     log.info("=== MORNING JOB (12:00 Armenia = 09:00 Nigeria) ===")
     pick = find_best_match()
     if not pick:
-        log.warning("No pick found. Skipping.")
+        log.warning("No pick. Skipping.")
         return
     _morning_pick = pick
-    post = generate_morning_post(pick)
-    await send_to_vip(post, pick["sport_cat"])
+    await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
 
 
 async def evening_job():
     global _morning_pick
     log.info("=== EVENING JOB (00:00 Armenia = 21:00 Nigeria PEAK) ===")
-    exclude = _morning_pick["match_id"] if _morning_pick else None
-    pick    = find_best_match(exclude_id=exclude)
+    pick = find_best_match(exclude_id=_morning_pick["match_id"] if _morning_pick else None)
     if not pick:
-        log.warning("No pick found. Skipping.")
+        log.warning("No pick. Skipping.")
         return
-    post = generate_evening_post(pick, morning_pick=_morning_pick)
-    await send_to_vip(post, pick["sport_cat"])
+    await send_to_vip(generate_evening_post(pick, morning_pick=_morning_pick), pick["sport_cat"])
 
 
 async def test_job():
-    """One-time test post sent immediately — remove after testing"""
-    log.info("=== TEST POST (one-time) ===")
+    log.info("=== TEST POST (14:59 Armenia) ===")
     pick = find_best_match()
     if not pick:
-        log.warning("No pick found for test.")
+        log.warning("No pick for test post. Skipping.")
         return
-    post = generate_morning_post(pick)
-    log.info("--- POST PREVIEW ---\n" + post)
-    await send_to_vip(post, pick["sport_cat"])
-    log.info("✅ Test post sent to VIP channel!")
+    await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
+    log.info("✅ Test post sent!")
 
 # ============================================================
 # MAIN
 # ============================================================
 
 async def main():
-    log.info("🚀 Fortunobet Auto-Poster v3.0 starting...")
+    log.info("🚀 Fortunobet Auto-Poster v3.0")
 
-    # Verify images exist on startup
     for sport, path in SPORT_IMAGES.items():
-        if os.path.exists(path):
-            log.info(f"✅ Image found: {sport} → {path}")
-        else:
-            log.warning(f"⚠️  Image MISSING: {sport} → {path}")
+        log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
 
-    # ── Regular schedule ──────────────────────────────────────
-    # 12:00 Armenia = 09:00 Nigeria
-    scheduler.add_job(morning_job, "cron", hour=12, minute=0, id="morning")
+    # Daily schedule
+    scheduler.add_job(morning_job, "cron", hour=12, minute=0,  id="morning")
+    scheduler.add_job(evening_job, "cron", hour=0,  minute=0,  id="evening")
 
-    # 00:00 Armenia = 21:00 Nigeria PEAK
-    scheduler.add_job(evening_job, "cron", hour=0,  minute=0, id="evening")
-
-    # ── ONE-TIME TEST POST at 14:59 Armenia today ─────────────
-    # Remove or comment out this block after first test
+    # One-time test post at 14:59 Armenia today
     now_armenia = datetime.now(timezone(timedelta(hours=4)))
     test_time   = now_armenia.replace(hour=14, minute=59, second=0, microsecond=0)
+
     if now_armenia < test_time:
         scheduler.add_job(
             test_job,
@@ -661,20 +586,18 @@ async def main():
             id="test_post",
             timezone="Asia/Yerevan"
         )
-        log.info(f"🧪 Test post scheduled for 14:59 Armenia time today.")
+        log.info("🧪 Test post scheduled: 14:59 Armenia today.")
     else:
-        log.info("⚠️  14:59 Armenia already passed today. Test post skipped.")
-        log.info("    To test manually run: python test_post.py")
+        log.warning("⚠️  14:59 Armenia already passed. Test post will not fire.")
+        log.warning("    Start the script before 14:59 Armenia time.")
 
     scheduler.start()
-    log.info("Scheduler running.")
-    log.info("Regular schedule: 12:00 (morning) | 00:00 (peak night) Armenia time")
+    log.info("Running: 14:59 test | 12:00 morning | 00:00 peak (Armenia time)")
 
     try:
         while True:
             await asyncio.sleep(60)
     except (KeyboardInterrupt, SystemExit):
-        log.info("Shutdown.")
         scheduler.shutdown()
 
 
