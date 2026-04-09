@@ -16,6 +16,7 @@ from telegram.constants import ParseMode
 
 VIP_TOKEN      = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
 VIP_CHANNEL_ID = -1003729457344
+VIP_INVITE_LINK = "https://t.me/+VBI9zBHHdfY2MmQ6"
 ODDS_API_KEY   = "bd55794e7bf843f14ab61e3521a8023a"
 REF_CODE       = "z4m5"
 PROMO_CODE     = "fortunobet"
@@ -274,17 +275,9 @@ def db_stats() -> dict:
 # HELPER — Create invite link with expiry
 # ============================================================
 
-async def make_invite(bot: Bot, expires_dt: datetime) -> str | None:
-    try:
-        expire_timestamp = int(expires_dt.timestamp())
-        invite = await bot.create_chat_invite_link(
-            chat_id=VIP_CHANNEL_ID,
-            expire_date=expire_timestamp
-        )
-        return invite.invite_link
-    except Exception as e:
-        log.error(f"Invite link error: {e}")
-        return None
+def make_invite() -> str:
+    # Always return permanent channel link — no expiry issues
+    return VIP_INVITE_LINK
 
 # ============================================================
 # ADMIN COMMANDS
@@ -354,7 +347,7 @@ async def cmd_adddays(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     new_exp, new_dt = db_add_free_days(user_id, days)
     if new_exp:
-        invite_url = await make_invite(context.bot, new_dt)
+        invite_url = make_invite()
         try:
             msg = f"🎁 <b>You received {days} free VIP days!</b>\n\nAccess expires: <b>{new_exp} UTC</b>\n\n"
             if invite_url:
@@ -387,7 +380,7 @@ async def cmd_giveaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     expires, expires_dt = db_add_member(user_id, str(user_id), "free", days=days)
-    invite_url          = await make_invite(context.bot, expires_dt)
+    invite_url          = make_invite()
 
     try:
         msg = f"🎁 <b>You got {days} days FREE VIP access!</b>\n\nAccess expires: <b>{expires} UTC</b>\n\n"
@@ -493,7 +486,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     username = user.username or user.first_name or str(user.id)
 
     expires, expires_dt = db_add_member(user.id, username, plan, days=days)
-    invite_url          = await make_invite(context.bot, expires_dt)
+    invite_url          = make_invite()
 
     await update.message.reply_text(
         f"✅ <b>PAYMENT CONFIRMED!</b>\n\n"
