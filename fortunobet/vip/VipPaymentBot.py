@@ -623,7 +623,7 @@ async def evening_job():
 
 
 async def test_job():
-    log.info("=== TEST POST (14:59 Armenia) ===")
+    log.info("=== TEST POST (15:15 Armenia) ===")
     pick = find_best_match()
     if not pick:
         log.warning("No pick for test. Skipping.")
@@ -649,15 +649,15 @@ async def main():
 
     # One-time test post at 14:59 Armenia today
     now_armenia = datetime.now(timezone(timedelta(hours=4)))
-    test_time   = now_armenia.replace(hour=14, minute=59, second=0, microsecond=0)
+    test_time   = now_armenia.replace(hour=15, minute=15, second=0, microsecond=0)
     if now_armenia < test_time:
         scheduler.add_job(test_job, "date", run_date=test_time, id="test_post", timezone="Asia/Yerevan")
-        log.info("🧪 Test post scheduled: 14:59 Armenia today.")
+        log.info("🧪 Test post scheduled: 15:15 Armenia today.")
     else:
-        log.warning("⚠️  14:59 Armenia already passed. Test post will not fire today.")
+        log.warning("⚠️  15:15 Armenia already passed. Test post will not fire today.")
 
     scheduler.start()
-    log.info("Scheduler running: 14:59 test | 12:00 morning | 00:00 peak")
+    log.info("Scheduler running: 15:15 test | 12:00 morning | 00:00 peak")
 
     # --- VIP Payment Bot setup ---
     app = Application.builder().token(VIP_TOKEN).build()
