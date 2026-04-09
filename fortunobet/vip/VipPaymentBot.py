@@ -16,7 +16,7 @@ from telegram.constants import ParseMode
 
 VIP_TOKEN      = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
 VIP_CHANNEL_ID = -1003729457344
-VIP_INVITE_LINK = "https://t.me/+VBI9zBHHdfY2MmQ6"
+VIP_INVITE_LINK = "https://t.me/+tX9H58ohNjhjYTNi"
 ODDS_API_KEY   = "bd55794e7bf843f14ab61e3521a8023a"
 REF_CODE       = "z4m5"
 PROMO_CODE     = "fortunobet"
