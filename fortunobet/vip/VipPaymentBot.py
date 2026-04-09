@@ -21,7 +21,6 @@ REF_CODE       = "z4m5"
 PROMO_CODE     = "fortunobet"
 ADMIN_ID       = 7627990095
 
-# Prices in Telegram Stars (50 Stars = $1)
 WEEKLY_STARS  = 100   # $2
 MONTHLY_STARS = 400   # $8
 
@@ -45,20 +44,20 @@ SPORT_LINKS = {
 # Only pick matches starting between 1h and 24h from now
 MIN_HOURS_UNTIL_MATCH = 1.0
 MAX_HOURS_UNTIL_MATCH = 24.0
-
 MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
 # ============================================================
 # ADMIN COMMANDS REFERENCE
 # ============================================================
-# /stats          — Total members, active, expired, weekly vs monthly
-# /members        — Full list with names, plan, days remaining
-# /adddays  <user_id> <days>  — Add free days to existing member
-# /giveaccess <user_id> <days> — Give free access to new user + invite link
-# /help           — Show all commands
+# /stats                       — Members statistics
+# /members                     — Full members list
+# /adddays <user_id> <days>    — Add days to existing member + send invite
+# /giveaccess <user_id> <days> — Give free access to new user + send invite
+# /resetdb                     — Clear entire database
+# /help                        — Show all commands
 #
-# Check Stars balance:
+# Stars balance check:
 # https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
 # ============================================================
 
@@ -69,15 +68,12 @@ MAX_ODDS = 2.20
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("autoposter.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("vip_bot.log"), logging.StreamHandler()]
 )
 log = logging.getLogger(__name__)
 
 # ============================================================
-# SPORT PRIORITY
+# SPORT PRIORITY — Football first for Nigeria/Ghana
 # ============================================================
 
 SPORT_PRIORITY = [
@@ -187,39 +183,43 @@ def db_save(data: dict):
         log.error(f"DB save error: {e}")
 
 
-def db_add_member(user_id: int, username: str, plan: str, extra_days: int = 0):
-    data    = db_load()
-    now     = datetime.now(timezone.utc)
-    days    = (7 if plan == "weekly" else 30) + extra_days
-    expires = (now + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+def db_add_member(user_id: int, username: str, plan: str, days: int):
+    """Add or renew member with exact days. Returns (expires_str, expires_dt)."""
+    data       = db_load()
+    now        = datetime.now(timezone.utc)
+    expires_dt = now + timedelta(days=days)
+    expires    = expires_dt.strftime("%Y-%m-%d %H:%M:%S")
     data[str(user_id)] = {
-        "username": username or "Member",
+        "username": username or str(user_id),
         "plan":     plan,
         "expires":  expires,
         "joined":   now.strftime("%Y-%m-%d %H:%M:%S"),
     }
     db_save(data)
-    log.info(f"Member added: {user_id} ({plan}+{extra_days}d) expires {expires}")
-    return expires
+    log.info(f"Member saved: {user_id} ({plan}, {days}d) expires {expires}")
+    return expires, expires_dt
 
 
 def db_add_free_days(user_id: int, days: int):
+    """Extend existing member. Returns (new_exp_str, new_exp_dt) or (None, None)."""
     data = db_load()
     key  = str(user_id)
     if key not in data:
-        return None
+        return None, None
     now     = datetime.now(timezone.utc)
     current = datetime.strptime(data[key]["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
     base    = current if current > now else now
-    new_exp = (base + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+    new_dt  = base + timedelta(days=days)
+    new_exp = new_dt.strftime("%Y-%m-%d %H:%M:%S")
     data[key]["expires"] = new_exp
     db_save(data)
-    return new_exp
+    log.info(f"Extended {user_id} by {days}d → {new_exp}")
+    return new_exp, new_dt
 
 
 def db_get_expiring_soon() -> list:
-    data, now, soon = db_load(), datetime.now(timezone.utc), datetime.now(timezone.utc) + timedelta(hours=24)
-    result = []
+    data, now = db_load(), datetime.now(timezone.utc)
+    soon, result = now + timedelta(hours=24), []
     for uid, info in data.items():
         try:
             exp = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
@@ -251,40 +251,59 @@ def db_remove_member(user_id: int):
 
 def db_stats() -> dict:
     data, now = db_load(), datetime.now(timezone.utc)
-    active = expired = weekly = monthly = 0
+    active = expired = weekly = monthly = free = 0
     for info in data.values():
         try:
             exp = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             if exp > now:
                 active += 1
-                if info.get("plan") == "weekly": weekly += 1
-                else: monthly += 1
+                p = info.get("plan", "")
+                if p == "weekly": weekly += 1
+                elif p == "monthly": monthly += 1
+                else: free += 1
             else:
                 expired += 1
         except Exception:
             continue
-    return {"total": len(data), "active": active, "expired": expired, "weekly": weekly, "monthly": monthly}
+    return {
+        "total": len(data), "active": active, "expired": expired,
+        "weekly": weekly, "monthly": monthly, "free": free
+    }
+
+# ============================================================
+# HELPER — Create invite link with expiry
+# ============================================================
+
+async def make_invite(bot: Bot, expires_dt: datetime) -> str | None:
+    try:
+        invite = await bot.create_chat_invite_link(
+            chat_id=VIP_CHANNEL_ID,
+            member_limit=1,
+            expire_date=expires_dt
+        )
+        return invite.invite_link
+    except Exception as e:
+        log.error(f"Invite link error: {e}")
+        return None
 
 # ============================================================
 # ADMIN COMMANDS
 # ============================================================
 
-def is_admin(user_id: int) -> bool:
-    return user_id == ADMIN_ID
+def is_admin(uid: int) -> bool:
+    return uid == ADMIN_ID
 
 
 async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
-    s    = db_stats()
-    data = db_load()
-    now  = datetime.now(timezone.utc)
+    s, data, now = db_stats(), db_load(), datetime.now(timezone.utc)
     lines = []
     for uid, info in data.items():
         try:
             exp = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             if exp > now:
-                name = f"@{info['username']}" if info.get("username") else f"ID:{uid}"
-                lines.append(f"  • {name} — {info.get('plan','?')} — {(exp-now).days}d left")
+                name = f"@{info['username']}" if info.get("username") and not info["username"].isdigit() else f"ID:{uid}"
+                lines.append(f"  • {name} — {info.get('plan','?')} — {(exp - now).days}d left")
         except Exception:
             continue
     await update.message.reply_text(
@@ -293,7 +312,8 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"✅ Active now: {s['active']}\n"
         f"❌ Expired: {s['expired']}\n\n"
         f"⚡ Weekly: {s['weekly']}\n"
-        f"💎 Monthly: {s['monthly']}\n\n"
+        f"💎 Monthly: {s['monthly']}\n"
+        f"🎁 Free: {s['free']}\n\n"
         f"<b>Active Members:</b>\n" + ("\n".join(lines) if lines else "  No active members"),
         parse_mode="HTML"
     )
@@ -301,18 +321,17 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
-    data = db_load()
-    now  = datetime.now(timezone.utc)
+    data, now = db_load(), datetime.now(timezone.utc)
     if not data:
         await update.message.reply_text("No members in database.")
         return
     lines = ["<b>ALL VIP MEMBERS:</b>\n"]
     for uid, info in data.items():
         try:
-            exp      = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-            status   = "✅" if exp > now else "❌"
+            exp       = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            status    = "✅" if exp > now else "❌"
             days_left = max(0, (exp - now).days)
-            name     = f"@{info['username']}" if info.get("username") else f"ID:{uid}"
+            name      = f"@{info['username']}" if info.get("username") and not info["username"].isdigit() else f"ID:{uid}"
             lines.append(f"{status} {name} | {info.get('plan','?')} | {days_left}d | ID:{uid}")
         except Exception:
             lines.append(f"❓ ID:{uid}")
@@ -332,19 +351,27 @@ async def cmd_adddays(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("❌ Numbers only.")
         return
-    new_exp = db_add_free_days(user_id, days)
+
+    new_exp, new_dt = db_add_free_days(user_id, days)
     if new_exp:
+        invite_url = await make_invite(context.bot, new_dt)
         try:
-            await context.bot.send_message(
-                chat_id=user_id,
-                text=f"🎁 <b>You received {days} free VIP days!</b>\n\nNew expiry: <b>{new_exp} UTC</b>\n\nEnjoy your picks! 🔥",
-                parse_mode="HTML"
-            )
-        except Exception:
-            pass
-        await update.message.reply_text(f"✅ Added {days} days to {user_id}\nNew expiry: {new_exp}")
+            msg = f"🎁 <b>You received {days} free VIP days!</b>\n\nAccess expires: <b>{new_exp} UTC</b>\n\n"
+            if invite_url:
+                msg += f"👇 <b>Join VIP channel:</b>\n{invite_url}\n\n"
+            msg += "Enjoy your premium picks! 🔥"
+            await context.bot.send_message(chat_id=user_id, text=msg, parse_mode="HTML")
+        except Exception as e:
+            log.warning(f"Could not notify {user_id}: {e}")
+        reply = f"✅ Added {days} days to {user_id}\nNew expiry: {new_exp}"
+        if invite_url:
+            reply += f"\nInvite sent to user."
+        await update.message.reply_text(reply)
     else:
-        await update.message.reply_text(f"⚠️ User {user_id} not found.\nUse /giveaccess {user_id} {days} to add as new member.")
+        await update.message.reply_text(
+            f"⚠️ User {user_id} not found in database.\n"
+            f"Use /giveaccess {user_id} {days} to add as new member."
+        )
 
 
 async def cmd_giveaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -358,21 +385,36 @@ async def cmd_giveaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("❌ Numbers only.")
         return
-    expires = db_add_member(user_id, None, "free", extra_days=days - 7)
+
+    expires, expires_dt = db_add_member(user_id, str(user_id), "free", days=days)
+    invite_url          = await make_invite(context.bot, expires_dt)
+
     try:
-        invite    = await context.bot.create_chat_invite_link(chat_id=VIP_CHANNEL_ID, member_limit=1)
-        invite_url = invite.invite_link
-    except Exception:
-        invite_url = "Could not generate link"
-    try:
-        await context.bot.send_message(
-            chat_id=user_id,
-            text=f"🎁 <b>You got {days} days FREE VIP access!</b>\n\n👇 Join now:\n{invite_url}\n\nEnjoy! 🔥",
-            parse_mode="HTML"
-        )
-    except Exception:
-        pass
-    await update.message.reply_text(f"✅ Gave {days} free days to {user_id}\nExpires: {expires}\nInvite: {invite_url}")
+        msg = f"🎁 <b>You got {days} days FREE VIP access!</b>\n\nAccess expires: <b>{expires} UTC</b>\n\n"
+        if invite_url:
+            msg += f"👇 <b>Join VIP channel now:</b>\n{invite_url}\n\n"
+        else:
+            msg += "Contact admin for your invite link.\n\n"
+        msg += "Enjoy your premium picks! 🔥"
+        await context.bot.send_message(chat_id=user_id, text=msg, parse_mode="HTML")
+        notified = True
+    except Exception as e:
+        log.warning(f"Could not notify {user_id}: {e}")
+        notified = False
+
+    reply = f"✅ Gave {days} free days to {user_id}\nExpires: {expires}"
+    if invite_url:
+        reply += f"\nInvite: {invite_url}"
+    if not notified:
+        reply += f"\n⚠️ Could not message user — they must start the bot first."
+    await update.message.reply_text(reply)
+
+
+async def cmd_resetdb(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    db_save({})
+    await update.message.reply_text("✅ Database cleared. All members removed.")
+    log.info("Database reset by admin.")
 
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -381,8 +423,9 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "<b>ADMIN COMMANDS:</b>\n\n"
         "/stats — Statistics summary\n"
         "/members — Full members list\n"
-        "/adddays &lt;id&gt; &lt;days&gt; — Add days to existing member\n"
+        "/adddays &lt;id&gt; &lt;days&gt; — Extend member + send invite\n"
         "/giveaccess &lt;id&gt; &lt;days&gt; — Give free access to new user\n"
+        "/resetdb — Clear entire database\n"
         "/help — Show this list\n\n"
         "<b>Examples:</b>\n"
         "/adddays 123456789 7\n"
@@ -416,9 +459,9 @@ async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     if query.data == 'pay_weekly':
-        title, desc, price, payload, duration = "VIP Weekly Access", "7 days of premium picks", WEEKLY_STARS, "weekly", "7 days"
+        title, desc, price, payload, days, duration = "VIP Weekly Access", "7 days of premium picks", WEEKLY_STARS, "weekly", 7, "7 days"
     else:
-        title, desc, price, payload, duration = "VIP Monthly Access", "30 days of premium picks", MONTHLY_STARS, "monthly", "30 days"
+        title, desc, price, payload, days, duration = "VIP Monthly Access", "30 days of premium picks", MONTHLY_STARS, "monthly", 30, "30 days"
     await query.edit_message_text(
         f"💎 <b>{title}</b>\n\n"
         f"✅ {duration} VIP access\n"
@@ -445,21 +488,25 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     user     = update.message.from_user
     payload  = update.message.successful_payment.invoice_payload
     plan     = "weekly" if payload == "weekly" else "monthly"
-    duration = "7 days" if plan == "weekly" else "30 days"
-    expires  = db_add_member(user.id, user.username, plan)
-    invite   = await context.bot.create_chat_invite_link(chat_id=VIP_CHANNEL_ID, member_limit=1)
+    days     = 7 if plan == "weekly" else 30
+    duration = f"{days} days"
+    username = user.username or user.first_name or str(user.id)
+
+    expires, expires_dt = db_add_member(user.id, username, plan, days=days)
+    invite_url          = await make_invite(context.bot, expires_dt)
+
     await update.message.reply_text(
         f"✅ <b>PAYMENT CONFIRMED!</b>\n\n"
         f"🎯 Your {duration} VIP access is ready!\n"
         f"Expires: <b>{expires} UTC</b>\n\n"
-        f"👇 <b>JOIN NOW:</b>\n{invite.invite_link}\n\n"
+        f"👇 <b>JOIN NOW:</b>\n{invite_url or 'Contact admin for link'}\n\n"
         f"💚 Welcome to Fortunobet VIP!",
         parse_mode="HTML"
     )
     try:
         await context.bot.send_message(
             chat_id=VIP_CHANNEL_ID,
-            text=f"💎 <b>NEW VIP MEMBER!</b>\n\nWelcome @{user.username or 'Member'}!\nPlan: {duration}\n\nEnjoy! 🔥",
+            text=f"💎 <b>NEW VIP MEMBER!</b>\n\nWelcome @{username}!\nPlan: {duration}\n\nEnjoy! 🔥",
             parse_mode="HTML"
         )
     except Exception:
@@ -470,6 +517,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 # ============================================================
 
 async def reminder_job():
+    """Daily 10:00 Armenia — remind members expiring in 24h."""
     log.info("=== REMINDER JOB ===")
     expiring = db_get_expiring_soon()
     if not expiring:
@@ -482,7 +530,7 @@ async def reminder_job():
                 chat_id=m["user_id"],
                 text=f"⚠️ <b>VIP access expiring soon!</b>\n\n"
                      f"Expires: <b>{m['expires_dt'].strftime('%B %d at %H:%M UTC')}</b>\n\n"
-                     f"Tap /start to renew now. 🔥",
+                     f"Tap /start to renew now and keep your picks. 🔥",
                 parse_mode="HTML"
             )
             log.info(f"Reminder sent: {m['user_id']}")
@@ -491,6 +539,7 @@ async def reminder_job():
 
 
 async def kick_job():
+    """Daily 10:05 Armenia — kick expired members from VIP channel."""
     log.info("=== KICK JOB ===")
     expired = db_get_expired()
     if not expired:
@@ -505,12 +554,14 @@ async def kick_job():
             try:
                 await bot.send_message(
                     chat_id=m["user_id"],
-                    text=f"⏰ <b>Your VIP access has expired.</b>\n\nYou have been removed from the VIP channel.\n\nTap /start to renew. 🔥",
+                    text=f"⏰ <b>Your VIP access has expired.</b>\n\n"
+                         f"You have been removed from the VIP channel.\n\n"
+                         f"Tap /start to renew and rejoin. 🔥",
                     parse_mode="HTML"
                 )
             except Exception:
                 pass
-            log.info(f"Kicked: {m['user_id']}")
+            log.info(f"Kicked expired: {m['user_id']}")
         except Exception as e:
             log.warning(f"Kick failed {m['user_id']}: {e}")
 
@@ -526,7 +577,8 @@ def fetch_odds(sport_key: str) -> list:
     try:
         r = requests.get(
             f"https://api.the-odds-api.com/v4/sports/{sport_key}/odds",
-            params={"apiKey": ODDS_API_KEY, "regions": "eu", "markets": "h2h", "oddsFormat": "decimal", "dateFormat": "iso"},
+            params={"apiKey": ODDS_API_KEY, "regions": "eu", "markets": "h2h",
+                    "oddsFormat": "decimal", "dateFormat": "iso"},
             timeout=10
         )
         return r.json() if r.status_code == 200 else []
@@ -537,10 +589,13 @@ def fetch_odds(sport_key: str) -> list:
 
 def fetch_active_sports() -> list:
     try:
-        r = requests.get("https://api.the-odds-api.com/v4/sports", params={"apiKey": ODDS_API_KEY}, timeout=10)
+        r = requests.get(
+            "https://api.the-odds-api.com/v4/sports",
+            params={"apiKey": ODDS_API_KEY}, timeout=10
+        )
         return [s["key"] for s in r.json() if s.get("active")] if r.status_code == 200 else []
     except Exception as e:
-        log.error(f"Sports list error: {e}")
+        log.error(f"Sports error: {e}")
         return []
 
 # ============================================================
@@ -548,8 +603,8 @@ def fetch_active_sports() -> list:
 # ============================================================
 
 def get_sport_category(sport_key: str) -> str:
-    if "soccer" in sport_key: return "soccer"
-    if "tennis" in sport_key: return "tennis"
+    if "soccer"     in sport_key: return "soccer"
+    if "tennis"     in sport_key: return "tennis"
     if "basketball" in sport_key: return "basketball"
     return "default"
 
@@ -565,26 +620,31 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
             continue
         hours_until = (commence - now).total_seconds() / 3600
         if not (MIN_HOURS_UNTIL_MATCH <= hours_until <= MAX_HOURS_UNTIL_MATCH): continue
-        outcome_prices: dict[str, list[float]] = {}
+        outcome_prices: dict = {}
         for bm in match["bookmakers"]:
             for market in bm.get("markets", []):
                 if market["key"] != "h2h": continue
                 for outcome in market["outcomes"]:
-                    price = outcome["price"]
-                    decimal = float(price) if (isinstance(price, (int, float)) and price > 10) else (american_to_decimal(int(price)) if isinstance(price, int) else float(price))
-                    outcome_prices.setdefault(outcome["name"], []).append(decimal)
+                    p = outcome["price"]
+                    d = float(p) if (isinstance(p, (int, float)) and p > 10) else (american_to_decimal(int(p)) if isinstance(p, int) else float(p))
+                    outcome_prices.setdefault(outcome["name"], []).append(d)
         if not outcome_prices: continue
-        avg_odds = {t: round(sum(p)/len(p), 2) for t, p in outcome_prices.items()}
-        favorite = min(avg_odds, key=avg_odds.get)
-        fav_odds = avg_odds[favorite]
-        if not (MIN_ODDS <= fav_odds <= MAX_ODDS): continue
+        avg  = {t: round(sum(v)/len(v), 2) for t, v in outcome_prices.items()}
+        fav  = min(avg, key=avg.get)
+        odds = avg[fav]
+        if not (MIN_ODDS <= odds <= MAX_ODDS): continue
         candidates.append({
-            "match_id": match["id"], "sport_key": match["sport_key"],
-            "sport_cat": get_sport_category(match["sport_key"]),
+            "match_id":    match["id"],
+            "sport_key":   match["sport_key"],
+            "sport_cat":   get_sport_category(match["sport_key"]),
             "sport_title": match["sport_title"],
-            "home_team": match["home_team"], "away_team": match["away_team"],
-            "commence": commence, "pick": favorite, "pick_odds": fav_odds,
-            "all_odds": avg_odds, "hours_until": hours_until,
+            "home_team":   match["home_team"],
+            "away_team":   match["away_team"],
+            "commence":    commence,
+            "pick":        fav,
+            "pick_odds":   odds,
+            "all_odds":    avg,
+            "hours_until": hours_until,
         })
     if not candidates: return None
     candidates.sort(key=lambda c: abs(c["pick_odds"] - 1.55))
@@ -592,18 +652,18 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
 
 
 def find_best_match(exclude_id: str = None) -> dict | None:
-    log.info("Finding best FUTURE match...")
+    log.info("Finding best future match...")
     for sport_key in SPORT_PRIORITY:
         pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
         if pick:
-            log.info(f"✅ Pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h away ({sport_key})")
+            log.info(f"Pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h away")
             return pick
     for cat in SPORT_CATEGORY_PRIORITY:
         for sport_key in fetch_active_sports():
             if sport_key in SPORT_PRIORITY or cat not in sport_key: continue
             pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
             if pick:
-                log.info(f"✅ Fallback: {pick['pick']} ({sport_key})")
+                log.info(f"Fallback pick: {pick['pick']} ({sport_key})")
                 return pick
     log.warning("No future match found.")
     return None
@@ -613,7 +673,7 @@ def find_best_match(exclude_id: str = None) -> dict | None:
 # ============================================================
 
 def format_match_datetime(dt: datetime) -> str:
-    # UTC — works for all Africa: Nigeria = UTC+1, Ghana = UTC+0
+    # UTC shown — Nigeria = UTC+1, Ghana = UTC+0
     return dt.strftime("%A, %b %d — %H:%M UTC")
 
 
@@ -625,7 +685,9 @@ def build_odds_block(pick: dict) -> str:
 
 
 def generate_morning_post(pick: dict) -> str:
-    emoji, link, deposit = SPORT_EMOJIS.get(pick["sport_cat"], "🏆"), SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"]), random.choice(DEPOSIT_OFFERS)
+    emoji = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
+    link  = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
+    dep   = random.choice(DEPOSIT_OFFERS)
     return (
         f"{emoji} <b>{random.choice(BET_OPENERS_MORNING).format(pick=pick['pick'])}</b>\n\n"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
@@ -635,18 +697,20 @@ def generate_morning_post(pick: dict) -> str:
         f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
         f"{random.choice(BET_AMOUNTS)} placed on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 💸\n\n"
         f"{random.choice(CHALLENGE_LINES)}\n\n"
-        f"Deposit {deposit[0]} → play with {deposit[1]}\n"
+        f"Deposit {dep[0]} → play with {dep[1]}\n"
         f"🔑 Code: <code>{PROMO_CODE}</code>\n\n"
         f"👉 <b>{random.choice(CTA_LABELS)}</b>\n{link}"
     )
 
 
 def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
-    emoji, link, deposit = SPORT_EMOJIS.get(pick["sport_cat"], "🏆"), SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"]), random.choice(DEPOSIT_OFFERS)
-    morning_ref = f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check result! ✅\n\n" if morning_pick else ""
+    emoji = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
+    link  = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
+    dep   = random.choice(DEPOSIT_OFFERS)
+    ref   = f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check result! ✅\n\n" if morning_pick else ""
     return (
         f"{emoji} <b>{random.choice(BET_OPENERS_EVENING)}</b>\n\n"
-        f"{morning_ref}"
+        f"{ref}"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
         f"{pick['sport_title']}\n"
         f"📅 {format_match_datetime(pick['commence'])}\n\n"
@@ -654,13 +718,13 @@ def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
         f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
         f"{random.choice(BET_AMOUNTS)} on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 🔥\n\n"
         f"{random.choice(CHALLENGE_LINES)}\n\n"
-        f"Deposit {deposit[0]} → play with {deposit[1]}\n"
+        f"Deposit {dep[0]} → play with {dep[1]}\n"
         f"🔑 Code: <code>{PROMO_CODE}</code>\n\n"
         f"👉 <b>{random.choice(CTA_LABELS)}</b>\n{link}"
     )
 
 # ============================================================
-# TELEGRAM SEND WITH IMAGE
+# SEND WITH IMAGE
 # ============================================================
 
 async def send_to_vip(text: str, sport_cat: str):
@@ -669,11 +733,21 @@ async def send_to_vip(text: str, sport_cat: str):
     try:
         if os.path.exists(image_path):
             with open(image_path, "rb") as photo:
-                await bot.send_photo(chat_id=VIP_CHANNEL_ID, photo=photo, caption=text[:1024], parse_mode=ParseMode.HTML)
+                await bot.send_photo(
+                    chat_id=VIP_CHANNEL_ID,
+                    photo=photo,
+                    caption=text[:1024],
+                    parse_mode=ParseMode.HTML
+                )
         else:
-            log.warning(f"Image missing: {image_path} — text only")
-            await bot.send_message(chat_id=VIP_CHANNEL_ID, text=text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-        log.info("✅ Post sent.")
+            log.warning(f"Image missing: {image_path} — sending text only")
+            await bot.send_message(
+                chat_id=VIP_CHANNEL_ID,
+                text=text,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True
+            )
+        log.info("✅ Post sent to VIP channel.")
     except Exception as e:
         log.error(f"Send error: {e}")
 
@@ -686,27 +760,23 @@ _morning_pick: dict | None = None
 
 async def morning_job():
     global _morning_pick
-    log.info("=== MORNING JOB (12:00 Armenia) ===")
+    log.info("=== MORNING JOB (12:00 Armenia = 09:00 Nigeria) ===")
     pick = find_best_match()
-    if not pick: log.warning("No future match. Skipping."); return
+    if not pick:
+        log.warning("No future match found. Skipping.")
+        return
     _morning_pick = pick
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
 
 
 async def evening_job():
     global _morning_pick
-    log.info("=== EVENING JOB (00:00 Armenia PEAK) ===")
+    log.info("=== EVENING JOB (00:00 Armenia = 21:00 Nigeria PEAK) ===")
     pick = find_best_match(exclude_id=_morning_pick["match_id"] if _morning_pick else None)
-    if not pick: log.warning("No future match. Skipping."); return
+    if not pick:
+        log.warning("No future match found. Skipping.")
+        return
     await send_to_vip(generate_evening_post(pick, morning_pick=_morning_pick), pick["sport_cat"])
-
-
-async def test_job():
-    log.info("=== TEST POST (15:40 Armenia) ===")
-    pick = find_best_match()
-    if not pick: log.warning("No future match for test. Skipping."); return
-    await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
-    log.info("✅ Test post sent!")
 
 # ============================================================
 # MAIN
@@ -714,8 +784,10 @@ async def test_job():
 
 async def main():
     log.info("🚀 Fortunobet VIP Bot + Auto-Poster starting...")
+
     for sport, path in SPORT_IMAGES.items():
         log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
+
     log.info(f"📋 VIP members in database: {len(db_load())}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
@@ -723,17 +795,9 @@ async def main():
     scheduler.add_job(evening_job,  "cron", hour=0,  minute=0,  id="evening")
     scheduler.add_job(reminder_job, "cron", hour=10, minute=0,  id="reminder")
     scheduler.add_job(kick_job,     "cron", hour=10, minute=5,  id="kick")
-
-    now_armenia = datetime.now(timezone(timedelta(hours=4)))
-    test_time   = now_armenia.replace(hour=15, minute=40, second=0, microsecond=0)
-    if now_armenia < test_time:
-        scheduler.add_job(test_job, "date", run_date=test_time, id="test_post", timezone="Asia/Yerevan")
-        log.info("🧪 Test post scheduled: 15:40 Armenia today.")
-    else:
-        log.warning("⚠️  15:40 Armenia already passed. Test post skipped.")
-
     scheduler.start()
-    log.info("Scheduler: 15:40 test | 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
+
+    log.info("Scheduler: 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick (Armenia time)")
 
     app = Application.builder().token(VIP_TOKEN).build()
     app.add_handler(CommandHandler("start",      start))
@@ -741,12 +805,14 @@ async def main():
     app.add_handler(CommandHandler("members",    cmd_members))
     app.add_handler(CommandHandler("adddays",    cmd_adddays))
     app.add_handler(CommandHandler("giveaccess", cmd_giveaccess))
+    app.add_handler(CommandHandler("resetdb",    cmd_resetdb))
     app.add_handler(CommandHandler("help",       cmd_help))
     app.add_handler(CallbackQueryHandler(handle_payment))
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
     log.info("💎 VIP Payment Bot starting...")
+
     async with app:
         await app.initialize()
         await app.start()
