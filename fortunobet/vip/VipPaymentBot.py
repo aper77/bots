@@ -14,18 +14,23 @@ from telegram.constants import ParseMode
 # CONFIG
 # ============================================================
 
-VIP_TOKEN      = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
-VIP_CHANNEL_ID = -1003729457344
+VIP_TOKEN       = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
+VIP_CHANNEL_ID  = -1003729457344
 VIP_INVITE_LINK = "https://t.me/+tX9H58ohNjhjYTNi"
-ODDS_API_KEY   = "bd55794e7bf843f14ab61e3521a8023a"
-REF_CODE       = "z4m5"
-PROMO_CODE     = "fortunobet"
-ADMIN_ID       = 7627990095
+ODDS_API_KEY    = "bd55794e7bf843f14ab61e3521a8023a"
+REF_CODE        = "z4m5"
+PROMO_CODE      = "fortunobet"
+ADMIN_ID        = 7627990095
+BOT_USERNAME    = "FortunoVIPbot"
 
 WEEKLY_STARS  = 100   # $2
 MONTHLY_STARS = 400   # $8
 
+REFERRAL_NEEDED      = 5   # friends needed for reward
+REFERRAL_REWARD_DAYS = 30  # days given as reward
+
 DB_FILE    = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vip_members.json")
+REFS_FILE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referrals.json")
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SPORT_IMAGES = {
@@ -42,28 +47,24 @@ SPORT_LINKS = {
     "default":    f"https://one-vv858.com/?p={REF_CODE}",
 }
 
-# Only pick matches starting between 1h and 24h from now
 MIN_HOURS_UNTIL_MATCH = 1.0
 MAX_HOURS_UNTIL_MATCH = 24.0
 MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
 # ============================================================
-# ADMIN COMMANDS REFERENCE
+# ADMIN COMMANDS
 # ============================================================
-# /stats                       — Members statistics
-# /members                     — Full members list
-# /adddays <user_id> <days>    — Add days to existing member + send invite
-# /giveaccess <user_id> <days> — Give free access to new user + send invite
-# /resetdb                     — Clear entire database
-# /help                        — Show all commands
+# /stats                        — Members + referral summary
+# /members                      — Full members list
+# /referrals                    — Referral stats per user
+# /adddays <user_id> <days>     — Add days to existing member
+# /giveaccess <user_id> <days>  — Give free access to new user
+# /resetdb                      — Clear members database
+# /help                         — Show all commands
 #
-# Stars balance check:
+# Stars balance:
 # https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
-# ============================================================
-
-# ============================================================
-# LOGGING
 # ============================================================
 
 logging.basicConfig(
@@ -73,43 +74,21 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# ============================================================
-# SPORT PRIORITY — Football first for Nigeria/Ghana
-# ============================================================
-
 SPORT_PRIORITY = [
-    "soccer_epl",
-    "soccer_uefa_champs_league",
-    "soccer_uefa_europa_league",
-    "soccer_spain_la_liga",
-    "soccer_italy_serie_a",
-    "soccer_germany_bundesliga",
-    "soccer_france_ligue_one",
-    "soccer_efl_champ",
-    "soccer_turkey_super_league",
-    "tennis_atp_monte_carlo_masters",
-    "tennis_atp_french_open",
-    "tennis_wta_french_open",
-    "tennis_atp_us_open",
-    "basketball_nba",
-    "basketball_euroleague",
+    "soccer_epl", "soccer_uefa_champs_league", "soccer_uefa_europa_league",
+    "soccer_spain_la_liga", "soccer_italy_serie_a", "soccer_germany_bundesliga",
+    "soccer_france_ligue_one", "soccer_efl_champ", "soccer_turkey_super_league",
+    "tennis_atp_monte_carlo_masters", "tennis_atp_french_open",
+    "tennis_wta_french_open", "tennis_atp_us_open",
+    "basketball_nba", "basketball_euroleague",
 ]
-
 SPORT_CATEGORY_PRIORITY = ["soccer", "tennis", "basketball"]
 
-# ============================================================
-# CONTENT BLOCKS
-# ============================================================
-
 DEPOSIT_OFFERS = [
-    ("₦500",    "₦3,000"),
-    ("₦10,000", "₦60,000"),
-    ("₦20,000", "₦120,000"),
-    ("₦5,000",  "₦30,000"),
+    ("₦500", "₦3,000"), ("₦10,000", "₦60,000"),
+    ("₦20,000", "₦120,000"), ("₦5,000", "₦30,000"),
 ]
-
 BET_AMOUNTS = ["$100", "$50", "$200", "$150"]
-
 BET_OPENERS_MORNING = [
     "I just placed my bet. {pick} is my pick today.",
     "Bet locked in. Going with {pick} this morning.",
@@ -117,7 +96,6 @@ BET_OPENERS_MORNING = [
     "My bet is in — {pick} to win this one.",
     "I studied this match. Placing {pick} now.",
 ]
-
 BET_OPENERS_EVENING = [
     "Evening pick. My bet is placed. 💸",
     "Just locked my evening bet. Here it is.",
@@ -125,7 +103,6 @@ BET_OPENERS_EVENING = [
     "Evening selection is in. Follow me on this one.",
     "My night pick is placed. Join me. 🔥",
 ]
-
 ANALYSIS_LINES = [
     "{pick} has the better form right now. Clear pick for me.",
     "Looked at this carefully. {pick} is the right side.",
@@ -135,7 +112,6 @@ ANALYSIS_LINES = [
     "I watched the odds move. {pick} is my pick. No doubt.",
     "{pick} has been consistent. I am backing them tonight.",
 ]
-
 CHALLENGE_LINES = [
     "STOP WATCHING. Start winning. 🔥",
     "You're still watching? Join me on this one.",
@@ -146,24 +122,11 @@ CHALLENGE_LINES = [
     "Are you in or still watching from the side?",
     "My followers are winning. You can too. 🔥",
 ]
-
-CTA_LABELS = [
-    "Follow my bet NOW:",
-    "Place your bet:",
-    "Bet NOW:",
-    "Join me:",
-    "Follow NOW:",
-]
-
-SPORT_EMOJIS = {
-    "soccer":     "⚽",
-    "tennis":     "🎾",
-    "basketball": "🏀",
-    "default":    "🏆",
-}
+CTA_LABELS = ["Follow my bet NOW:", "Place your bet:", "Bet NOW:", "Join me:", "Follow NOW:"]
+SPORT_EMOJIS = {"soccer": "⚽", "tennis": "🎾", "basketball": "🏀", "default": "🏆"}
 
 # ============================================================
-# DATABASE
+# MEMBERS DATABASE
 # ============================================================
 
 def db_load() -> dict:
@@ -175,7 +138,6 @@ def db_load() -> dict:
     except Exception:
         return {}
 
-
 def db_save(data: dict):
     try:
         with open(DB_FILE, "w") as f:
@@ -183,9 +145,7 @@ def db_save(data: dict):
     except Exception as e:
         log.error(f"DB save error: {e}")
 
-
 def db_add_member(user_id: int, username: str, plan: str, days: int):
-    """Add or renew member with exact days. Returns (expires_str, expires_dt)."""
     data       = db_load()
     now        = datetime.now(timezone.utc)
     expires_dt = now + timedelta(days=days)
@@ -197,12 +157,10 @@ def db_add_member(user_id: int, username: str, plan: str, days: int):
         "joined":   now.strftime("%Y-%m-%d %H:%M:%S"),
     }
     db_save(data)
-    log.info(f"Member saved: {user_id} ({plan}, {days}d) expires {expires}")
+    log.info(f"Member: {user_id} ({plan}, {days}d) expires {expires}")
     return expires, expires_dt
 
-
 def db_add_free_days(user_id: int, days: int):
-    """Extend existing member. Returns (new_exp_str, new_exp_dt) or (None, None)."""
     data = db_load()
     key  = str(user_id)
     if key not in data:
@@ -214,9 +172,7 @@ def db_add_free_days(user_id: int, days: int):
     new_exp = new_dt.strftime("%Y-%m-%d %H:%M:%S")
     data[key]["expires"] = new_exp
     db_save(data)
-    log.info(f"Extended {user_id} by {days}d → {new_exp}")
     return new_exp, new_dt
-
 
 def db_get_expiring_soon() -> list:
     data, now = db_load(), datetime.now(timezone.utc)
@@ -230,7 +186,6 @@ def db_get_expiring_soon() -> list:
             continue
     return result
 
-
 def db_get_expired() -> list:
     data, now = db_load(), datetime.now(timezone.utc)
     result = []
@@ -243,12 +198,10 @@ def db_get_expired() -> list:
             continue
     return result
 
-
 def db_remove_member(user_id: int):
     data = db_load()
     data.pop(str(user_id), None)
     db_save(data)
-
 
 def db_stats() -> dict:
     data, now = db_load(), datetime.now(timezone.utc)
@@ -266,18 +219,63 @@ def db_stats() -> dict:
                 expired += 1
         except Exception:
             continue
+    return {"total": len(data), "active": active, "expired": expired,
+            "weekly": weekly, "monthly": monthly, "free": free}
+
+# ============================================================
+# REFERRAL DATABASE
+# ============================================================
+
+def refs_load() -> dict:
+    if not os.path.exists(REFS_FILE):
+        return {}
+    try:
+        with open(REFS_FILE, "r") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def refs_save(data: dict):
+    try:
+        with open(REFS_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        log.error(f"Refs save error: {e}")
+
+def refs_get_link(user_id: int) -> str:
+    return f"https://t.me/{BOT_USERNAME}?start=ref_{user_id}"
+
+def refs_register(referrer_id: int, referrer_username: str, new_user_id: int) -> bool:
+    """Register referral. Returns True if reward earned."""
+    data = refs_load()
+    key  = str(referrer_id)
+    if key not in data:
+        data[key] = {
+            "username":       referrer_username or str(referrer_id),
+            "referral_count": 0,
+            "rewards_given":  0,
+            "referred_users": []
+        }
+    if new_user_id in data[key]["referred_users"]:
+        return False
+    data[key]["referred_users"].append(new_user_id)
+    data[key]["referral_count"] += 1
+    total       = data[key]["referral_count"]
+    rewards_due = total // REFERRAL_NEEDED
+    earned      = rewards_due > data[key]["rewards_given"]
+    if earned:
+        data[key]["rewards_given"] += 1
+    refs_save(data)
+    log.info(f"Referral: {new_user_id} → {referrer_id} (total: {total}, reward: {earned})")
+    return earned
+
+def refs_stats() -> dict:
+    data = refs_load()
     return {
-        "total": len(data), "active": active, "expired": expired,
-        "weekly": weekly, "monthly": monthly, "free": free
+        "total_referrers": len(data),
+        "total_referrals": sum(v["referral_count"] for v in data.values()),
+        "total_rewards":   sum(v["rewards_given"] for v in data.values()),
     }
-
-# ============================================================
-# HELPER — Create invite link with expiry
-# ============================================================
-
-def make_invite() -> str:
-    # Always return permanent channel link — no expiry issues
-    return VIP_INVITE_LINK
 
 # ============================================================
 # ADMIN COMMANDS
@@ -286,17 +284,16 @@ def make_invite() -> str:
 def is_admin(uid: int) -> bool:
     return uid == ADMIN_ID
 
-
 async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
-    s, data, now = db_stats(), db_load(), datetime.now(timezone.utc)
+    s, rs, data, now = db_stats(), refs_stats(), db_load(), datetime.now(timezone.utc)
     lines = []
     for uid, info in data.items():
         try:
             exp = datetime.strptime(info["expires"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             if exp > now:
                 name = f"@{info['username']}" if info.get("username") and not info["username"].isdigit() else f"ID:{uid}"
-                lines.append(f"  • {name} — {info.get('plan','?')} — {(exp - now).days}d left")
+                lines.append(f"  • {name} — {info.get('plan','?')} — {(exp-now).days}d left")
         except Exception:
             continue
     await update.message.reply_text(
@@ -307,10 +304,30 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"⚡ Weekly: {s['weekly']}\n"
         f"💎 Monthly: {s['monthly']}\n"
         f"🎁 Free: {s['free']}\n\n"
+        f"🔗 <b>REFERRAL STATS</b>\n"
+        f"👤 Active referrers: {rs['total_referrers']}\n"
+        f"📥 Total referrals made: {rs['total_referrals']}\n"
+        f"🏆 Total rewards given: {rs['total_rewards']}\n\n"
         f"<b>Active Members:</b>\n" + ("\n".join(lines) if lines else "  No active members"),
         parse_mode="HTML"
     )
 
+async def cmd_referrals(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update.effective_user.id): return
+    data = refs_load()
+    if not data:
+        await update.message.reply_text("No referrals yet.")
+        return
+    lines = ["<b>REFERRAL STATS PER USER:</b>\n"]
+    for uid, info in sorted(data.items(), key=lambda x: x[1]["referral_count"], reverse=True):
+        name       = f"@{info['username']}" if info.get("username") and not info["username"].isdigit() else f"ID:{uid}"
+        refs       = info["referral_count"]
+        rewards    = info["rewards_given"]
+        next_r     = REFERRAL_NEEDED - (refs % REFERRAL_NEEDED) if refs % REFERRAL_NEEDED != 0 else REFERRAL_NEEDED
+        lines.append(f"👤 {name}\n   Referrals: {refs} | Rewards: {rewards} | Next reward in: {next_r} more")
+    text = "\n\n".join(lines)
+    for i in range(0, len(text), 3500):
+        await update.message.reply_text(text[i:i+3500], parse_mode="HTML")
 
 async def cmd_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
@@ -332,7 +349,6 @@ async def cmd_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for i in range(0, len(text), 3500):
         await update.message.reply_text(text[i:i+3500], parse_mode="HTML")
 
-
 async def cmd_adddays(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     args = context.args
@@ -344,28 +360,21 @@ async def cmd_adddays(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("❌ Numbers only.")
         return
-
-    new_exp, new_dt = db_add_free_days(user_id, days)
+    new_exp, _ = db_add_free_days(user_id, days)
     if new_exp:
-        invite_url = make_invite()
         try:
-            msg = f"🎁 <b>You received {days} free VIP days!</b>\n\nAccess expires: <b>{new_exp} UTC</b>\n\n"
-            if invite_url:
-                msg += f"👇 <b>Join VIP channel:</b>\n{invite_url}\n\n"
-            msg += "Enjoy your premium picks! 🔥"
-            await context.bot.send_message(chat_id=user_id, text=msg, parse_mode="HTML")
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=f"🎁 <b>You received {days} free VIP days!</b>\n\n"
+                     f"Access expires: <b>{new_exp} UTC</b>\n\n"
+                     f"👇 <b>Join VIP channel:</b>\n{VIP_INVITE_LINK}\n\nEnjoy! 🔥",
+                parse_mode="HTML"
+            )
         except Exception as e:
             log.warning(f"Could not notify {user_id}: {e}")
-        reply = f"✅ Added {days} days to {user_id}\nNew expiry: {new_exp}"
-        if invite_url:
-            reply += f"\nInvite sent to user."
-        await update.message.reply_text(reply)
+        await update.message.reply_text(f"✅ Added {days} days to {user_id}\nNew expiry: {new_exp}")
     else:
-        await update.message.reply_text(
-            f"⚠️ User {user_id} not found in database.\n"
-            f"Use /giveaccess {user_id} {days} to add as new member."
-        )
-
+        await update.message.reply_text(f"⚠️ User {user_id} not found.\nUse /giveaccess {user_id} {days}")
 
 async def cmd_giveaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
@@ -378,51 +387,41 @@ async def cmd_giveaccess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except ValueError:
         await update.message.reply_text("❌ Numbers only.")
         return
-
-    expires, expires_dt = db_add_member(user_id, str(user_id), "free", days=days)
-    invite_url          = make_invite()
-
+    expires, _ = db_add_member(user_id, str(user_id), "free", days=days)
     try:
-        msg = f"🎁 <b>You got {days} days FREE VIP access!</b>\n\nAccess expires: <b>{expires} UTC</b>\n\n"
-        if invite_url:
-            msg += f"👇 <b>Join VIP channel now:</b>\n{invite_url}\n\n"
-        else:
-            msg += "Contact admin for your invite link.\n\n"
-        msg += "Enjoy your premium picks! 🔥"
-        await context.bot.send_message(chat_id=user_id, text=msg, parse_mode="HTML")
+        await context.bot.send_message(
+            chat_id=user_id,
+            text=f"🎁 <b>You got {days} days FREE VIP access!</b>\n\n"
+                 f"Access expires: <b>{expires} UTC</b>\n\n"
+                 f"👇 <b>Join VIP channel now:</b>\n{VIP_INVITE_LINK}\n\nEnjoy! 🔥",
+            parse_mode="HTML"
+        )
         notified = True
     except Exception as e:
         log.warning(f"Could not notify {user_id}: {e}")
         notified = False
-
-    reply = f"✅ Gave {days} free days to {user_id}\nExpires: {expires}"
-    if invite_url:
-        reply += f"\nInvite: {invite_url}"
+    reply = f"✅ Gave {days} free days to {user_id}\nExpires: {expires}\nInvite: {VIP_INVITE_LINK}"
     if not notified:
         reply += f"\n⚠️ Could not message user — they must start the bot first."
     await update.message.reply_text(reply)
 
-
 async def cmd_resetdb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     db_save({})
-    await update.message.reply_text("✅ Database cleared. All members removed.")
-    log.info("Database reset by admin.")
-
+    await update.message.reply_text("✅ Members database cleared.")
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id): return
     await update.message.reply_text(
         "<b>ADMIN COMMANDS:</b>\n\n"
-        "/stats — Statistics summary\n"
+        "/stats — Members + referral summary\n"
         "/members — Full members list\n"
-        "/adddays &lt;id&gt; &lt;days&gt; — Extend member + send invite\n"
-        "/giveaccess &lt;id&gt; &lt;days&gt; — Give free access to new user\n"
-        "/resetdb — Clear entire database\n"
+        "/referrals — Referral stats per user\n"
+        "/adddays &lt;id&gt; &lt;days&gt; — Add days to member\n"
+        "/giveaccess &lt;id&gt; &lt;days&gt; — Give free access\n"
+        "/resetdb — Clear members database\n"
         "/help — Show this list\n\n"
-        "<b>Examples:</b>\n"
-        "/adddays 123456789 7\n"
-        "/giveaccess 987654321 3",
+        f"Referral reward: {REFERRAL_NEEDED} friends = {REFERRAL_REWARD_DAYS} days free",
         parse_mode="HTML"
     )
 
@@ -431,9 +430,55 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ============================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user
+
+    # Handle referral: /start ref_123456789
+    if context.args and context.args[0].startswith("ref_"):
+        try:
+            referrer_id = int(context.args[0].replace("ref_", ""))
+            if referrer_id != user.id:
+                earned = refs_register(referrer_id, None, user.id)
+                refs_data = refs_load()
+                ref_info  = refs_data.get(str(referrer_id), {})
+                total     = ref_info.get("referral_count", 0)
+                if earned:
+                    # Give reward to referrer
+                    new_exp, _ = db_add_free_days(referrer_id, REFERRAL_REWARD_DAYS)
+                    if not new_exp:
+                        new_exp, _ = db_add_member(referrer_id, str(referrer_id), "referral", days=REFERRAL_REWARD_DAYS)
+                    try:
+                        await context.bot.send_message(
+                            chat_id=referrer_id,
+                            text=f"🎉 <b>Referral reward earned!</b>\n\n"
+                                 f"You now have <b>{total}</b> referrals!\n\n"
+                                 f"<b>Reward: {REFERRAL_REWARD_DAYS} days FREE VIP!</b>\n"
+                                 f"New expiry: <b>{new_exp} UTC</b>\n\n"
+                                 f"👇 Join VIP channel:\n{VIP_INVITE_LINK}\n\n"
+                                 f"Keep sharing to earn more! 🔥",
+                            parse_mode="HTML"
+                        )
+                    except Exception as e:
+                        log.warning(f"Could not notify referrer {referrer_id}: {e}")
+                else:
+                    next_r = REFERRAL_NEEDED - (total % REFERRAL_NEEDED)
+                    try:
+                        await context.bot.send_message(
+                            chat_id=referrer_id,
+                            text=f"👥 <b>New referral!</b>\n\n"
+                                 f"Someone joined through your link!\n"
+                                 f"Total referrals: <b>{total}</b>\n\n"
+                                 f"<b>{next_r} more</b> friends = {REFERRAL_REWARD_DAYS} free days! 🔥",
+                            parse_mode="HTML"
+                        )
+                    except Exception as e:
+                        log.warning(f"Could not notify referrer {referrer_id}: {e}")
+        except Exception as e:
+            log.warning(f"Referral error: {e}")
+
     keyboard = [
         [InlineKeyboardButton(f"⚡ 7 Days — {WEEKLY_STARS} Stars ($2)", callback_data='pay_weekly')],
-        [InlineKeyboardButton(f"💎 30 Days — {MONTHLY_STARS} Stars ($8)", callback_data='pay_monthly')]
+        [InlineKeyboardButton(f"💎 30 Days — {MONTHLY_STARS} Stars ($8)", callback_data='pay_monthly')],
+        [InlineKeyboardButton("🔗 My Referral Link", callback_data='my_referral')],
     ]
     await update.message.reply_text(
         "💎 <b>FORTUNOBET VIP ACCESS</b>\n\n"
@@ -442,19 +487,43 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• Higher odds selections\n"
         "• Real match analysis\n"
         "• Telegram support\n\n"
+        f"🔗 <b>Invite {REFERRAL_NEEDED} friends = {REFERRAL_REWARD_DAYS} days FREE!</b>\n\n"
         "⚡ <b>Choose your access:</b>",
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode="HTML"
     )
 
-
 async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    if query.data == 'my_referral':
+        user      = query.from_user
+        ref_link  = refs_get_link(user.id)
+        refs_data = refs_load()
+        ref_info  = refs_data.get(str(user.id), {})
+        total     = ref_info.get("referral_count", 0)
+        rewards   = ref_info.get("rewards_given", 0)
+        next_r    = REFERRAL_NEEDED - (total % REFERRAL_NEEDED) if total % REFERRAL_NEEDED != 0 else REFERRAL_NEEDED
+        await query.edit_message_text(
+            f"🔗 <b>YOUR REFERRAL LINK</b>\n\n"
+            f"<code>{ref_link}</code>\n\n"
+            f"Share this link with friends.\n"
+            f"Every <b>{REFERRAL_NEEDED} friends</b> who start the bot = <b>{REFERRAL_REWARD_DAYS} days FREE</b> for you!\n\n"
+            f"📊 <b>Your stats:</b>\n"
+            f"👥 Total referrals: {total}\n"
+            f"🏆 Rewards earned: {rewards}\n"
+            f"⏳ Next reward in: {next_r} more friends\n\n"
+            f"Tap the link above to copy it! 📋",
+            parse_mode="HTML"
+        )
+        return
+
     if query.data == 'pay_weekly':
         title, desc, price, payload, days, duration = "VIP Weekly Access", "7 days of premium picks", WEEKLY_STARS, "weekly", 7, "7 days"
     else:
         title, desc, price, payload, days, duration = "VIP Monthly Access", "30 days of premium picks", MONTHLY_STARS, "monthly", 30, "30 days"
+
     await query.edit_message_text(
         f"💎 <b>{title}</b>\n\n"
         f"✅ {duration} VIP access\n"
@@ -472,10 +541,8 @@ async def handle_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prices=[LabeledPrice(title, price)]
     )
 
-
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.pre_checkout_query.answer(ok=True)
-
 
 async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user     = update.message.from_user
@@ -484,16 +551,14 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     days     = 7 if plan == "weekly" else 30
     duration = f"{days} days"
     username = user.username or user.first_name or str(user.id)
-
-    expires, expires_dt = db_add_member(user.id, username, plan, days=days)
-    invite_url          = make_invite()
-
+    expires, _ = db_add_member(user.id, username, plan, days=days)
     await update.message.reply_text(
         f"✅ <b>PAYMENT CONFIRMED!</b>\n\n"
         f"🎯 Your {duration} VIP access is ready!\n"
         f"Expires: <b>{expires} UTC</b>\n\n"
-        f"👇 <b>JOIN NOW:</b>\n{invite_url or 'Contact admin for link'}\n\n"
-        f"💚 Welcome to Fortunobet VIP!",
+        f"👇 <b>JOIN NOW:</b>\n{VIP_INVITE_LINK}\n\n"
+        f"💚 Welcome to Fortunobet VIP!\n\n"
+        f"🔗 Earn free days by referring friends!\nTap /start → My Referral Link",
         parse_mode="HTML"
     )
     try:
@@ -510,7 +575,6 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 # ============================================================
 
 async def reminder_job():
-    """Daily 10:00 Armenia — remind members expiring in 24h."""
     log.info("=== REMINDER JOB ===")
     expiring = db_get_expiring_soon()
     if not expiring:
@@ -523,16 +587,13 @@ async def reminder_job():
                 chat_id=m["user_id"],
                 text=f"⚠️ <b>VIP access expiring soon!</b>\n\n"
                      f"Expires: <b>{m['expires_dt'].strftime('%B %d at %H:%M UTC')}</b>\n\n"
-                     f"Tap /start to renew now and keep your picks. 🔥",
+                     f"Tap /start to renew now. 🔥",
                 parse_mode="HTML"
             )
-            log.info(f"Reminder sent: {m['user_id']}")
         except Exception as e:
             log.warning(f"Reminder failed {m['user_id']}: {e}")
 
-
 async def kick_job():
-    """Daily 10:05 Armenia — kick expired members from VIP channel."""
     log.info("=== KICK JOB ===")
     expired = db_get_expired()
     if not expired:
@@ -554,7 +615,7 @@ async def kick_job():
                 )
             except Exception:
                 pass
-            log.info(f"Kicked expired: {m['user_id']}")
+            log.info(f"Kicked: {m['user_id']}")
         except Exception as e:
             log.warning(f"Kick failed {m['user_id']}: {e}")
 
@@ -564,7 +625,6 @@ async def kick_job():
 
 def american_to_decimal(american: int) -> float:
     return round((american / 100) + 1, 3) if american > 0 else round((100 / abs(american)) + 1, 3)
-
 
 def fetch_odds(sport_key: str) -> list:
     try:
@@ -579,28 +639,24 @@ def fetch_odds(sport_key: str) -> list:
         log.error(f"Fetch error {sport_key}: {e}")
         return []
 
-
 def fetch_active_sports() -> list:
     try:
-        r = requests.get(
-            "https://api.the-odds-api.com/v4/sports",
-            params={"apiKey": ODDS_API_KEY}, timeout=10
-        )
+        r = requests.get("https://api.the-odds-api.com/v4/sports",
+                         params={"apiKey": ODDS_API_KEY}, timeout=10)
         return [s["key"] for s in r.json() if s.get("active")] if r.status_code == 200 else []
     except Exception as e:
         log.error(f"Sports error: {e}")
         return []
 
 # ============================================================
-# MATCH SELECTOR — future matches only
+# MATCH SELECTOR
 # ============================================================
 
 def get_sport_category(sport_key: str) -> str:
-    if "soccer"     in sport_key: return "soccer"
-    if "tennis"     in sport_key: return "tennis"
+    if "soccer" in sport_key: return "soccer"
+    if "tennis" in sport_key: return "tennis"
     if "basketball" in sport_key: return "basketball"
     return "default"
-
 
 def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
     now, candidates = datetime.now(timezone.utc), []
@@ -627,22 +683,16 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
         odds = avg[fav]
         if not (MIN_ODDS <= odds <= MAX_ODDS): continue
         candidates.append({
-            "match_id":    match["id"],
-            "sport_key":   match["sport_key"],
-            "sport_cat":   get_sport_category(match["sport_key"]),
+            "match_id": match["id"], "sport_key": match["sport_key"],
+            "sport_cat": get_sport_category(match["sport_key"]),
             "sport_title": match["sport_title"],
-            "home_team":   match["home_team"],
-            "away_team":   match["away_team"],
-            "commence":    commence,
-            "pick":        fav,
-            "pick_odds":   odds,
-            "all_odds":    avg,
-            "hours_until": hours_until,
+            "home_team": match["home_team"], "away_team": match["away_team"],
+            "commence": commence, "pick": fav, "pick_odds": odds,
+            "all_odds": avg, "hours_until": hours_until,
         })
     if not candidates: return None
     candidates.sort(key=lambda c: abs(c["pick_odds"] - 1.55))
     return candidates[0]
-
 
 def find_best_match(exclude_id: str = None) -> dict | None:
     log.info("Finding best future match...")
@@ -656,19 +706,17 @@ def find_best_match(exclude_id: str = None) -> dict | None:
             if sport_key in SPORT_PRIORITY or cat not in sport_key: continue
             pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
             if pick:
-                log.info(f"Fallback pick: {pick['pick']} ({sport_key})")
+                log.info(f"Fallback: {pick['pick']} ({sport_key})")
                 return pick
     log.warning("No future match found.")
     return None
 
 # ============================================================
-# POST GENERATOR — UTC time + full date
+# POST GENERATOR
 # ============================================================
 
 def format_match_datetime(dt: datetime) -> str:
-    # UTC shown — Nigeria = UTC+1, Ghana = UTC+0
     return dt.strftime("%A, %b %d — %H:%M UTC")
-
 
 def build_odds_block(pick: dict) -> str:
     return "\n".join(
@@ -676,16 +724,12 @@ def build_odds_block(pick: dict) -> str:
         for t, o in sorted(pick["all_odds"].items(), key=lambda x: x[1])
     )
 
-
 def generate_morning_post(pick: dict) -> str:
-    emoji = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
-    link  = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
-    dep   = random.choice(DEPOSIT_OFFERS)
+    emoji, link, dep = SPORT_EMOJIS.get(pick["sport_cat"], "🏆"), SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"]), random.choice(DEPOSIT_OFFERS)
     return (
         f"{emoji} <b>{random.choice(BET_OPENERS_MORNING).format(pick=pick['pick'])}</b>\n\n"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
-        f"{pick['sport_title']}\n"
-        f"📅 {format_match_datetime(pick['commence'])}\n\n"
+        f"{pick['sport_title']}\n📅 {format_match_datetime(pick['commence'])}\n\n"
         f"{build_odds_block(pick)}\n\n"
         f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
         f"{random.choice(BET_AMOUNTS)} placed on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 💸\n\n"
@@ -695,18 +739,13 @@ def generate_morning_post(pick: dict) -> str:
         f"👉 <b>{random.choice(CTA_LABELS)}</b>\n{link}"
     )
 
-
 def generate_evening_post(pick: dict, morning_pick: dict = None) -> str:
-    emoji = SPORT_EMOJIS.get(pick["sport_cat"], "🏆")
-    link  = SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"])
-    dep   = random.choice(DEPOSIT_OFFERS)
-    ref   = f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check result! ✅\n\n" if morning_pick else ""
+    emoji, link, dep = SPORT_EMOJIS.get(pick["sport_cat"], "🏆"), SPORT_LINKS.get(pick["sport_cat"], SPORT_LINKS["default"]), random.choice(DEPOSIT_OFFERS)
+    ref = f"📌 Morning pick: <b>{morning_pick['pick']}</b> @ {morning_pick['pick_odds']} — check result! ✅\n\n" if morning_pick else ""
     return (
-        f"{emoji} <b>{random.choice(BET_OPENERS_EVENING)}</b>\n\n"
-        f"{ref}"
+        f"{emoji} <b>{random.choice(BET_OPENERS_EVENING)}</b>\n\n{ref}"
         f"<b>{pick['away_team']} vs {pick['home_team']}</b>\n"
-        f"{pick['sport_title']}\n"
-        f"📅 {format_match_datetime(pick['commence'])}\n\n"
+        f"{pick['sport_title']}\n📅 {format_match_datetime(pick['commence'])}\n\n"
         f"{build_odds_block(pick)}\n\n"
         f"{random.choice(ANALYSIS_LINES).format(pick=pick['pick'])}\n"
         f"{random.choice(BET_AMOUNTS)} on <b>{pick['pick']}</b> @ {pick['pick_odds']}. 🔥\n\n"
@@ -726,21 +765,12 @@ async def send_to_vip(text: str, sport_cat: str):
     try:
         if os.path.exists(image_path):
             with open(image_path, "rb") as photo:
-                await bot.send_photo(
-                    chat_id=VIP_CHANNEL_ID,
-                    photo=photo,
-                    caption=text[:1024],
-                    parse_mode=ParseMode.HTML
-                )
+                await bot.send_photo(chat_id=VIP_CHANNEL_ID, photo=photo,
+                                     caption=text[:1024], parse_mode=ParseMode.HTML)
         else:
-            log.warning(f"Image missing: {image_path} — sending text only")
-            await bot.send_message(
-                chat_id=VIP_CHANNEL_ID,
-                text=text,
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True
-            )
-        log.info("✅ Post sent to VIP channel.")
+            await bot.send_message(chat_id=VIP_CHANNEL_ID, text=text,
+                                   parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        log.info("✅ Post sent.")
     except Exception as e:
         log.error(f"Send error: {e}")
 
@@ -750,25 +780,19 @@ async def send_to_vip(text: str, sport_cat: str):
 
 _morning_pick: dict | None = None
 
-
 async def morning_job():
     global _morning_pick
-    log.info("=== MORNING JOB (12:00 Armenia = 09:00 Nigeria) ===")
+    log.info("=== MORNING JOB (12:00 Armenia) ===")
     pick = find_best_match()
-    if not pick:
-        log.warning("No future match found. Skipping.")
-        return
+    if not pick: log.warning("No future match. Skipping."); return
     _morning_pick = pick
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
 
-
 async def evening_job():
     global _morning_pick
-    log.info("=== EVENING JOB (00:00 Armenia = 21:00 Nigeria PEAK) ===")
+    log.info("=== EVENING JOB (00:00 Armenia PEAK) ===")
     pick = find_best_match(exclude_id=_morning_pick["match_id"] if _morning_pick else None)
-    if not pick:
-        log.warning("No future match found. Skipping.")
-        return
+    if not pick: log.warning("No future match. Skipping."); return
     await send_to_vip(generate_evening_post(pick, morning_pick=_morning_pick), pick["sport_cat"])
 
 # ============================================================
@@ -777,25 +801,23 @@ async def evening_job():
 
 async def main():
     log.info("🚀 Fortunobet VIP Bot + Auto-Poster starting...")
-
     for sport, path in SPORT_IMAGES.items():
         log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
-
-    log.info(f"📋 VIP members in database: {len(db_load())}")
+    log.info(f"📋 Members: {len(db_load())} | Referrers: {len(refs_load())}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
-    scheduler.add_job(morning_job,  "cron", hour=12, minute=0,  id="morning")
-    scheduler.add_job(evening_job,  "cron", hour=0,  minute=0,  id="evening")
-    scheduler.add_job(reminder_job, "cron", hour=10, minute=0,  id="reminder")
-    scheduler.add_job(kick_job,     "cron", hour=10, minute=5,  id="kick")
+    scheduler.add_job(morning_job,  "cron", hour=12, minute=0, id="morning")
+    scheduler.add_job(evening_job,  "cron", hour=0,  minute=0, id="evening")
+    scheduler.add_job(reminder_job, "cron", hour=10, minute=0, id="reminder")
+    scheduler.add_job(kick_job,     "cron", hour=10, minute=5, id="kick")
     scheduler.start()
-
-    log.info("Scheduler: 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick (Armenia time)")
+    log.info("Scheduler: 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
 
     app = Application.builder().token(VIP_TOKEN).build()
     app.add_handler(CommandHandler("start",      start))
     app.add_handler(CommandHandler("stats",      cmd_stats))
     app.add_handler(CommandHandler("members",    cmd_members))
+    app.add_handler(CommandHandler("referrals",  cmd_referrals))
     app.add_handler(CommandHandler("adddays",    cmd_adddays))
     app.add_handler(CommandHandler("giveaccess", cmd_giveaccess))
     app.add_handler(CommandHandler("resetdb",    cmd_resetdb))
@@ -804,8 +826,7 @@ async def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
-    log.info("💎 VIP Payment Bot starting...")
-
+    log.info("💎 VIP Bot starting...")
     async with app:
         await app.initialize()
         await app.start()
@@ -820,7 +841,6 @@ async def main():
             scheduler.shutdown()
             await app.updater.stop()
             await app.stop()
-
 
 if __name__ == "__main__":
     asyncio.run(main())
