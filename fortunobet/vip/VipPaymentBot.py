@@ -702,7 +702,7 @@ async def evening_job():
 
 
 async def test_job():
-    log.info("=== TEST POST (15:35 Armenia) ===")
+    log.info("=== TEST POST (15:40 Armenia) ===")
     pick = find_best_match()
     if not pick: log.warning("No future match for test. Skipping."); return
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
@@ -725,15 +725,15 @@ async def main():
     scheduler.add_job(kick_job,     "cron", hour=10, minute=5,  id="kick")
 
     now_armenia = datetime.now(timezone(timedelta(hours=4)))
-    test_time   = now_armenia.replace(hour=15, minute=35, second=0, microsecond=0)
+    test_time   = now_armenia.replace(hour=15, minute=40, second=0, microsecond=0)
     if now_armenia < test_time:
         scheduler.add_job(test_job, "date", run_date=test_time, id="test_post", timezone="Asia/Yerevan")
-        log.info("🧪 Test post scheduled: 15:35 Armenia today.")
+        log.info("🧪 Test post scheduled: 15:40 Armenia today.")
     else:
-        log.warning("⚠️  15:35 Armenia already passed. Test post skipped.")
+        log.warning("⚠️  15:40 Armenia already passed. Test post skipped.")
 
     scheduler.start()
-    log.info("Scheduler: 15:35 test | 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
+    log.info("Scheduler: 15:40 test | 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
 
     app = Application.builder().token(VIP_TOKEN).build()
     app.add_handler(CommandHandler("start",      start))
