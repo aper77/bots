@@ -23,8 +23,8 @@ PROMO_CODE      = "fortunobet"
 ADMIN_ID        = 7627990095
 BOT_USERNAME    = "FortunoVIPbot"
 
-WEEKLY_STARS  = 100   # $2
-MONTHLY_STARS = 400   # $8
+WEEKLY_STARS  = 50    # $1
+MONTHLY_STARS = 150   # $3
 
 REFERRAL_NEEDED      = 5   # friends needed for reward
 REFERRAL_REWARD_DAYS = 30  # days given as reward
@@ -476,8 +476,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             log.warning(f"Referral error: {e}")
 
     keyboard = [
-        [InlineKeyboardButton(f"⚡ 7 Days — {WEEKLY_STARS} Stars ($2)", callback_data='pay_weekly')],
-        [InlineKeyboardButton(f"💎 30 Days — {MONTHLY_STARS} Stars ($8)", callback_data='pay_monthly')],
+        [InlineKeyboardButton(f"⚡ 7 Days — {WEEKLY_STARS} Stars ($1)", callback_data='pay_weekly')],
+        [InlineKeyboardButton(f"💎 30 Days — {MONTHLY_STARS} Stars ($3)", callback_data='pay_monthly')],
         [InlineKeyboardButton("🔗 My Referral Link", callback_data='my_referral')],
     ]
     await update.message.reply_text(
