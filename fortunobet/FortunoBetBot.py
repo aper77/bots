@@ -41,7 +41,13 @@ scheduler = BlockingScheduler()
 # 14:00 — Withdraw + Tips (VALUE)
 # 22:00 — Final Bonus (HYPE)
 
+# {"date":"2026-04-18","time":"12:00","content":"🎰 <b>600% WELCOME BONUS!</b>\n\nNew players get 600% + bonuses. 💰\nPromo: FORTUNOBET.\n\nFast payouts. No fees.\nWeekend players already winning. 🔥\n\nDeposit ₦20,000 → play with ₦140,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Play:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet.jpeg"]},
+# {"date":"2026-04-16","time":"12:00","content":"🎰 <b>500% BONUS — First deposits!</b>\n\n500% on your first deposit. 💰\nPromo: FORTUNOBET.\n\nFast payouts. High multipliers.\nThey deposited yesterday. Already playing. 🔥\n\nDeposit ₦10,000 → play with ₦60,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Play:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet2.jpeg"]},
+
+
 posts = [
+# ========== SUNDAY APRIL 12 (posts) ==========
+# manual post depost video in 00:00
  
 # ========== MONDAY APRIL 13 (2 posts) ==========
 {"date":"2026-04-13","time":"12:00","content":"⚽ <b>$100 → $184. West Ham United ✅</b>\n\nEngland Premier League. Odds 1.84. 🏴󠁧󠁢󠁥󠁮󠁧󠁿\n$84 profit. One match. Clean start. 💸\n\nWest Ham 3-0. Dominant win.\nThey followed Monday. Already in profit.\n\nYou're still watching? 🔥\n\nDeposit ₦10,000 → play with ₦60,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join NOW:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["win1.png"]},
@@ -56,15 +62,15 @@ posts = [
 {"date":"2026-04-15","time":"00:00","content":"⚠️ <b>Bonus expires in 48 hours!</b>\n\nRegistered Monday? Expires Wed 11:59 PM.\nRegistered Tuesday? Expires Thu 11:59 PM. ⏰\n\n600% NOT lifetime. 48 hours only.\nAfter deadline: ❌ Gone forever.\n\nDeposit NOW or lose it. 🔥\n\nDeposit ₦5,000 → play with ₦35,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>NOW:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet1.jpeg"]},
  
 # ========== THURSDAY APRIL 16 (2 posts) ==========
-{"date":"2026-04-16","time":"12:00","content":"🎰 <b>500% BONUS — First deposits!</b>\n\n500% on your first deposit. 💰\nPromo: FORTUNOBET.\n\nFast payouts. High multipliers.\nThey deposited yesterday. Already playing. 🔥\n\nDeposit ₦10,000 → play with ₦60,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Play:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet2.jpeg"]},
+# manual analis post in 12:00
 {"date":"2026-04-16","time":"00:00","content":"🎰 <b>PIÑATA WINS — 600% + 500FS!</b>\n\nCatch your win. 💰\n600% bonus + 500 free spins.\n\nFirst deposits only. Code: FORTUNOBET.\nThey're winning. You're watching. 🔥\n\nDeposit ₦10,000 → play with ₦70,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Catch:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet.png"]},
  
 # ========== FRIDAY APRIL 17 (2 posts) ==========
-# {"date":"2026-04-17","time":"18:00","content":"📲 <b>Deposit ₦500 in 60 seconds ✅</b>\n\nOpay. Palmpay. MTN MoMo. All work. ⚡\nVideo shows every step. Real time.\n\n₦500 = less than one plate of food.\n₦500 → ₦3,000 (bonus works!) 💰\n\nSmart players test. Scared watch. 🔥\n\nDeposit ₦500 → play with ₦3,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Test:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["[YOUR VIDEO]"]},
+# {"date":"2026-04-17","time":"12:00","content":"📲 <b>Deposit ₦500 in 60 seconds ✅</b>\n\nOpay. Palmpay. MTN MoMo. All work. ⚡\nVideo shows every step. Real time.\n\n₦500 = less than one plate of food.\n₦500 → ₦3,000 (bonus works!) 💰\n\nSmart players test. Scared watch. 🔥\n\nDeposit ₦500 → play with ₦3,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Test:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["[YOUR VIDEO]"]},
 {"date":"2026-04-17","time":"00:00","content":"🎰 <b>600% CRYPTO BONUS!</b>\n\nFirst crypto deposits get 600%. 💰\nBitcoin. Ethereum. USDT. All work.\n\nPromo: FORTUNOBET. Fast payouts.\nNo fees. They're depositing. You? 🔥\n\nDeposit ₦10,000 → play with ₦70,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Claim:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet3.jpeg"]},
  
 # ========== SATURDAY APRIL 18 (2 posts) ==========
-{"date":"2026-04-18","time":"12:00","content":"🎰 <b>600% WELCOME BONUS!</b>\n\nNew players get 600% + bonuses. 💰\nPromo: FORTUNOBET.\n\nFast payouts. No fees.\nWeekend players already winning. 🔥\n\nDeposit ₦20,000 → play with ₦140,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Play:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet.jpeg"]},
+{"date":"2026-04-18","time":"12:00","content":"💚 <b>₦3,000 test → ₦8,500 withdrawal ✅</b>\n\nReal story. This week.\n\nDeposited ₦3,000 Monday (testing).\nBet on Man City Tuesday. Won ₦5,500.\nWithdrew ₦8,500 Thursday. PalmPay. 💸\n\nArrived in 5 minutes. Real money.\n\n\"I tested small first. Now I trust.\" 🔥\n\nDeposit ₦3,000 → play with ₦18,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Test:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["fortunobet.jpeg"]},
 {"date":"2026-04-18","time":"21:00","content":"💸 <b>₦114,646 PalmPay — Instant ✅</b>\n\nMarch 14, 14:33. Real money. 💚\n₦114,646 arrived same minute.\n\nThis week: ₦216k + ₦114k = Both instant.\nTwo withdrawals. Pattern proof. 🔥\n\nYou can't withdraw what you don't deposit.\n\nDeposit ₦10,000 → play with ₦60,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Start:</b> https://1wzpdo.life/casino/list?open=register&p=z4m5","images":["with2.png"]},
  
 # ========== SUNDAY APRIL 19 (3 posts) ==========
