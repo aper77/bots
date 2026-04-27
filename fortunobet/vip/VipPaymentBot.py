@@ -29,9 +29,10 @@ MONTHLY_STARS = 150   # $3
 REFERRAL_NEEDED      = 5   # friends needed for reward
 REFERRAL_REWARD_DAYS = 30  # days given as reward
 
-DB_FILE    = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vip_members.json")
-REFS_FILE  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referrals.json")
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE           = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vip_members.json")
+REFS_FILE         = os.path.join(os.path.dirname(os.path.abspath(__file__)), "referrals.json")
+SCRIPT_DIR        = os.path.dirname(os.path.abspath(__file__))
+MORNING_PICK_FILE = os.path.join(SCRIPT_DIR, "morning_pick.json")
 
 SPORT_IMAGES = {
     "soccer":     os.path.join(SCRIPT_DIR, "football.jpeg"),
@@ -53,18 +54,70 @@ MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
 # ============================================================
-# ADMIN COMMANDS
+# ADMIN COMMANDS  (only work for ADMIN_ID)
 # ============================================================
-# /stats                        — Members + referral summary
-# /members                      — Full members list
-# /referrals                    — Referral stats per user
-# /adddays <user_id> <days>     — Add days to existing member
-# /giveaccess <user_id> <days>  — Give free access to new user
-# /resetdb                      — Clear members database
-# /help                         — Show all commands
 #
-# Stars balance:
-# https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
+#  /stats
+#       Shows full VIP statistics:
+#       - Total members ever, active now, expired
+#       - Breakdown by plan: weekly / monthly / free
+#       - Referral summary: referrers, total referrals, rewards given
+#       - List of every currently active member with days remaining
+#
+#  /members
+#       Full list of ALL members (active + expired) with:
+#       - Status ✅/❌, username or ID, plan, days left, Telegram ID
+#
+#  /referrals
+#       Per-user referral stats sorted by most referrals:
+#       - Total referrals made, rewards earned, how many until next reward
+#
+#  /adddays <user_id> <days>
+#       Add extra days to an EXISTING member's expiry.
+#       Example: /adddays 123456789 7
+#       - Extends from current expiry (not from today)
+#       - Sends the user a notification with new expiry date + invite link
+#       - If user not found → suggests /giveaccess instead
+#
+#  /giveaccess <user_id> <days>
+#       Give FREE VIP access to a NEW user (not yet in database).
+#       Example: /giveaccess 123456789 30
+#       - Adds them to the database with plan = "free"
+#       - Sends them the VIP invite link automatically
+#       - If bot cannot message them → they must /start the bot first
+#
+#  /resetdb
+#       ⚠️  DANGER: Clears the entire members database (vip_members.json).
+#       Does NOT affect referrals.json or morning_pick.json.
+#
+#  /help
+#       Shows all admin commands inside Telegram.
+#
+# ------------------------------------------------------------
+# USEFUL LINKS
+# ------------------------------------------------------------
+#  Stars balance:
+#  https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
+#
+#  Bot info:
+#  https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMe
+#
+# ------------------------------------------------------------
+# FILES CREATED BY THE BOT
+# ------------------------------------------------------------
+#  vip_members.json   — active/expired VIP members database
+#  referrals.json     — referral tracking per user
+#  morning_pick.json  — today's morning match (auto-deleted after evening post)
+#  vip_bot.log        — full runtime log
+#
+# ------------------------------------------------------------
+# SCHEDULER  (timezone: Asia/Yerevan)
+# ------------------------------------------------------------
+#  10:00  — reminder_job  → warns members expiring within 24h
+#  10:05  — kick_job      → removes expired members from channel
+#  12:00  — morning_job   → posts morning pick to VIP channel
+#  00:00  — evening_job   → posts evening pick (never same match as morning)
+#
 # ============================================================
 
 logging.basicConfig(
@@ -276,6 +329,55 @@ def refs_stats() -> dict:
         "total_referrals": sum(v["referral_count"] for v in data.values()),
         "total_rewards":   sum(v["rewards_given"] for v in data.values()),
     }
+
+# ============================================================
+# MORNING PICK PERSISTENCE
+# ============================================================
+
+def morning_pick_save(pick: dict):
+    """Save morning pick to disk so it survives bot restarts."""
+    try:
+        data = {
+            "match_id":    pick["match_id"],
+            "pick":        pick["pick"],
+            "pick_odds":   pick["pick_odds"],
+            "home_team":   pick["home_team"],
+            "away_team":   pick["away_team"],
+            "sport_cat":   pick["sport_cat"],
+            "sport_title": pick["sport_title"],
+            "saved_date":  datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        }
+        with open(MORNING_PICK_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        log.info(f"Morning pick saved to disk: {pick['match_id']}")
+    except Exception as e:
+        log.error(f"Failed to save morning pick: {e}")
+
+def morning_pick_load() -> dict | None:
+    """Load today's morning pick from disk. Returns None if not today's or missing."""
+    try:
+        if not os.path.exists(MORNING_PICK_FILE):
+            return None
+        with open(MORNING_PICK_FILE, "r") as f:
+            data = json.load(f)
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if data.get("saved_date") != today:
+            log.info("Morning pick on disk is from a previous day — ignoring.")
+            return None
+        log.info(f"Loaded today's morning pick from disk: {data['match_id']}")
+        return data
+    except Exception as e:
+        log.error(f"Failed to load morning pick: {e}")
+        return None
+
+def morning_pick_clear():
+    """Delete the morning pick file after the evening post is sent."""
+    try:
+        if os.path.exists(MORNING_PICK_FILE):
+            os.remove(MORNING_PICK_FILE)
+            log.info("Morning pick file cleared.")
+    except Exception as e:
+        log.error(f"Failed to clear morning pick: {e}")
 
 # ============================================================
 # ADMIN COMMANDS
@@ -778,22 +880,31 @@ async def send_to_vip(text: str, sport_cat: str):
 # SCHEDULER JOBS
 # ============================================================
 
-_morning_pick: dict | None = None
-
 async def morning_job():
-    global _morning_pick
     log.info("=== MORNING JOB (12:00 Armenia) ===")
     pick = find_best_match()
-    if not pick: log.warning("No future match. Skipping."); return
-    _morning_pick = pick
+    if not pick:
+        log.warning("No future match. Skipping.")
+        return
+    # Save to disk so evening job can exclude it even after a restart
+    morning_pick_save(pick)
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
 
 async def evening_job():
-    global _morning_pick
-    log.info("=== EVENING JOB (00:00 Armenia PEAK) ===")
-    pick = find_best_match(exclude_id=_morning_pick["match_id"] if _morning_pick else None)
-    if not pick: log.warning("No future match. Skipping."); return
-    await send_to_vip(generate_evening_post(pick, morning_pick=_morning_pick), pick["sport_cat"])
+    log.info("=== EVENING JOB (00:00 Armenia) ===")
+    # Always load from disk — guaranteed to be today's pick or None
+    saved_morning = morning_pick_load()
+    exclude_id    = saved_morning["match_id"] if saved_morning else None
+    if exclude_id:
+        log.info(f"Excluding morning match: {exclude_id}")
+
+    pick = find_best_match(exclude_id=exclude_id)
+    if not pick:
+        log.warning("No future match. Skipping.")
+        return
+    await send_to_vip(generate_evening_post(pick, morning_pick=saved_morning), pick["sport_cat"])
+    # Clear the morning pick file after the evening post is sent
+    morning_pick_clear()
 
 # ============================================================
 # MAIN
@@ -804,6 +915,11 @@ async def main():
     for sport, path in SPORT_IMAGES.items():
         log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
     log.info(f"📋 Members: {len(db_load())} | Referrers: {len(refs_load())}")
+
+    # Log if today's morning pick is already saved (e.g. bot restarted after morning post)
+    saved = morning_pick_load()
+    if saved:
+        log.info(f"📌 Today's morning pick already on disk: {saved['match_id']} — {saved['pick']}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
     scheduler.add_job(morning_job,  "cron", hour=12, minute=0, id="morning")
@@ -844,13 +960,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-        # https://api.telegram.org/bot8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg/getMyStarBalance
-
-        # /stats   Total members, active, expired, weekly vs monthly
-        # /members Full list with names, plan, days remaining
-        # /adddays 123456789 7 Add 7 free days to existing member
-        # /giveaccess 123456789 7 Give 7 free days to new user + sends them invite link
-        # /helpShows all commands
