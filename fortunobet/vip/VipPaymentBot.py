@@ -334,6 +334,12 @@ def refs_stats() -> dict:
 # MORNING PICK PERSISTENCE
 # ============================================================
 
+# Armenia is UTC+4. Both morning (12:00) and evening (00:00) jobs
+# run on the same Armenian calendar day. Using UTC here caused the
+# bug: at 00:00 Armenia = 20:00 UTC previous day, so the date check
+# failed and the morning pick was ignored — allowing the same match.
+ARMENIA_TZ = timezone(timedelta(hours=4))
+
 def morning_pick_save(pick: dict):
     """Save morning pick to disk so it survives bot restarts."""
     try:
@@ -345,7 +351,7 @@ def morning_pick_save(pick: dict):
             "away_team":   pick["away_team"],
             "sport_cat":   pick["sport_cat"],
             "sport_title": pick["sport_title"],
-            "saved_date":  datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "saved_date":  datetime.now(ARMENIA_TZ).strftime("%Y-%m-%d"),
         }
         with open(MORNING_PICK_FILE, "w") as f:
             json.dump(data, f, indent=2)
@@ -360,7 +366,7 @@ def morning_pick_load() -> dict | None:
             return None
         with open(MORNING_PICK_FILE, "r") as f:
             data = json.load(f)
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(ARMENIA_TZ).strftime("%Y-%m-%d")
         if data.get("saved_date") != today:
             log.info("Morning pick on disk is from a previous day — ignoring.")
             return None
