@@ -48,8 +48,8 @@ SPORT_LINKS = {
     "default":    f"https://one-vv858.com/?p={REF_CODE}",
 }
 
-MIN_HOURS_UNTIL_MATCH = 1.0
-MAX_HOURS_UNTIL_MATCH = 24.0
+MIN_HOURS_UNTIL_MATCH = 0.5   # matches starting in 30+ minutes qualify
+MAX_HOURS_UNTIL_MATCH = 48.0  # look up to 48 hours ahead so morning post always finds something
 MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
@@ -115,7 +115,7 @@ MAX_ODDS = 2.20
 # ------------------------------------------------------------
 #  10:00  — reminder_job  → warns members expiring within 24h
 #  10:05  — kick_job      → removes expired members from channel
-#  12:00  — morning_job   → posts morning pick to VIP channel
+#  12:10  — morning_job   → posts morning pick to VIP channel
 #  00:00  — evening_job   → posts evening pick (never same match as morning)
 #
 # ============================================================
@@ -887,7 +887,7 @@ async def send_to_vip(text: str, sport_cat: str):
 # ============================================================
 
 async def morning_job():
-    log.info("=== MORNING JOB (12:00 Armenia) ===")
+    log.info("=== MORNING JOB (12:10 Armenia) ===")
     pick = find_best_match()
     if not pick:
         log.warning("No future match. Skipping.")
@@ -928,12 +928,12 @@ async def main():
         log.info(f"📌 Today's morning pick already on disk: {saved['match_id']} — {saved['pick']}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
-    scheduler.add_job(morning_job,  "cron", hour=12, minute=0, id="morning")
+    scheduler.add_job(morning_job,  "cron", hour=12, minute=10, id="morning")
     scheduler.add_job(evening_job,  "cron", hour=0,  minute=0, id="evening")
     scheduler.add_job(reminder_job, "cron", hour=10, minute=0, id="reminder")
     scheduler.add_job(kick_job,     "cron", hour=10, minute=5, id="kick")
     scheduler.start()
-    log.info("Scheduler: 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
+    log.info("Scheduler: 12:10 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
 
     app = Application.builder().token(VIP_TOKEN).build()
     app.add_handler(CommandHandler("start",      start))
