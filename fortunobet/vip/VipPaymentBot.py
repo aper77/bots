@@ -128,12 +128,24 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 SPORT_PRIORITY = [
+    # Soccer — currently active
     "soccer_epl", "soccer_uefa_champs_league", "soccer_uefa_europa_league",
+    "soccer_uefa_europa_conference_league",
     "soccer_spain_la_liga", "soccer_italy_serie_a", "soccer_germany_bundesliga",
     "soccer_france_ligue_one", "soccer_efl_champ", "soccer_turkey_super_league",
-    "tennis_atp_monte_carlo_masters", "tennis_atp_french_open",
-    "tennis_wta_french_open", "tennis_atp_us_open",
-    "basketball_nba", "basketball_euroleague",
+    "soccer_netherlands_eredivisie", "soccer_portugal_primeira_liga",
+    "soccer_belgium_first_div", "soccer_brazil_campeonato", "soccer_usa_mls",
+    "soccer_mexico_ligamx", "soccer_argentina_primera_division",
+    "soccer_saudi_arabia_pro_league", "soccer_conmebol_copa_libertadores",
+    # Tennis — currently active
+    "tennis_atp_madrid_open", "tennis_wta_madrid_open",
+    "tennis_atp_french_open", "tennis_wta_french_open",
+    "tennis_atp_us_open",
+    # Basketball — currently active
+    "basketball_nba", "basketball_euroleague", "basketball_wnba",
+    # Other active sports as fallback
+    "baseball_mlb", "icehockey_nhl",
+    "cricket_ipl", "rugby_league_nrl",
 ]
 SPORT_CATEGORY_PRIORITY = ["soccer", "tennis", "basketball"]
 
@@ -742,6 +754,15 @@ def fetch_odds(sport_key: str) -> list:
                     "oddsFormat": "decimal", "dateFormat": "iso"},
             timeout=10
         )
+        remaining = r.headers.get("x-requests-remaining", "?")
+        used      = r.headers.get("x-requests-used", "?")
+        log.info(f"Odds API [{sport_key}] status={r.status_code} | used={used} | remaining={remaining}")
+        if r.status_code == 422:
+            log.error("❌ ODDS API QUOTA EXCEEDED — no credits left! Renew at the-odds-api.com")
+            return []
+        if r.status_code == 401:
+            log.error("❌ ODDS API: Invalid API key!")
+            return []
         return r.json() if r.status_code == 200 else []
     except Exception as e:
         log.error(f"Fetch error {sport_key}: {e}")
