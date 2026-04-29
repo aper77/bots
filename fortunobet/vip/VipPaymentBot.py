@@ -115,7 +115,7 @@ MAX_ODDS = 2.20
 # ------------------------------------------------------------
 #  10:00  — reminder_job  → warns members expiring within 24h
 #  10:05  — kick_job      → removes expired members from channel
-#  12:17  — morning_job   → posts morning pick to VIP channel
+#  12:00  — morning_job   → posts morning pick to VIP channel
 #  00:00  — evening_job   → posts evening pick (never same match as morning)
 #
 # ============================================================
@@ -128,24 +128,13 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 SPORT_PRIORITY = [
-    # Soccer — currently active
-    "soccer_epl", "soccer_uefa_champs_league", "soccer_uefa_europa_league",
-    "soccer_uefa_europa_conference_league",
-    "soccer_spain_la_liga", "soccer_italy_serie_a", "soccer_germany_bundesliga",
-    "soccer_france_ligue_one", "soccer_efl_champ", "soccer_turkey_super_league",
-    "soccer_netherlands_eredivisie", "soccer_portugal_primeira_liga",
-    "soccer_belgium_first_div", "soccer_brazil_campeonato", "soccer_usa_mls",
-    "soccer_mexico_ligamx", "soccer_argentina_primera_division",
-    "soccer_saudi_arabia_pro_league", "soccer_conmebol_copa_libertadores",
-    # Tennis — currently active
-    "tennis_atp_madrid_open", "tennis_wta_madrid_open",
-    "tennis_atp_french_open", "tennis_wta_french_open",
-    "tennis_atp_us_open",
-    # Basketball — currently active
-    "basketball_nba", "basketball_euroleague", "basketball_wnba",
-    # Other active sports as fallback
-    "baseball_mlb", "icehockey_nhl",
-    "cricket_ipl", "rugby_league_nrl",
+    # Only 5 sports — bot stops at the first one that has a good match.
+    # This means 1-3 API calls per post max (saves 90% of quota).
+    "soccer_epl",
+    "soccer_spain_la_liga",
+    "soccer_italy_serie_a",
+    "basketball_nba",
+    "tennis_atp_madrid_open",
 ]
 SPORT_CATEGORY_PRIORITY = ["soccer", "tennis", "basketball"]
 
@@ -826,17 +815,13 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
 def find_best_match(exclude_id: str = None) -> dict | None:
     log.info("Finding best future match...")
     for sport_key in SPORT_PRIORITY:
-        pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
+        matches = fetch_odds(sport_key)
+        if not matches:
+            continue
+        pick = get_best_pick(matches, exclude_id=exclude_id)
         if pick:
             log.info(f"Pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h away")
             return pick
-    for cat in SPORT_CATEGORY_PRIORITY:
-        for sport_key in fetch_active_sports():
-            if sport_key in SPORT_PRIORITY or cat not in sport_key: continue
-            pick = get_best_pick(fetch_odds(sport_key), exclude_id=exclude_id)
-            if pick:
-                log.info(f"Fallback: {pick['pick']} ({sport_key})")
-                return pick
     log.warning("No future match found.")
     return None
 
@@ -908,7 +893,7 @@ async def send_to_vip(text: str, sport_cat: str):
 # ============================================================
 
 async def morning_job():
-    log.info("=== MORNING JOB (12:17 Armenia) ===")
+    log.info("=== MORNING JOB (12:00 Armenia) ===")
     pick = find_best_match()
     if not pick:
         log.warning("No future match. Skipping.")
@@ -949,12 +934,12 @@ async def main():
         log.info(f"📌 Today's morning pick already on disk: {saved['match_id']} — {saved['pick']}")
 
     scheduler = AsyncIOScheduler(timezone="Asia/Yerevan")
-    scheduler.add_job(morning_job,  "cron", hour=12, minute=17, id="morning")
+    scheduler.add_job(morning_job,  "cron", hour=12, minute=0, id="morning")
     scheduler.add_job(evening_job,  "cron", hour=0,  minute=0, id="evening")
     scheduler.add_job(reminder_job, "cron", hour=10, minute=0, id="reminder")
     scheduler.add_job(kick_job,     "cron", hour=10, minute=5, id="kick")
     scheduler.start()
-    log.info("Scheduler: 12:17 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
+    log.info("Scheduler: 12:00 morning | 00:00 evening | 10:00 reminder | 10:05 kick")
 
     app = Application.builder().token(VIP_TOKEN).build()
     app.add_handler(CommandHandler("start",      start))
