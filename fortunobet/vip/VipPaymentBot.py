@@ -54,7 +54,7 @@ MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
 # ============================================================
-# ADMIN COMMANDS  (only work for ADMIN_ID)
+# ADMIN COMMANDS  (only work for ADMIN_ID)1
 # ============================================================
 #
 #  /stats
