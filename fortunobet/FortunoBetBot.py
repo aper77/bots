@@ -41,9 +41,8 @@ scheduler = BlockingScheduler()
 # 14:00 — Withdraw + Tips (VALUE)
 # 22:00 — Final Bonus (HYPE)
 
-posts =
-[
-{"date":"2026-05-04","time":"16:00","content":"⚽ <b>$150 → $223.50. Arsenal ✅</b>\n\nEngland Premier League. Odds 1.46. 🏴󠁧󠁢󠁥󠁮󠁧󠁿\n$73.50 profit. Arsenal vs Newcastle. Dominated. 💸\n\nArsenal strong home form. Data was clear. Easy read.\nMy guy — pure analysis, not luck. They followed. Already paid. ✅\n\nYou dey watch while others dey collect? STOP WATCHING. 🔥\n\nDeposit ₦3,000 → play with ₦18,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join NOW:</b> https://1wzpdo.life/casino/list?open=register&p=z0ln","images":["win2.png"]},
+posts =[
+{"date":"2026-05-04","time":"17:19","content":"⚽ <b>$150 → $223.50. Arsenal ✅</b>\n\nEngland Premier League. Odds 1.46. 🏴󠁧󠁢󠁥󠁮󠁧󠁿\n$73.50 profit. Arsenal vs Newcastle. Dominated. 💸\n\nArsenal strong home form. Data was clear. Easy read.\nMy guy — pure analysis, not luck. They followed. Already paid. ✅\n\nYou dey watch while others dey collect? STOP WATCHING. 🔥\n\nDeposit ₦3,000 → play with ₦18,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Join NOW:</b> https://1wzpdo.life/casino/list?open=register&p=z0ln","images":["win2.png"]},
 {"date":"2026-05-04","time":"23:55","content":"💸 <b>₦117,600 PalmPay — Arrived instant ✅</b>\n\nMonday 4 May. 06:32 AM. Real phone notification. 💚\n₦117,600 (~$80). ID: PPW-9938861. Same minute.\n\nBryan tested small first. Then scaled up big.\nNo delay. No wahala. My guy — just pure money. 💸\n\n1WIN pays. PalmPay confirms. Every single time. ✅\nYou can't withdraw what you don't deposit. ACT NOW. 🔥\n\nDeposit ₦5,000 → play with ₦30,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Start NOW:</b> https://1wzpdo.life/casino/list?open=register&p=z0ln","images":["withdrow2.png"]},
 
 {"date":"2026-05-05","time":"16:00","content":"💡 <b>How to use your 600% bonus correctly</b>\n\nMy guy, most people waste their bonus. Here is how to use it right.\n\nStep 1: Register FREE → code FORTUNOBET.\nStep 2: Deposit ₦3,000 → play with ₦18,000.\nStep 3: Place small bets. Withdraw profits. PalmPay. 💸\n\nChale — test small first. Smart bettors don't rush. 🙏\nScared people watch. Smart people ACT. 🔥\n\nDeposit ₦3,000 → play with ₦18,000\n🔑 Code: <code>fortunobet</code>\n👉 <b>Start here:</b> https://1wzpdo.life/casino/list?open=register&p=z0ln","images":["bonus3.jpeg"]},
