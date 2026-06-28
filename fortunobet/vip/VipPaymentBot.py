@@ -54,7 +54,7 @@ MIN_ODDS = 1.15
 MAX_ODDS = 2.20
 
 # ============================================================
-# ADMIN COMMANDS  (only work for ADMIN_ID)1
+# ADMIN COMMANDS  (only work for ADMIN_ID)
 # ============================================================
 #
 #  /stats
@@ -128,13 +128,16 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 SPORT_PRIORITY = [
-    # Only 5 sports — bot stops at the first one that has a good match.
-    # This means 1-3 API calls per post max (saves 90% of quota).
-    "soccer_epl",
-    "soccer_spain_la_liga",
-    "soccer_italy_serie_a",
-    "basketball_nba",
-    "tennis_atp_madrid_open",
+    # Updated June 2026 — only currently active sports.
+    # Bot stops at first sport with a good match (1-3 API calls max).
+    "soccer_fifa_world_cup",        # FIFA World Cup 2026 — biggest event right now
+    "soccer_epl",                   # EPL — always has matches
+    "soccer_brazil_campeonato",     # Brazil Serie A — active June/July
+    "soccer_conmebol_copa_libertadores",  # Copa Libertadores — active
+    "tennis_atp_wimbledon",         # Wimbledon starts late June
+    "tennis_wta_wimbledon",         # Wimbledon WTA
+    "baseball_mlb",                 # MLB — daily games all summer
+    "basketball_wnba",              # WNBA — active June/July
 ]
 SPORT_CATEGORY_PRIORITY = ["soccer", "tennis", "basketball"]
 
@@ -551,7 +554,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ref_info  = refs_data.get(str(referrer_id), {})
                 total     = ref_info.get("referral_count", 0)
                 if earned:
-                    # Give reward to referrer
                     new_exp, _ = db_add_free_days(referrer_id, REFERRAL_REWARD_DAYS)
                     if not new_exp:
                         new_exp, _ = db_add_member(referrer_id, str(referrer_id), "referral", days=REFERRAL_REWARD_DAYS)
@@ -814,15 +816,53 @@ def get_best_pick(matches: list, exclude_id: str = None) -> dict | None:
 
 def find_best_match(exclude_id: str = None) -> dict | None:
     log.info("Finding best future match...")
+
+    # STEP 1: Try priority list first (saves API quota)
     for sport_key in SPORT_PRIORITY:
         matches = fetch_odds(sport_key)
         if not matches:
             continue
         pick = get_best_pick(matches, exclude_id=exclude_id)
         if pick:
-            log.info(f"Pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h away")
+            log.info(f"Priority pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h | {sport_key}")
             return pick
-    log.warning("No future match found.")
+
+    # STEP 2: Fallback — fetch ALL active sports from API and try every one.
+    # This guarantees a post even when priority sports have no matches.
+    log.warning("Priority sports empty — trying ALL active sports as fallback...")
+    try:
+        r = requests.get("https://api.the-odds-api.com/v4/sports",
+                         params={"apiKey": ODDS_API_KEY}, timeout=10)
+        if r.status_code != 200:
+            log.error(f"Could not fetch active sports: {r.status_code}")
+            return None
+        # Filter: active, not outrights (outrights have no h2h odds), not already tried
+        all_keys = [
+            s["key"] for s in r.json()
+            if s.get("active") and not s.get("has_outrights", False) == True
+            and not s.get("has_outrights") and s["key"] not in SPORT_PRIORITY
+        ]
+        # Prefer soccer, then tennis, then everything else
+        def sport_order(key):
+            if "soccer" in key: return 0
+            if "tennis" in key: return 1
+            if "basketball" in key: return 2
+            if "baseball" in key: return 3
+            return 9
+        all_keys.sort(key=sport_order)
+        log.info(f"Fallback: trying {len(all_keys)} additional sports...")
+        for sport_key in all_keys:
+            matches = fetch_odds(sport_key)
+            if not matches:
+                continue
+            pick = get_best_pick(matches, exclude_id=exclude_id)
+            if pick:
+                log.info(f"Fallback pick: {pick['pick']} @ {pick['pick_odds']} | {pick['hours_until']:.1f}h | {sport_key}")
+                return pick
+    except Exception as e:
+        log.error(f"Fallback search error: {e}")
+
+    log.warning("No future match found in ANY sport.")
     return None
 
 # ============================================================
@@ -898,24 +938,20 @@ async def morning_job():
     if not pick:
         log.warning("No future match. Skipping.")
         return
-    # Save to disk so evening job can exclude it even after a restart
     morning_pick_save(pick)
     await send_to_vip(generate_morning_post(pick), pick["sport_cat"])
 
 async def evening_job():
     log.info("=== EVENING JOB (00:00 Armenia) ===")
-    # Always load from disk — guaranteed to be today's pick or None
     saved_morning = morning_pick_load()
     exclude_id    = saved_morning["match_id"] if saved_morning else None
     if exclude_id:
         log.info(f"Excluding morning match: {exclude_id}")
-
     pick = find_best_match(exclude_id=exclude_id)
     if not pick:
         log.warning("No future match. Skipping.")
         return
     await send_to_vip(generate_evening_post(pick, morning_pick=saved_morning), pick["sport_cat"])
-    # Clear the morning pick file after the evening post is sent
     morning_pick_clear()
 
 # ============================================================
@@ -928,7 +964,6 @@ async def main():
         log.info(f"{'✅' if os.path.exists(path) else '❌ MISSING'} {sport}: {path}")
     log.info(f"📋 Members: {len(db_load())} | Referrers: {len(refs_load())}")
 
-    # Log if today's morning pick is already saved (e.g. bot restarted after morning post)
     saved = morning_pick_load()
     if saved:
         log.info(f"📌 Today's morning pick already on disk: {saved['match_id']} — {saved['pick']}")
