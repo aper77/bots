@@ -14,6 +14,7 @@ from telegram.constants import ParseMode
 # CONFIG
 # ============================================================
 
+
 VIP_TOKEN       = "8643569826:AAE6i7qJABI6OwexCLn7ohTOWwi2tU88-dg"
 VIP_CHANNEL_ID  = -1003729457344
 VIP_INVITE_LINK = "https://t.me/+zK2J-5fd9QEwNmRi"
