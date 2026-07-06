@@ -53,7 +53,7 @@ from aiogram.types import (
 # =========================================================
 #  CONFIGURATION — only edit this section
 # =========================================================
-TOKEN             = "8785716937:AAHi1QULuw-OGhCVAhYOXg_aO6QpMkdmr_Y"
+TOKEN             = "8785716937:AAFpx3NtF1XD_cl2DrEeb1yMyw0Yvj0EoMg"
 ADMIN_ID          = 8612272966
 TONCENTER_API_KEY = "a4e8dd9e0111177cb876e4b0559e8a58b5eeb4b6acdbd981ad4f7b6123acad9c"
 ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"

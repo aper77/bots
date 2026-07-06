@@ -26,7 +26,7 @@ from aiogram.types import (
 # =========================================================
 #  CONFIGURATION
 # =========================================================
-TOKEN             = "8605162590:AAE9r8DRRnJw-3qRJQStQJk2ShTSuF0TI4o"
+TOKEN             = "8605162590:AAGg7lk-K8fqedcpQP9w8JdHrbdVO2X39wQ"
 ADMIN_ID          = 8612272966
 TONCENTER_API_KEY = "a4e8dd9e0111177cb876e4b0559e8a58b5eeb4b6acdbd981ad4f7b6123acad9c"
 ADMIN_WALLET      = "UQDlWJTEIwwGt7vai3T6s5MXgULmXk4ojhseU_UxxL7SY2DK"
