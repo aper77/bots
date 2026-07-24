@@ -2503,12 +2503,6 @@
 # if __name__ == "__main__":
 #     asyncio.run(main())
 
-"""
-Fortuno Aviator - PRODUCTION VERSION
-Install: pip install aiogram
-Run:     python3 main.py
-"""
-
 import logging
 import asyncio
 import json
@@ -3788,4 +3782,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main()) 
