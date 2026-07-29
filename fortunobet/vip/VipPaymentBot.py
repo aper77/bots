@@ -21,7 +21,7 @@ ODDS_API_KEY    = "bd55794e7bf843f14ab61e3521a8023a"
 REF_CODE        = "z4m5"
 PROMO_CODE      = "fortunobet"
 ADMIN_ID        = 7627990095
-BOT_USERNAME    = "FortunoBet_Pay_Bot"
+BOT_USERNAME    = "FortunoVIPbot"
 
 WEEKLY_STARS  = 50    # $1
 MONTHLY_STARS = 150   # $3
