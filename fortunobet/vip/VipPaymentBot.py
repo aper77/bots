@@ -993,7 +993,7 @@ async def main():
     async with app:
         await app.initialize()
         await app.start()
-        await app.updater.start_polling()
+        await app.updater.start_polling(allowed_updates=["message", "callback_query", "pre_checkout_query"])
         log.info("✅ All systems running!")
         try:
             while True:
