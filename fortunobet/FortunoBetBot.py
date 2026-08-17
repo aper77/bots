@@ -66,7 +66,7 @@ posts =[
 
 
 
-  {"date":"2026-08-17","time":"17:30","content":"🚨 <b>ODDS MOVING — KICKOFF IN 25 MINS</b>\nBoth Palace & Wolves scored in last 4 meetings. Over 1.5 Goals @ 1.34. ⚡\nMarket line closing before kickoff. Lock selection now.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>PLACE YOUR LIVE BET:</b> https://r1wttde.life/betting?open=register&p=t02b","images":[]},
+  {"date":"2026-08-17","time":"17:06","content":"🚨 <b>ODDS MOVING — KICKOFF IN 25 MINS</b>\nBoth Palace & Wolves scored in last 4 meetings. Over 1.5 Goals @ 1.34. ⚡\nMarket line closing before kickoff. Lock selection now.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>PLACE YOUR LIVE BET:</b> https://r1wttde.life/betting?open=register&p=t02b","images":[]},
   {"date":"2026-08-17","time":"22:30","content":"💸 <b>₦62,000 PALMPAY CASHOUT SETTLED ✅</b>\n\nID: <code>PPW-7732324</code>. Received at 06:34 AM in 48s. 📱\nBryan cashed out ₦62,000 straight to PalmPay with zero delays.\nStart with ₦200 / GH₵5 to test withdrawal speed yourself.\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>TEST CASHOUT SPEED:</b> https://r1wttde.life/betting?open=register&p=t02b","images":["with1.jpeg"]},
 
   {"date":"2026-08-18","time":"12:00","content":"🎁 <b>500% WELCOME BOOST: ₦1,000 → ₦6,000! ⚡</b>\n\nDeposit ₦1,000 → eligible bonus up to ₦6,000 (GH₵25 → GH₵150)! 💰\nInstant deposit via PalmPay, OPay & MTN MoMo in 30s. 📲\n10% monthly loss cashback insurance active on balance. 🛡️\n\n🔑 Code: <code>fortunobet</code>\n👉 <b>CLAIM 500% WELCOME BOOST:</b> https://r1wttde.life/betting?open=register&p=t02b","images":["fortunobet.jpeg"]},
